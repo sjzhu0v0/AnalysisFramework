@@ -1,0 +1,8 @@
+{
+  "McBasic": {
+    "nbins_deltavzc": 1000
+  },
+  "DataBasic": {
+    "nbins_deltavzc": 1000
+  }
+}

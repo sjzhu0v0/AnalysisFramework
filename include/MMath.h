@@ -49,7 +49,8 @@ public:
   // MDouble operator/(MDouble rhs) {
   //   return MDouble(fValue / rhs.fValue,
   //                  sqrt(pow(fError / rhs.fValue, 2) +
-  //                       pow(fValue / rhs.fValue * rhs.fError / rhs.fValue, 2)));
+  //                       pow(fValue / rhs.fValue * rhs.fError / rhs.fValue,
+  //                       2)));
   // }
   MDouble operator+(double rhs) { return MDouble(fValue + rhs, fError); }
   MDouble operator-(double rhs) { return MDouble(fValue - rhs, fError); }
