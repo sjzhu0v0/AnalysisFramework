@@ -72,12 +72,10 @@ struct gStrParameter4Thread;
 
 void MultiThread(int nThreads, std::function<void(int)> func) {
   std::vector<std::thread> threads;
-  for (int i = 0; i < nThreads; i++) {
+  for (int i = 0; i < nThreads; i++)
     threads.push_back(std::thread(func, i));
-  }
-  for (int i = 0; i < nThreads; i++) {
+  for (int i = 0; i < nThreads; i++)
     threads[i].join();
-  }
 }
 
 #endif
