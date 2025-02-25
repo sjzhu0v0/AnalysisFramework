@@ -17,6 +17,8 @@
 #include "TROOT.h"
 #include "TTree.h"
 #include "iostream"
+#include "fstream"
+#include "string"
 #include "nlohmann/json.hpp"
 
 using namespace std;
