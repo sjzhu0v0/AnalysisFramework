@@ -40,6 +40,7 @@
     "Ifit.C": "cpp",
     "McTrackInfo.C": "cpp",
     "iosfwd": "cpp",
-    "TrackInfo.C": "cpp"
+    "TrackInfo.C": "cpp",
+    "fstream": "cpp"
   }
 }
