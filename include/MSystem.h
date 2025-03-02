@@ -61,6 +61,8 @@ void SetUpJson(string config) {
   }
 }
 
+#endif
+
 #ifdef MultiThread
 
 #include <mutex>
@@ -80,4 +82,19 @@ void MultiThread(int nThreads, std::function<void(int)> func) {
 }
 
 #endif
+
+#define MRDF
+#ifdef MRDF
+
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RVec.hxx>
+
+using namespace std;
+using namespace ROOT;
+using namespace ROOT::RDF;
+
+vector<RResultHandle> gRResultHandles;
+RDataFrame* gRdf;
+
 #endif

@@ -1,4 +1,5 @@
 #include "MHead.h"
+#include "MSystem.h"
 
 #ifndef MHist_h
 #define MHist_h
@@ -59,5 +60,32 @@ int GetBinIndex(double value, int nbins, double low, double high) {
   double binWidth = (high - low) / nbins;
   return (value - low) / binWidth;
 }
+
+#endif
+
+#ifdef MRDF
+#define RHistDefine1D(v, histName, histTitle, ...)                             \
+  gRResultHandles->push_back(                                                  \
+      gRDF->GetHisto1D({#histName, #histTitle, __VA_ARGS__}, #v));
+
+#define RHistDefine1D(v, w, histName, histTitle, ...)                          \
+  gRResultHandles->push_back(                                                  \
+      gRDF->GetHisto1D({#histName, #histTitle, __VA_ARGS__}, #v, #w));
+
+#define RHistDefine2D(v1, v2, histName, histTitle, ...)                        \
+  gRResultHandles->push_back(                                                  \
+      gRDF->GetHisto2D({#histName, #histTitle, __VA_ARGS__}, #v1, #v2));
+
+#define RHistDefine2D(v1, v2, w, histName, histTitle, ...)                     \
+  gRResultHandles->push_back(                                                  \
+      gRDF->GetHisto2D({#histName, #histTitle, __VA_ARGS__}, #v1, #v2, #w));
+
+#define RHistDefine3D(v1, v2, v3, histName, histTitle, ...)                    \
+  gRResultHandles->push_back(                                                  \
+      gRDF->GetHisto3D({#histName, #histTitle, __VA_ARGS__}, #v1, #v2, #v3));
+
+#define RHistDefine3D(v1, v2, v3, w, histName, histTitle, ...)                 \
+  gRResultHandles->push_back(gRDF->GetHisto3D(                                 \
+      {#histName, #histTitle, __VA_ARGS__}, #v1, #v2, #v3, #w));
 
 #endif
