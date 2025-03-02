@@ -65,6 +65,7 @@ void SetUpJson(string config) {
 
 #include <mutex>
 #include <thread>
+#include <vector>
 
 std::mutex mtx;
 
