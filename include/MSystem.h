@@ -83,7 +83,6 @@ void MultiThread(int nThreads, std::function<void(int)> func) {
 
 #endif
 
-#define MRDF
 #ifdef MRDF
 
 #include <ROOT/RDataFrame.hxx>
