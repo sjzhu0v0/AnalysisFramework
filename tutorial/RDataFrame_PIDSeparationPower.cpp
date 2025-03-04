@@ -33,7 +33,7 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
       rdf.Filter("abs(fPidIndex) == 0")
           .Filter(
               "fTPCInnerParam < 3.5 * 0.139 && fTPCInnerParam > 3. * 0.139");
-  auto rdf_pion_mip = rdf.Filter("abs(fPidIndex) == 2")
+  auto rdf_pion_mip = rdf.Filter("fPidIndex == 2")
                           .Filter("fBetaGamma < 3.5 && fBetaGamma > 3.");
 
   double axisOccuFt0[] = {0.,     130.,   1010.,  2740.,  5130., 8070.,
@@ -82,17 +82,17 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
                   "fFt0Occ_DeltaDeDx_Pion" + TString(index_cls),
                   "fFt0Occ_DeltaDeDx_Pion:" + TString(cond), axisOccuFt0,
                   axis_DeltaDeDx);
-    RHistDefine2D(rdf_electron_clusterVar, "fTgl", "fNSigmaTPC",
+    RHistDefine2D(rdf_electron_clusterVar, "fTgl", "fNSigTPC",
                   "Tgl_nsigma_Electron" + TString(index_cls),
                   "Tgl_nsigma_Electron:" + TString(cond), axisTgl, axis_nsigma);
-    RHistDefine2D(rdf_pion_clusterVar, "fTgl", "fNSigmaTPC",
+    RHistDefine2D(rdf_pion_clusterVar, "fTgl", "fNSigTPC",
                   "Tgl_nsigma_Pion" + TString(index_cls),
                   "Tgl_nsigma_Pion:" + TString(cond), axisTgl, axis_nsigma);
-    RHistDefine2D(rdf_electron_clusterVar, "fFt0Occ", "fNSigmaTPC",
+    RHistDefine2D(rdf_electron_clusterVar, "fFt0Occ", "fNSigTPC",
                   "fFt0Occ_nsigma_Electron" + TString(index_cls),
                   "fFt0Occ_nsigma_Electron:" + TString(cond), axisOccuFt0,
                   axis_nsigma);
-    RHistDefine2D(rdf_pion_clusterVar, "fFt0Occ", "fNSigmaTPC",
+    RHistDefine2D(rdf_pion_clusterVar, "fFt0Occ", "fNSigTPC",
                   "fFt0Occ_nsigma_Pion" + TString(index_cls),
                   "fFt0Occ_nsigma_Pion:" + TString(cond), axisOccuFt0,
                   axis_nsigma);
