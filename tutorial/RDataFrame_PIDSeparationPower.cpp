@@ -2,7 +2,6 @@
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
-#include "MSystem.h"
 #include <ROOT/RDataFrame.hxx>
 
 funcWithJson(void, RDataFrame_PIDSeparationPower)(
@@ -10,7 +9,8 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
   SetUpJson(path_config.Data());
   ROOT::EnableImplicitMT();
   // RDataFrame* rdf = new RDataFrame("T", "path/to/file.root");
-  Configurable<string> config_pathInputFile("path_file_input", "path/to/file.root");
+  Configurable<string> config_pathInputFile("path_file_input",
+                                            "path/to/file.root");
   Configurable<string> config_pathOutputFile("path_file_output", "output.root");
   TChain *chain =
       MRootIO::OpenChain(config_pathInputFile.data.c_str(), "O2tpcskimv0tree");
