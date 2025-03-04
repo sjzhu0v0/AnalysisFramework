@@ -4,5 +4,9 @@
   },
   "DataBasic": {
     "nbins_deltavzc": 1000
+  },
+  "RDataFrame_PIDSeparationPower": {
+    "path_file_input": "/lustre/alice/users/marin/R3A/TPCTrees/TPCTrees_LHC23zzh_241218/AO2D_merge_241218_LHC23zzh.root",
+    "path_file_output": "/lustre/alice/users/szhu/work/test/AnalysisFramework/output"
   }
 }
