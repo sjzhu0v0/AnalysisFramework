@@ -6,5 +6,5 @@ FLAGS_MINUIT=-lMinuit
 kit/TreeClone.exe: kit/TreeClone.exe
  	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
-tutorial/RDataFrame_PIDSeparationPower.exe: tutorial/RDataFrame_PIDSeparationPower.exe:
+tutorial/RDataFrame_PIDSeparationPower.exe: tutorial/RDataFrame_PIDSeparationPower.exe
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
