@@ -30,7 +30,7 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
                          {"fTPCSignal", "fInvDeDxExpTPC"});
 
   auto rdf_electron_mip =
-      rdf.Filter("abs(fPidIndex) == 0")
+      rdf.Filter("fPidIndex == 0")
           .Filter(
               "fTPCInnerParam < 3.5 * 0.139 && fTPCInnerParam > 3. * 0.139");
   auto rdf_pion_mip = rdf.Filter("fPidIndex == 2")
