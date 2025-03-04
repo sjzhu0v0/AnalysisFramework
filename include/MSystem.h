@@ -6,11 +6,6 @@
 #include "nlohmann/json.hpp"
 #include "string"
 
-int GenerateUID() {
-  static int uid = 0;
-  return uid++;
-}
-
 using std::cout;
 using std::endl;
 using std::string;
