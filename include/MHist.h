@@ -64,28 +64,22 @@ int GetBinIndex(double value, int nbins, double low, double high) {
 #endif
 
 #ifdef MRDF
-#define RHistDefine1D(v, histName, histTitle, ...)                             \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto1D({histName, histTitle, __VA_ARGS__}, v));
+#define RHistDefine1D(df, v, ...)                                              \
+  gRResultHandles.push_back(df.Histo1D({__VA_ARGS__}, v));
 
-#define RHistDefine1D(v, w, histName, histTitle, ...)                          \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto1D({histName, histTitle, __VA_ARGS__}, v, w));
+#define RHistDefine1DWeighted(df, v, w, ...)                                   \
+  gRResultHandles.push_back(df.Histo1D({__VA_ARGS__}, v, w));
 
-#define RHistDefine2D(v1, v2, histName, histTitle, ...)                        \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto2D({histName, histTitle, __VA_ARGS__}, v1, v2));
+#define RHistDefine2D(df, v1, v2, ...)                                         \
+  gRResultHandles.push_back(df.Histo2D({__VA_ARGS__}, v1, v2));
 
-#define RHistDefine2D(v1, v2, w, histName, histTitle, ...)                     \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto2D({histName, histTitle, __VA_ARGS__}, v1, v2, w));
+#define RHistDefine2DWeighted(df, v1, v2, w, ...)                              \
+  gRResultHandles.push_back(df.Histo2D({__VA_ARGS__}, v1, v2, w));
 
-#define RHistDefine3D(v1, v2, v3, histName, histTitle, ...)                    \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto3D({#histName, #histTitle, __VA_ARGS__}, v1, v2, v3));
+#define RHistDefine3D(df, v1, v2, v3, ...)                                     \
+  gRResultHandles.push_back(df.Histo3D({__VA_ARGS__}, v1, v2, v3));
 
-#define RHistDefine3D(v1, v2, v3, w, histName, histTitle, ...)                 \
-  gRResultHandles->push_back(                                                  \
-      gRDF->GetHisto3D({#histName, #histTitle, __VA_ARGS__}, v1, v2, v3, w));
+#define RHistDefine3DWeighted(df, v1, v2, v3, w, ...)                          \
+  gRResultHandles.push_back(df.Histo3D({__VA_ARGS__}, v1, v2, v3, w));
 
 #endif
