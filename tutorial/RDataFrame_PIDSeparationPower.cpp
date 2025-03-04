@@ -104,7 +104,7 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
   fOutput->cd();
   for (auto &handle : gRResultHandles) {
     // 获取直方图
-    auto hist = handle.GetPtr<TH1>();
+    auto hist = handle.GetPtr<TH2D>();
     hist->Write();
   }
   fOutput->Close();
