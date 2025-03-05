@@ -53,11 +53,11 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
     auto rdf_electron_clusterVar = rdf_electron_mip.Filter(cond);
     auto rdf_pion_clusterVar = rdf_pion_mip.Filter(cond);
     RHistDefine2D(rdf_electron_clusterVar, "fTgl", "fTPCSignal",
-                  TString::Format("ffTgl_fTPCSignal_Electron%d", index_cls),
-                  "ffTgl_fTPCSignal_Electron:" + TString(cond), axisTgl, axis_dEdx);
+                  TString::Format("fTgl_fTPCSignal_Electron%d", index_cls),
+                  "fTgl_fTPCSignal_Electron:" + TString(cond), axisTgl, axis_dEdx);
     RHistDefine2D(rdf_pion_clusterVar, "fTgl", "fTPCSignal",
-                  TString::Format("ffTgl_fTPCSignal_Pion%d", index_cls),
-                  "ffTgl_fTPCSignal_Pion:" + TString(cond), axisTgl, axis_dEdx);
+                  TString::Format("fTgl_fTPCSignal_Pion%d", index_cls),
+                  "fTgl_fTPCSignal_Pion:" + TString(cond), axisTgl, axis_dEdx);
     RHistDefine2D(rdf_electron_clusterVar, "fFt0Occ", "fTPCSignal",
                   TString::Format("fFt0Occ_fTPCSignal_Electron%d", index_cls),
                   "fFt0Occ_fTPCSignal_Electron:" + TString(cond), axisOccuFt0,
