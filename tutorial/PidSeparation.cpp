@@ -1,6 +1,27 @@
 #include "MHead.h"
 #include "TLegend.h"
 
+template <size_t Level, typename... Ts> struct Loop {
+  template <typename Func>
+  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+                      std::tuple<Ts...> &current, Func func) {
+    const auto &vec = std::get<Level>(vectors); // 获取当前层级的向量
+    for (const auto &item : vec) {
+      std::get<Level>(current) = item; // 设置当前层级的值
+      Loop<Level + 1, Ts...>::iterate(vectors, current, func); // 递归到下一层级
+    }
+  }
+};
+
+// 模板特化，终止递归
+template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
+  template <typename Func>
+  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+                      std::tuple<Ts...> &current, Func func) {
+    func(current); // 调用处理函数
+  }
+};
+
 typedef struct StrGausFit {
   TH1D *hMean;
   TH1D *hSigma;
@@ -90,7 +111,7 @@ void PidSeparation() {
 }
 
 void Comparison() {
-  TFile *file =
+  TFile *file_input =
       new TFile("/home/szhu/work/alice/pid_study/output/PidSeparation.root");
   TFile *file_output = new TFile(
       "/home/szhu/work/alice/pid_study/output/Comparison.root", "RECREATE");
@@ -132,14 +153,26 @@ void Comparison() {
   vector<const char *> v1s = {"fTgl", "fFt0Occ"};
   vector<const char *> v2s = {"fTPCSignal", "DeltaDeDx"};
   vector<int> nclss = {0, 1};
+  vector<TFile *> files = {file_input};
 
-  for (auto particle : particles) {
-    for (auto v1 : v1s) {
-      for (auto v2 : v2s) {
-        for (auto ncls : nclss) {
-          h2d_compare(particle, v1, v2, ncls);
-        }
-      }
-    }
-  }
+  tuple<vector<const char *>, vector<const char *>, vector<const char *>,
+        vector<int>, vector<TFile *>>
+      t = make_tuple(particles, v1s, v2s, nclss, files);
+
+  auto func = [](const std::tuple<const char *, const char *, const char *, int,
+                                  TFile *> &values) {
+    const char *particle = std::get<0>(values);
+    const char *v1 = std::get<1>(values);
+    const char *v2 = std::get<2>(values);
+    int ncls = std::get<3>(values);
+    // get the first argument
+    va_list args;
+    TFile *file = std::get<4>(values);
+    h2d_compare(particle, v1, v2, ncls);
+  };
+
+  tuple<const char *, const char *, const char *, int, TFile *> current;
+  Loop<0, const char *, const char *, const char *, int, TFile *>::iterate(
+      t, current, func);
+  // Loop<0, const char *, int, double>::iterate(vectors, current, func);
 }
