@@ -83,29 +83,29 @@ struct Loop<sizeof...(Ts), Ts...> {
     }
 };
 
-int main() {
-    // 定义输入向量（支持多种类型）
-    std::tuple<std::vector<const char*>, std::vector<int>, std::vector<double>> vectors = {
-        {"Electron", "Pion"},       // const char*
-        {1, 2},                     // int
-        {3.14, 2.71}                // double
-    };
+// int main() {
+//     // 定义输入向量（支持多种类型）
+//     std::tuple<std::vector<const char*>, std::vector<int>, std::vector<double>> vectors = {
+//         {"Electron", "Pion"},       // const char*
+//         {1, 2},                     // int
+//         {3.14, 2.71}                // double
+//     };
 
-    // 用于存储当前循环的值
-    std::tuple<const char*, int, double> current;
+//     // 用于存储当前循环的值
+//     std::tuple<const char*, int, double> current;
 
-    // 定义处理函数
-    auto func = [](const std::tuple<const char*, int, double>& values) {
-        std::cout << std::get<0>(values) << " " 
-                  << std::get<1>(values) << " " 
-                  << std::get<2>(values) << std::endl;
-    };
+//     // 定义处理函数
+//     auto func = [](const std::tuple<const char*, int, double>& values) {
+//         std::cout << std::get<0>(values) << " " 
+//                   << std::get<1>(values) << " " 
+//                   << std::get<2>(values) << std::endl;
+//     };
 
-    // 调用模板递归
-    Loop<0, const char*, int, double>::iterate(vectors, current, func);
+//     // 调用模板递归
+//     Loop<0, const char*, int, double>::iterate(vectors, current, func);
 
-    return 0;
-}
+//     return 0;
+// }
 
 #endif
 

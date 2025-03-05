@@ -155,9 +155,7 @@ void Comparison() {
   vector<int> nclss = {0, 1};
   vector<TFile *> files = {file_input};
 
-  tuple<vector<const char *>, vector<const char *>, vector<const char *>,
-        vector<int>, vector<TFile *>>
-      t = make_tuple(particles, v1s, v2s, nclss, files);
+  auto t = make_tuple(particles, v1s, v2s, nclss, files);
 
   auto func = [](const std::tuple<const char *, const char *, const char *, int,
                                   TFile *> &values) {
