@@ -2,7 +2,7 @@
 
 void TreeClone(TString path_file_input,
                   TString path_file_output = "./DiElec.root",
-                  TString name_tree = "O2rtdielectron") {
+                  TString name_tree = "O2rtdiElectron") {
   TChain *chain = MRootIO::OpenChain(path_file_input, name_tree);
   TFile *file_output = new TFile(path_file_output, "RECREATE");
 

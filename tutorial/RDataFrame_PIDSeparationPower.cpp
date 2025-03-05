@@ -33,7 +33,7 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
       rdf.Filter("fPidIndex == 0")
           .Filter(
               "fTPCInnerParam < 3.5 * 0.139 && fTPCInnerParam > 3. * 0.139");
-  auto rdf_pion_mip = rdf.Filter("fPidIndex == 2")
+  auto rdf_Pion_mip = rdf.Filter("fPidIndex == 2")
                           .Filter("fBetaGamma < 3.5 && fBetaGamma > 3.");
 
   double axisOccuFt0[] = {0.,     130.,   1010.,  2740.,  5130., 8070.,
@@ -51,18 +51,18 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
   int index_cls = 0;
   for (auto cond : condition) {
     auto rdf_electron_clusterVar = rdf_electron_mip.Filter(cond);
-    auto rdf_pion_clusterVar = rdf_pion_mip.Filter(cond);
+    auto rdf_Pion_clusterVar = rdf_Pion_mip.Filter(cond);
     RHistDefine2D(rdf_electron_clusterVar, "fTgl", "fTPCSignal",
                   TString::Format("fTgl_fTPCSignal_Electron%d", index_cls),
                   "fTgl_fTPCSignal_Electron:" + TString(cond), axisTgl, axis_dEdx);
-    RHistDefine2D(rdf_pion_clusterVar, "fTgl", "fTPCSignal",
+    RHistDefine2D(rdf_Pion_clusterVar, "fTgl", "fTPCSignal",
                   TString::Format("fTgl_fTPCSignal_Pion%d", index_cls),
                   "fTgl_fTPCSignal_Pion:" + TString(cond), axisTgl, axis_dEdx);
     RHistDefine2D(rdf_electron_clusterVar, "fFt0Occ", "fTPCSignal",
                   TString::Format("fFt0Occ_fTPCSignal_Electron%d", index_cls),
                   "fFt0Occ_fTPCSignal_Electron:" + TString(cond), axisOccuFt0,
                   axis_dEdx);
-    RHistDefine2D(rdf_pion_clusterVar, "fFt0Occ", "fTPCSignal",
+    RHistDefine2D(rdf_Pion_clusterVar, "fFt0Occ", "fTPCSignal",
                   TString::Format("fFt0Occ_fTPCSignal_Pion%d", index_cls),
                   "fFt0Occ_fTPCSignal_Pion:" + TString(cond), axisOccuFt0,
                   axis_dEdx);
@@ -70,7 +70,7 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
                   TString::Format("fTgl_DeltaDeDx_Electron%d", index_cls),
                   "fTgl_DeltaDeDx_Electron:" + TString(cond), axisTgl,
                   axis_DeltaDeDx);
-    RHistDefine2D(rdf_pion_clusterVar, "fTgl", "DeltaDeDx",
+    RHistDefine2D(rdf_Pion_clusterVar, "fTgl", "DeltaDeDx",
                   TString::Format("fTgl_DeltaDeDx_Pion%d", index_cls),
                   "fTgl_DeltaDeDx_Pion:" + TString(cond), axisTgl,
                   axis_DeltaDeDx);
@@ -78,21 +78,21 @@ funcWithJson(void, RDataFrame_PIDSeparationPower)(
                   TString::Format("fFt0Occ_DeltaDeDx_Electron%d", index_cls),
                   "fFt0Occ_DeltaDeDx_Electron:" + TString(cond), axisOccuFt0,
                   axis_DeltaDeDx);
-    RHistDefine2D(rdf_pion_clusterVar, "fFt0Occ", "DeltaDeDx",
+    RHistDefine2D(rdf_Pion_clusterVar, "fFt0Occ", "DeltaDeDx",
                   TString::Format("fFt0Occ_DeltaDeDx_Pion%d", index_cls),
                   "fFt0Occ_DeltaDeDx_Pion:" + TString(cond), axisOccuFt0,
                   axis_DeltaDeDx);
     RHistDefine2D(rdf_electron_clusterVar, "fTgl", "fNSigTPC",
                   TString::Format("fTgl_fNSigTPC_Electron%d", index_cls),
                   "fTgl_fNSigTPC_Electron:" + TString(cond), axisTgl, axis_fNSigTPC);
-    RHistDefine2D(rdf_pion_clusterVar, "fTgl", "fNSigTPC",
+    RHistDefine2D(rdf_Pion_clusterVar, "fTgl", "fNSigTPC",
                   TString::Format("fTgl_fNSigTPC_Pion%d", index_cls),
                   "fTgl_fNSigTPC_Pion:" + TString(cond), axisTgl, axis_fNSigTPC);
     RHistDefine2D(rdf_electron_clusterVar, "fFt0Occ", "fNSigTPC",
                   TString::Format("fFt0Occ_fNSigTPC_Electron%d", index_cls),
                   "fFt0Occ_fNSigTPC_Electron:" + TString(cond), axisOccuFt0,
                   axis_fNSigTPC);
-    RHistDefine2D(rdf_pion_clusterVar, "fFt0Occ", "fNSigTPC",
+    RHistDefine2D(rdf_Pion_clusterVar, "fFt0Occ", "fNSigTPC",
                   TString::Format("fFt0Occ_fNSigTPC_Pion%d", index_cls),
                   "fFt0Occ_fNSigTPC_Pion:" + TString(cond), axisOccuFt0,
                   axis_fNSigTPC);

@@ -1,7 +1,7 @@
 {
   "files.associations": {
-    "QACheck_4DHistos_electron_TPC.C": "cpp",
-    "QACheck_4DHistos_electron_V0.C": "cpp",
+    "QACheck_4DHistos_Electron_TPC.C": "cpp",
+    "QACheck_4DHistos_Electron_V0.C": "cpp",
     "QACheck_4DHistos_TPC.C": "cpp",
     "QACheck_4DHistos_V0.C": "cpp",
     "QACheck_fromSkimmedTree.C": "cpp",
