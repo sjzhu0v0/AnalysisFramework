@@ -82,6 +82,13 @@
     "variant": "cpp",
     "format": "cpp",
     "text_encoding": "cpp",
-    "__nullptr": "cpp"
+    "__nullptr": "cpp",
+    "__functional_03": "cpp",
+    "filesystem": "cpp",
+    "forward_list": "cpp",
+    "queue": "cpp",
+    "set": "cpp",
+    "stack": "cpp",
+    "valarray": "cpp"
   }
 }
