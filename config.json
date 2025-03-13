@@ -8,5 +8,22 @@
   "RDataFrame_PIDSeparationPower": {
     "path_file_input": "/lustre/alice/users/marin/R3A/TPCTrees/TPCTrees_LHC23zzh_241218/AO2D_merge_241218_LHC23zzh.root",
     "path_file_output": "/lustre/alice/users/szhu/work/test/AnalysisFramework/output/output.root"
+  },
+  "MultStudy": {
+    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
+    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/MultStudy.root"
+  },
+  "TriggerStudy": {
+    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
+    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/TriggerStudy.root"
+  },
+  "Control_MultShow": {
+    "path_input": "/home/szhu/work/alice/analysis/MultStudy/output/MultStudy.root",
+    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/MultShow.root"
+  },
+  "NumContribCalibrationTest": {
+    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
+    "path_cali": "/home/szhu/work/alice/analysis/MultStudy/output/MultShow.root:fPosZ_fNumContrib_pfx_px",
+    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/NumContribCalibrationTest.root"
   }
 }

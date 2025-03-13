@@ -89,6 +89,8 @@
     "queue": "cpp",
     "set": "cpp",
     "stack": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "aa.C": "cpp",
+    "QAPIDTPC_V0.C": "cpp"
   }
 }

@@ -16,10 +16,10 @@
 #include "TList.h"
 #include "TROOT.h"
 #include "TTree.h"
-#include "iostream"
 #include "fstream"
-#include "string"
+#include "iostream"
 #include "nlohmann/json.hpp"
+#include "string"
 
 using namespace std;
 
@@ -27,5 +27,7 @@ int GenerateUID() {
   static int uid = 0;
   return uid++;
 }
+
+TString gEmptyString = "";
 
 #endif

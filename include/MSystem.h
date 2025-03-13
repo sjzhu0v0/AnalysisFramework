@@ -56,36 +56,37 @@ void SetUpJson(string config) {
   }
 }
 
-#include <iostream>
-#include <vector>
-#include <tuple>
 #include <functional>
+#include <iostream>
+#include <tuple>
+#include <vector>
 
 // 模板递归结构体
-template <size_t Level, typename... Ts>
-struct Loop {
-    template <typename Func>
-    static void iterate(const std::tuple<std::vector<Ts>...>& vectors, std::tuple<Ts...>& current, Func func) {
-        const auto& vec = std::get<Level>(vectors); // 获取当前层级的向量
-        for (const auto& item : vec) {
-            std::get<Level>(current) = item; // 设置当前层级的值
-            Loop<Level + 1, Ts...>::iterate(vectors, current, func); // 递归到下一层级
-        }
+template <size_t Level, typename... Ts> struct Loop {
+  template <typename Func>
+  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+                      std::tuple<Ts...> &current, Func func) {
+    const auto &vec = std::get<Level>(vectors); // 获取当前层级的向量
+    for (const auto &item : vec) {
+      std::get<Level>(current) = item; // 设置当前层级的值
+      Loop<Level + 1, Ts...>::iterate(vectors, current, func); // 递归到下一层级
     }
+  }
 };
 
 // 模板特化，终止递归
-template <typename... Ts>
-struct Loop<sizeof...(Ts), Ts...> {
-    template <typename Func>
-    static void iterate(const std::tuple<std::vector<Ts>...>& vectors, std::tuple<Ts...>& current, Func func) {
-        func(current); // 调用处理函数
-    }
+template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
+  template <typename Func>
+  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+                      std::tuple<Ts...> &current, Func func) {
+    func(current); // 调用处理函数
+  }
 };
 
 // int main() {
 //     // 定义输入向量（支持多种类型）
-//     std::tuple<std::vector<const char*>, std::vector<int>, std::vector<double>> vectors = {
+//     std::tuple<std::vector<const char*>, std::vector<int>,
+//     std::vector<double>> vectors = {
 //         {"Electron", "Pion"},       // const char*
 //         {1, 2},                     // int
 //         {3.14, 2.71}                // double
@@ -96,8 +97,8 @@ struct Loop<sizeof...(Ts), Ts...> {
 
 //     // 定义处理函数
 //     auto func = [](const std::tuple<const char*, int, double>& values) {
-//         std::cout << std::get<0>(values) << " " 
-//                   << std::get<1>(values) << " " 
+//         std::cout << std::get<0>(values) << " "
+//                   << std::get<1>(values) << " "
 //                   << std::get<2>(values) << std::endl;
 //     };
 
@@ -131,8 +132,8 @@ void MultiThread(int nThreads, std::function<void(int)> func) {
 
 #ifdef MRDF
 
-#include <ROOT/RDataFrame.hxx>
 #include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
 
 using namespace std;

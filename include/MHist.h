@@ -12,8 +12,6 @@
 #define BinDefVtxZ 20, -10, 10
 #define BinDefMult 5, 0, 2000
 
-typedef struct StrVar4Hist;
-vector<StrVar4Hist> gHistVar;
 typedef struct StrVar4Hist {
   TString fName;
   TString fTitle;
@@ -22,16 +20,18 @@ typedef struct StrVar4Hist {
   vector<double> fBins;
   StrVar4Hist(TString name, TString title, TString unit, int nbins,
               vector<double> bins)
-      : fName(name), fTitle(title), fUnit(unit), fNbins(nbins), fBins(bins) {
-    if (fBins.size() != fNbins + 1 && fBins.size() != 2) {
+      : fName(name), fTitle(title), fUnit(unit), fNbins(nbins) {
+    if (bins.size() != nbins + 1 && bins.size() != 2) {
       cout << "Error: bins size is not correct" << endl;
       exit(1);
     }
-    if (fBins.size() == 2) {
-      fBins.clear();
-      for (int i = 0; i <= fNbins; i++) {
-        fBins.push_back(fBins[0] + i * (fBins[1] - fBins[0]) / fNbins);
+    if (bins.size() == 2) {
+      for (int i = 0; i <= nbins; i++) {
+        fBins.push_back(bins[0] + i * (bins[1] - bins[0]) / (double)nbins);
       }
+    }
+    if (bins.size() == nbins + 1) {
+      fBins = bins;
     }
     if (fUnit == "") {
       fUnit = "a.u.";
