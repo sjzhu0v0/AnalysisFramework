@@ -105,11 +105,13 @@ bool IsntSameBunchPileup(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }
 
-TString path_runInfo = "";
 TH1D *h1_runInfo = nullptr;
-double EventNumberMinbias(int run, TString path_hist = "aaa.root:hist") {
+double EventNumberMinbias(int run,
+                          TString EventNumberMinbias =
+                              "/home/szhu/work/alice/analysis/InfoRun/"
+                              "runinfo22.root:bc-selection-task/hCounterTVX") {
   if (h1_runInfo == nullptr) {
-    h1_runInfo = MRootIO::GetTH1D(path_runInfo);
+    h1_runInfo = MRootIO::GetTH1D(EventNumberMinbias);
   }
   for (int i = 1; i <= h1_runInfo->GetNbinsX(); i++) {
     TString name_run = h1_runInfo->GetXaxis()->GetBinLabel(i);
