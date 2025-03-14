@@ -106,10 +106,11 @@ bool IsntSameBunchPileup(ULong64_t fSelection) {
 }
 
 TH1D *h1_runInfo = nullptr;
-double EventNumberMinbias(int run,
-                          TString EventNumberMinbias =
-                              "/home/szhu/work/alice/analysis/InfoRun/"
-                              "runinfo22.root:bc-selection-task/hCounterTVX") {
+double
+EventNumberMinbias(int run,
+                   TString EventNumberMinbias =
+                       "/home/szhu/work/alice/analysis/InfoRun/"
+                       "runInfo22_DQ.root:bc-selection-task/hCounterTVX") {
   if (h1_runInfo == nullptr) {
     h1_runInfo = MRootIO::GetTH1D(EventNumberMinbias);
   }
