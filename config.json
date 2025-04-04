@@ -2,28 +2,27 @@
   "McBasic": {
     "nbins_deltavzc": 1000
   },
-  "DataBasic": {
-    "nbins_deltavzc": 1000
+  "ME_PR": {
+    "path_input": "INPUT_ME_PR",
+    "path_output": "OUTPUT_ME_PR"
   },
-  "RDataFrame_PIDSeparationPower": {
-    "path_file_input": "/lustre/alice/users/marin/R3A/TPCTrees/TPCTrees_LHC23zzh_241218/AO2D_merge_241218_LHC23zzh.root",
-    "path_file_output": "/lustre/alice/users/szhu/work/test/AnalysisFramework/output/output.root"
+  "SE_PR": {
+    "path_input": "INPUT_SE_PR",
+    "path_output": "OUTPUT_SE_PR"
   },
-  "MultStudy": {
-    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
-    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/MultStudy.root"
+  "ME_RR": {
+    "path_input": "INPUT_ME_RR",
+    "path_output": "OUTPUT_ME_RR"
   },
-  "TriggerStudy": {
-    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
-    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/TriggerStudy.root"
+  "SE_RR": {
+    "path_input": "INPUT_SE_RR",
+    "path_output": "OUTPUT_SE_RR"
   },
-  "Control_MultShow": {
-    "path_input": "/home/szhu/work/alice/analysis/MultStudy/output/MultStudy.root",
-    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/MultShow.root"
-  },
-  "NumContribCalibrationTest": {
-    "path_input": "/home/szhu/work/alice/analysis/MultStudy/data",
-    "path_cali": "/home/szhu/work/alice/analysis/MultStudy/output/MultShow.root:fPosZ_fNumContrib_pfx_px",
-    "path_output": "/home/szhu/work/alice/analysis/MultStudy/output/NumContribCalibrationTest.root"
+  "plot_PR": {
+    "path_input_SE_RR": "INPUT_SE_RR",
+    "path_input_ME_RR": "INPUT_ME_RR",
+    "path_input_SE_PR": "INPUT_SE_PR",
+    "path_input_ME_PR": "INPUT_ME_PR",
+    "path_output": "OUTPUT_PLOT_PR"
   }
 }

@@ -31,7 +31,8 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   h_se2me->Divide(h_DeltaPhi_DeltaEta_ME);
 
   h_se2me->GetXaxis()->SetRangeUser(-2., 2.);
-  // h_se2me->Scale(1. / h_se2me->Integral());
+  h_se2me->Scale(h_DeltaPhi_DeltaEta_ME->Integral() /
+                 h_DeltaPhi_DeltaEta_SE->Integral());
   // TCanvas *c_DeltaPhi_DeltaEta =
   //     new TCanvas("c_DeltaPhi_DeltaEta", "c_DeltaPhi_DeltaEta", 600, 600);
   // StyleFlow::DeltaPhi_DeltaEta(c_DeltaPhi_DeltaEta, h_DeltaPhi_DeltaEta);
@@ -49,6 +50,7 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
   StyleFlow::DeltaPhi_DeltaEta(c2, h_se2me);
 }
+
 int main(int argc, char **argv) {
   TString path_config = "../config.json";
   if (argc != 1)
