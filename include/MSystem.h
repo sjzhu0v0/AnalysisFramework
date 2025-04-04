@@ -141,5 +141,4 @@ using namespace ROOT;
 using namespace ROOT::RDF;
 
 vector<RResultHandle> gRResultHandles;
-
 #endif

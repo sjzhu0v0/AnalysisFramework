@@ -240,4 +240,28 @@ public:
 
 MPublisherCanvas *gPublisherCanvas;
 
+namespace StyleFlow {
+void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2) {
+  pad->cd();
+  h2->Draw("SURF1");
+
+  pad->SetTheta(70);
+  pad->SetPhi(40);
+
+  h2->GetXaxis()->SetTitleOffset(1.5);
+  h2->GetXaxis()->SetTitleSize(0.05);
+  h2->GetYaxis()->SetTitleSize(0.05);
+  h2->GetXaxis()->SetLabelSize(0.04);
+  h2->GetYaxis()->SetLabelSize(0.04);
+  h2->GetZaxis()->SetTitleSize(0.04);
+
+  h2->GetXaxis()->CenterTitle(true);
+  h2->GetYaxis()->CenterTitle(true);
+  h2->GetXaxis()->SetNdivisions(505);
+  h2->GetYaxis()->SetNdivisions(505);
+  h2->GetZaxis()->SetNdivisions(505);
+  
+}
+} // namespace StyleFlow
+
 #endif

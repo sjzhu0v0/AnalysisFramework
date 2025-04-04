@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/szhu/env/ROOT_CERN/6.32.00/include"
+                "/home/szhu/env/ROOT_CERN/6.34.04/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

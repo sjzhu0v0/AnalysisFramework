@@ -264,4 +264,93 @@ TH1D *GetTH1D(TString path) {
 }
 
 }; // namespace MRootIO
+#ifdef MRDF
+
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+
+using namespace std;
+using namespace ROOT;
+using namespace ROOT::RDF;
+
+void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
+  vector<TString> vec_name;
+  vector<int> time;
+  for (auto handle : gRResultHandlesFast) {
+    TString name;
+    bool is_th1 = false;
+    bool is_th2 = false;
+    bool is_th3 = false;
+    try {
+      auto th1 = handle.GetPtr<TH1D>();
+      is_th1 = true;
+    } catch (const std::exception &e) {
+      is_th1 = false;
+    }
+    try {
+      auto th2 = handle.GetPtr<TH2D>();
+      is_th2 = true;
+    } catch (const std::exception &e) {
+      is_th2 = false;
+    }
+    try {
+      auto th3 = handle.GetPtr<TH3D>();
+      is_th3 = true;
+    } catch (const std::exception &e) {
+      is_th3 = false;
+    }
+    if (is_th1) {
+      name = handle.GetPtr<TH1D>()->GetName();
+    } else if (is_th2) {
+      name = handle.GetPtr<TH2D>()->GetName();
+    } else if (is_th3) {
+      name = handle.GetPtr<TH3D>()->GetName();
+    }
+
+    bool doExist = false;
+    int index_exist = -1;
+    for (int i = 0; i < vec_name.size(); i++) {
+      if (name == vec_name[i]) {
+        doExist = true;
+        index_exist = i;
+        break;
+      }
+    }
+    if (doExist) {
+      time[index_exist]++;
+    } else {
+      vec_name.push_back(name);
+      time.push_back(0);
+    }
+
+    if (!doExist) {
+      if (is_th1) {
+        handle.GetPtr<TH1D>()->Write();
+      } else if (is_th2) {
+        handle.GetPtr<TH2D>()->Write();
+      } else if (is_th3) {
+        handle.GetPtr<TH3D>()->Write();
+      }
+    } else {
+      if (is_th1) {
+        handle.GetPtr<TH1D>()->SetName(
+            Form("%s_%d", handle.GetPtr<TH1D>()->GetName(), time[index_exist]));
+        cout << time[index_exist] << endl;
+        handle.GetPtr<TH1D>()->Write();
+      } else if (is_th2) {
+        handle.GetPtr<TH2D>()->SetName(
+            Form("%s_%d", handle.GetPtr<TH2D>()->GetName(), time[index_exist]));
+        handle.GetPtr<TH2D>()->Write();
+      } else if (is_th3) {
+        handle.GetPtr<TH3D>()->SetName(
+            Form("%s_%d", handle.GetPtr<TH3D>()->GetName(), time[index_exist]));
+        handle.GetPtr<TH3D>()->Write();
+      }
+    }
+  }
+}
+
+#endif
+
 #endif
