@@ -22,7 +22,7 @@ for run in $(ls /lustre/alice/users/szhu/job/JpsiFlowPair/output2_22highIR_pass4
 
   echo -n "cd ${path_work}/${run}"
   for i in ${list_commands[@]}; do
-    echo  -n " ; $i -c ${path_work}/${run}/config.json"
+    echo  -n " ; $i ${path_work}/${run}/config.json"
   done
   echo 
 done

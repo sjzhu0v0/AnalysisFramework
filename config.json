@@ -19,10 +19,10 @@
     "path_output": "OUTPUT_SE_RR"
   },
   "plot_PR": {
-    "path_input_SE_RR": "INPUT_SE_RR",
-    "path_input_ME_RR": "INPUT_ME_RR",
-    "path_input_SE_PR": "INPUT_SE_PR",
-    "path_input_ME_PR": "INPUT_ME_PR",
+    "path_input_SE_RR": "OUTPUT_SE_RR",
+    "path_input_ME_RR": "OUTPUT_ME_RR",
+    "path_input_SE_PR": "OUTPUT_SE_PR",
+    "path_input_ME_PR": "OUTPUT_ME_PR",
     "path_output": "OUTPUT_PLOT_PR"
   }
 }
