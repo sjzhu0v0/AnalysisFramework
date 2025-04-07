@@ -41,14 +41,13 @@ funcWithJson(void, SE_RR)(TString path_config = "../config.json") {
                             },
                             {"fPhiREF"})
                      .Define("DeltaEta",
-                             [](const ROOT::RVec<float> &eta,
-                                const ROOT::RVec<float> &eta_ref) {
+                             [](const ROOT::RVec<float> &eta) {
                                ROOT::RVec<float> delta_eta;
                                for (size_t i = 0; i < eta.size(); ++i)
-                                 for (size_t j = 0; j < eta_ref.size(); ++j) {
+                                 for (size_t j = 0; j < eta.size(); ++j) {
                                    if (i == j)
                                      continue;
-                                   double delta = eta[i] - eta_ref[j];
+                                   double delta = eta[i] - eta[j];
                                    delta_eta.emplace_back(delta);
                                  }
                                return delta_eta;
