@@ -26,14 +26,21 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
   auto rdf_all = rdf.Define("DeltaPhi",
                             [](const ROOT::RVec<float> &phi,
                                const ROOT::RVec<float> &phi_ref) {
-                              ROOT::RVec<float> delta_phi;
+                                ROOT::RVec<float> delta_phi;
                               for (size_t i = 0; i < phi.size(); ++i)
                                 for (size_t j = 0; j < phi_ref.size(); ++j) {
                                   double delta = phi[i] - phi_ref[j];
-                                  while (delta > 1.5 * M_PI)
+                                  int n = 0;
+                                  while (delta > 1.5 * M_PI && n < 10) {
+                                    n++;
                                     delta -= 2 * M_PI;
-                                  while (delta < -0.5 * M_PI)
+                                  }
+                                  while (delta < -0.5 * M_PI && n < 10) {
+                                    n++;
                                     delta += 2 * M_PI;
+                                  }
+                                  if (n >= 10)
+                                    delta = -999.;
                                   delta_phi.emplace_back(delta);
                                 }
                               return delta_phi;

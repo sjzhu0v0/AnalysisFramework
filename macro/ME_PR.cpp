@@ -27,19 +27,18 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                             [](float phi, float phi_ref) {
                               double delta = phi - phi_ref;
                               int n = 0;
-                              while (delta > 1.5 * M_PI) {
+                              while (delta > 1.5 * M_PI && n < 10) {
                                 n++;
                                 delta -= 2 * M_PI;
-                                if (n > 10)
-                                  return -999.;
                               }
-                              while (delta < -0.5 * M_PI) {
+                              while (delta < -0.5 * M_PI && n < 10) {
                                 n++;
                                 delta += 2 * M_PI;
-                                if (n > 10)
-                                  return -999.;
                               }
-                              return delta;
+                              if (n >= 10)
+                                return -999.;
+                              else
+                                return delta;
                             },
                             {"fPhi", "fPhi1"})
                      .Define("DeltaEta",
@@ -48,7 +47,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                                return delta;
                              },
                              {"fEta", "fEta1"});
-  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
+  // ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
