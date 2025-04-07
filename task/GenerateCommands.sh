@@ -1,3 +1,4 @@
+PATH_MANA="/lustre/alice/users/szhu/work/Analysis/PairFlow"
 list_commands=(${PATH_MANA}/macro/ME_PR.exe
   ${PATH_MANA}/macro/SE_PR.exe
   ${PATH_MANA}/macro/ME_RR.exe
@@ -23,5 +24,5 @@ for run in $(ls /lustre/alice/users/szhu/job/JpsiFlowPair/output2_22highIR_pass4
   for i in ${list_commands[@]}; do
     echo  -n " ; $i -c ${path_work}/${run}/config.json"
   done
-  echo
+  echo 
 done
