@@ -21,7 +21,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
 
   vector<RResultHandle> gRResultHandlesFast;
   ROOT::RDataFrame rdf(*tree_event);
-
+  // enable progress bar
   /* #region rdf_all definition */
   auto rdf_all = rdf.Define("DeltaPhi",
                             [](float phi, float phi_ref) {
@@ -39,6 +39,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                                return delta;
                              },
                              {"fEta", "fEta1"});
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
