@@ -53,9 +53,10 @@ funcWithJson(void, ME_RR)(TString path_config = "../config.json") {
                            {-4., 4.});
   StrVar4Hist var_DeltaPhi("DeltaPhi", "#Delta #phi", "rad", 30,
                            {-M_PI_2, M_PI + M_PI_2});
+  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 20, {8, -10, 10});
 
   /* #endregion */
-  vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi};
+  vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi, var_VtxZ};
 
   /* #region macro definition */
 #define RHistDefine2DLoop(df, v1, v2, cond)                                    \
@@ -66,9 +67,24 @@ funcWithJson(void, ME_RR)(TString path_config = "../config.json") {
       Form("%s_%s%s", v1.fName.Data(), v2.fName.Data(), cond.Data()), title,   \
       v1.fNbins, v1.fBins.data(), v2.fNbins, v2.fBins.data());                 \
   gRResultHandlesFast.push_back(df.Histo2D(h2_mult, v1.fName, v2.fName));
+  // RHistDefine3DLoop
+#define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
+  TString title = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
+                       v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
+                       v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
+                       v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \
+  TH3DModel h3_mult(Form("%s_%s_%s%s", v1.fName.Data(), v2.fName.Data(),       \
+                         v3.fName.Data(), cond.Data()),                        \
+                    title, v1.fNbins, v1.fBins.data(), v2.fNbins,              \
+                    v2.fBins.data(), v3.fNbins, v3.fBins.data());              \
+  gRResultHandlesFast.push_back(                                               \
+      df.Histo3D(h3_mult, v1.fName, v2.fName, v3.fName));
+
   /* #endregion */
 
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
+  RHistDefine3DLoop(rdf_all, vec_vars[0], vec_vars[1], vec_vars[2],
+                    gEmptyString);
 
   RunGraphs(gRResultHandlesFast);
 

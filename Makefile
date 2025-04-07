@@ -15,6 +15,12 @@ macro/SE_PR.exe: macro/SE_PR.cpp
 macro/ME_PR.exe: macro/ME_PR.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
 
+macro/SE_PR_thn.exe: macro/SE_PR_thn.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
+
+macro/ME_PR_thn.exe: macro/ME_PR_thn.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
+
 macro/SE_RR.exe: macro/SE_RR.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
 
