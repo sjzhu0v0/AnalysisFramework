@@ -17,6 +17,11 @@ for run in $(ls /lustre/alice/users/szhu/job/JpsiFlowPair/output2_22highIR_pass4
   output_se_rr="${path_work}/${run}/SE_RR.root"
   output_me_rr="${path_work}/${run}/ME_RR.root"
 
-  sed "s|SE_PR_INPUT|${input_se_pr}|g;s|SE_RR_INPUT|${input_se_rr}|g;s|ME_PR_INPUT|${input_me_pr}|g;s|ME_RR_INPUT|${input_me_rr}|g;s|SE_PR_OUTPUT|${output_se_pr}|g;s|SE_RR_OUTPUT|${output_se_rr}|g;s|ME_PR_OUTPUT|${output_me_pr}|g;s|ME_RR_OUTPUT|${output_me_rr}|g" ${PATH_MANA}/config.json > ${path_work}/${run}/config.json
+  sed "s|SE_PR_INPUT|${input_se_pr}|g;s|SE_RR_INPUT|${input_se_rr}|g;s|ME_PR_INPUT|${input_me_pr}|g;s|ME_RR_INPUT|${input_me_rr}|g;s|SE_PR_OUTPUT|${output_se_pr}|g;s|SE_RR_OUTPUT|${output_se_rr}|g;s|ME_PR_OUTPUT|${output_me_pr}|g;s|ME_RR_OUTPUT|${output_me_rr}|g" ${PATH_MANA}/config.json >${path_work}/${run}/config.json
 
+  echo -n "cd ${path_work}/${run}"
+  for i in ${list_commands[@]}; do
+    echo  -n " ; $i -c ${path_work}/${run}/config.json"
+  done
+  echo
 done
