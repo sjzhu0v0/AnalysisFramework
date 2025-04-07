@@ -26,11 +26,20 @@ funcWithJson(void, ME_RR)(TString path_config = "../config.json") {
   auto rdf_all = rdf.Define("DeltaPhi",
                             [](float phi, float phi_ref) {
                               double delta = phi - phi_ref;
-                              while (delta > 1.5 * M_PI)
+                              double delta = phi - phi_ref;
+                              int n = 0;
+                              while (delta > 1.5 * M_PI && n < 10) {
+                                n++;
                                 delta -= 2 * M_PI;
-                              while (delta < -0.5 * M_PI)
+                              }
+                              while (delta < -0.5 * M_PI && n < 10) {
+                                n++;
                                 delta += 2 * M_PI;
-                              return delta;
+                              }
+                              if (n >= 10)
+                                return -999.;
+                              else
+                                return delta;
                             },
                             {"fPhi1", "fPhi2"})
                      .Define("DeltaEta",

@@ -26,11 +26,19 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   auto rdf_all = rdf.Define("DeltaPhi",
                             [](float phi, float phi_ref) {
                               double delta = phi - phi_ref;
-                              while (delta > 1.5 * M_PI)
+                              int n = 0;
+                              while (delta > 1.5 * M_PI && n < 10) {
+                                n++;
                                 delta -= 2 * M_PI;
-                              while (delta < -0.5 * M_PI)
+                              }
+                              while (delta < -0.5 * M_PI && n < 10) {
+                                n++;
                                 delta += 2 * M_PI;
-                              return delta;
+                              }
+                              if (n >= 10)
+                                return -999.;
+                              else
+                                return delta;
                             },
                             {"fPhi", "fPhi1"})
                      .Define("DeltaEta",
@@ -53,9 +61,9 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                            {-4., 4.});
   StrVar4Hist var_DeltaPhi("DeltaPhi", "#Delta #phi", "rad", 30,
                            {-M_PI_2, M_PI + M_PI_2});
-  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 20, {8, -10, 10});
-  StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 20, {100, 1., 5.});
-  StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 20, {10, 0., 10.});
+  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 8, {-10, 10});
+  StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 100, {1., 5.});
+  StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 10, {0., 10.});
   /* #endregion */
   vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi};
 

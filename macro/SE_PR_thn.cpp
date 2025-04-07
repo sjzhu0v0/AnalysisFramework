@@ -30,10 +30,17 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
                               for (size_t i = 0; i < phi.size(); ++i)
                                 for (size_t j = 0; j < phi_ref.size(); ++j) {
                                   double delta = phi[i] - phi_ref[j];
-                                  while (delta > 1.5 * M_PI)
+                                  int n = 0;
+                                  while (delta > 1.5 * M_PI && n < 10) {
+                                    n++;
                                     delta -= 2 * M_PI;
-                                  while (delta < -0.5 * M_PI)
+                                  }
+                                  while (delta < -0.5 * M_PI && n < 10) {
+                                    n++;
                                     delta += 2 * M_PI;
+                                  }
+                                  if (n >= 10)
+                                    delta = -999.;
                                   delta_phi.emplace_back(delta);
                                 }
                               return delta_phi;
@@ -65,9 +72,9 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
                            {-4., 4.});
   StrVar4Hist var_DeltaPhi("DeltaPhi", "#Delta #phi", "rad", 30,
                            {-M_PI_2, M_PI + M_PI_2});
-  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 20, {8, -10, 10});
-  StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 20, {100, 1., 5.});
-  StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 20, {10, 0., 10.});
+  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 8, {-10, 10});
+  StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 100, {1., 5.});
+  StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 10, {0., 10.});
   /* #endregion */
   vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi};
 

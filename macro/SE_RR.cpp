@@ -31,10 +31,17 @@ funcWithJson(void, SE_RR)(TString path_config = "../config.json") {
                                   if (i == j)
                                     continue;
                                   double delta = phi_ref[i] - phi_ref[j];
-                                  while (delta > 1.5 * M_PI)
+                                  int n = 0;
+                                  while (delta > 1.5 * M_PI && n < 10) {
+                                    n++;
                                     delta -= 2 * M_PI;
-                                  while (delta < -0.5 * M_PI)
+                                  }
+                                  while (delta < -0.5 * M_PI && n < 10) {
+                                    n++;
                                     delta += 2 * M_PI;
+                                  }
+                                  if (n >= 10)
+                                    delta = -999.;
                                   delta_phi.emplace_back(delta);
                                 }
                               return delta_phi;

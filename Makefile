@@ -3,6 +3,17 @@ FLAGS_INCLUDE=-I$(DIR_BASE)/include
 FLAGS_ROOT=$(shell root-config --cflags --libs)
 FLAGS_MINUIT=-lMinuit
 
+all: \
+	kit/TreeClone.exe \
+	macro/NumContribCalibrationTest.exe \
+	macro/SE_PR.exe \
+	macro/ME_PR.exe \
+	macro/SE_PR_thn.exe \
+	macro/ME_PR_thn.exe \
+	macro/SE_RR.exe \
+	macro/ME_RR.exe \
+	macro/plot_PR.exe
+
 kit/TreeClone.exe: kit/TreeClone.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
