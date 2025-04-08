@@ -57,16 +57,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   gRResultHandlesFast.push_back(h_DeltaEta);
   /* #endregion */
 
-  /* #region axis definition */
-  StrVar4Hist var_DeltaEta("DeltaEta", "#Delta #eta", "rapidity", 20,
-                           {-4., 4.});
-  StrVar4Hist var_DeltaPhi("DeltaPhi", "#Delta #phi", "rad", 30,
-                           {-M_PI_2, M_PI + M_PI_2});
-  StrVar4Hist var_VtxZ("fVtxZ", "V_{Z}", "cm", 8, {-10, 10});
-  StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 100, {1., 5.});
-  StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 10, {0., 10.});
-  /* #endregion */
-  vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi};
+#include "MShare.h"
 
   /* #region macro definition */
 #define RHistDefine2DLoop(df, v1, v2, cond)                                    \
@@ -80,10 +71,10 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
 
 // RHistDefine3DLoop
 #define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
-  TString title_3d = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
-                       v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
-                       v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
-                       v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \
+  TString title_3d = Form(                                                     \
+      "%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(), v2.fName.Data(),  \
+      v3.fName.Data(), cond.Data(), v1.fTitle.Data(), v1.fUnit.Data(),         \
+      v2.fTitle.Data(), v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());   \
   TH3DModel h3_mult(Form("%s_%s_%s%s", v1.fName.Data(), v2.fName.Data(),       \
                          v3.fName.Data(), cond.Data()),                        \
                     title, v1.fNbins, v1.fBins.data(), v2.fNbins,              \
