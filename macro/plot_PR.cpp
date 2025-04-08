@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
   TString path_config = "../config.json";
   if (argc != 1)
     path_config = argv[1];
-  TApplication *app = new TApplication("app", &argc, argv);
+//   TApplication *app = new TApplication("app", &argc, argv);
   plot_PR(path_config);
-  app->Run();
+//   app->Run();
   return 0;
 }
