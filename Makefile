@@ -5,7 +5,6 @@ FLAGS_MINUIT=-lMinuit
 
 all: \
 	kit/TreeClone.exe \
-	macro/NumContribCalibrationTest.exe \
 	macro/SE_PR.exe \
 	macro/ME_PR.exe \
 	macro/SE_PR_thn.exe \

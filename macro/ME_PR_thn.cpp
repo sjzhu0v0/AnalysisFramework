@@ -5,7 +5,7 @@
 #include "MRootIO.h"
 #include "TApplication.h"
 
-funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
+funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
       "path_input", " /home/szhu/work/alice/analysis/PairFlow/data/pairflow/"
@@ -47,6 +47,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                                return delta;
                              },
                              {"fEta", "fEta1"});
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
@@ -79,7 +80,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
 
 // RHistDefine3DLoop
 #define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
-  TString title = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
+  TString title_3d = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
                        v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
                        v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
                        v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \
@@ -112,7 +113,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   // Set axis titles
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
 
-  // rdf_all.HistoND(h_multinfo, colnames_info);
+  rdf_all.HistoND(h_multinfo, colnames_info);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
@@ -122,8 +123,8 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
 
 int main(int argc, char **argv) {
   if (argc == 1)
-    ME_PR();
+    ME_PR_thn();
   else
-    ME_PR(argv[1]);
+    ME_PR_thn(argv[1]);
   return 0;
 }

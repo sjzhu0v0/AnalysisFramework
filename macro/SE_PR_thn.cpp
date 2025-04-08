@@ -5,7 +5,7 @@
 #include "MRootIO.h"
 #include "TApplication.h"
 
-funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
+funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
       "path_input",
@@ -58,6 +58,7 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
                                return delta_eta;
                              },
                              {"fEta", "fEtaREF"});
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
@@ -133,8 +134,8 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
 
 int main(int argc, char **argv) {
   if (argc == 1)
-    SE_PR();
+    SE_PR_thn();
   else
-    SE_PR(argv[1]);
+    SE_PR_thn(argv[1]);
   return 0;
 }

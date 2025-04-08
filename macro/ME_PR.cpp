@@ -47,7 +47,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
                                return delta;
                              },
                              {"fEta", "fEta1"});
-  // ROOT::RDF::Experimental::AddProgressBar(rdf_all);
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
@@ -80,7 +80,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
 
 // RHistDefine3DLoop
 #define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
-  TString title = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
+  TString title_3d = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
                        v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
                        v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
                        v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \

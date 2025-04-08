@@ -48,6 +48,7 @@ funcWithJson(void, ME_RR)(TString path_config = "../config.json") {
                                return delta;
                              },
                              {"fEta1", "fEta2"});
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
@@ -78,7 +79,7 @@ funcWithJson(void, ME_RR)(TString path_config = "../config.json") {
   gRResultHandlesFast.push_back(df.Histo2D(h2_mult, v1.fName, v2.fName));
   // RHistDefine3DLoop
 #define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
-  TString title = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
+  TString title_3d = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
                        v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
                        v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
                        v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \

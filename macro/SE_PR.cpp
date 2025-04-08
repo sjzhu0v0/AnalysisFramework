@@ -26,7 +26,7 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
   auto rdf_all = rdf.Define("DeltaPhi",
                             [](const ROOT::RVec<float> &phi,
                                const ROOT::RVec<float> &phi_ref) {
-                                ROOT::RVec<float> delta_phi;
+                              ROOT::RVec<float> delta_phi;
                               for (size_t i = 0; i < phi.size(); ++i)
                                 for (size_t j = 0; j < phi_ref.size(); ++j) {
                                   double delta = phi[i] - phi_ref[j];
@@ -58,6 +58,7 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
                                return delta_eta;
                              },
                              {"fEta", "fEtaREF"});
+  ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
@@ -90,7 +91,7 @@ funcWithJson(void, SE_PR)(TString path_config = "../config.json") {
 
 // RHistDefine3DLoop
 #define RHistDefine3DLoop(df, v1, v2, v3, cond)                                \
-  TString title = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
+  TString title_3d = Form("%s_%s_%s%s;%s (%s);%s (%s);%s (%s)", v1.fName.Data(),  \
                        v2.fName.Data(), v3.fName.Data(), cond.Data(),          \
                        v1.fTitle.Data(), v1.fUnit.Data(), v2.fTitle.Data(),    \
                        v2.fUnit.Data(), v3.fTitle.Data(), v3.fUnit.Data());    \
