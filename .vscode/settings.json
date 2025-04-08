@@ -42,6 +42,8 @@
     "iosfwd": "cpp",
     "TrackInfo.C": "cpp",
     "__split_buffer": "cpp",
-    "list": "cpp"
+    "list": "cpp",
+    "string_view": "cpp",
+    "span": "cpp"
   }
 }

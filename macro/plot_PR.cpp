@@ -34,11 +34,12 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
       (TH2D *)file_input_me_pr->Get("DeltaEta_DeltaPhi");
 
   TH2D *h_se2me = (TH2D *)h_DeltaPhi_DeltaEta_SE_PR->Clone("h_se2me");
+
   h_se2me->SetTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me->SetZTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me->Divide(h_DeltaPhi_DeltaEta_ME_PR);
 
-  h_se2me->GetXaxis()->SetRangeUser(-2., 2.);
+  h_se2me->GetXaxis()->SetRangeUser(-3, 3);
   h_se2me->Scale(h_DeltaPhi_DeltaEta_ME_PR->Integral() /
                  h_DeltaPhi_DeltaEta_SE_PR->Integral());
 
@@ -55,7 +56,6 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
   StyleFlow::DeltaPhi_DeltaEta(c2, h_se2me);
 
-
   TFile *file_input_rr = TFile::Open(config_pathSE_RR_InputFile.data.c_str());
   TH2D *h_DeltaPhi_DeltaEta_SE_RR =
       (TH2D *)file_input_rr->Get("DeltaEta_DeltaPhi");
@@ -67,7 +67,7 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   h_se2me_rr->SetTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me_rr->SetZTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me_rr->Divide(h_DeltaPhi_DeltaEta_ME_RR);
-  h_se2me_rr->GetXaxis()->SetRangeUser(-2., 2.);
+  h_se2me_rr->GetXaxis()->SetRangeUser(-1.8, 1.8);
   h_se2me_rr->Scale(h_DeltaPhi_DeltaEta_ME_RR->Integral() /
                     h_DeltaPhi_DeltaEta_SE_RR->Integral());
   TCanvas *c3 = new TCanvas("c3", "c3", 600, 600);
