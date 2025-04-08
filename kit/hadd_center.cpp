@@ -16,7 +16,7 @@ public:
   double fValue;
   double fError;
 
-  MDoubleR(double value = 0.0, double error = 0.0)
+  MDoubleR(double value = 0.0, double error = INFINITY)
       : fValue(value), fError(error) {}
 
   MDoubleR &operator+=(const MDoubleR &other) {
