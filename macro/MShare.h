@@ -1,8 +1,5 @@
 #ifndef MShare_h
 #define MShare_h
-
-#include "MHist.h"
-
 /* #region axis definition */
 StrVar4Hist var_DeltaEta("DeltaEta", "#Delta #eta", "rapidity", 20, {-4., 4.});
 StrVar4Hist var_DeltaPhi("DeltaPhi", "#Delta #phi", "rad", 30,

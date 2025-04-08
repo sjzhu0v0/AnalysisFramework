@@ -4,7 +4,7 @@
 #include "MHist.h"
 #include "MRootIO.h"
 #include "TApplication.h"
-
+#include "MShare.h"
 funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
@@ -57,7 +57,7 @@ funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   gRResultHandlesFast.push_back(h_DeltaEta);
   /* #endregion */
 
-#include "MShare.h"
+
 
   /* #region macro definition */
 #define RHistDefine2DLoop(df, v1, v2, cond)                                    \
