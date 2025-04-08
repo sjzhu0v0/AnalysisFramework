@@ -23,6 +23,9 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   Configurable<string> config_pathME_RR_InputFile(
       "path_input_ME_RR",
       "/home/szhu/work/alice/analysis/PairFlow/output/ME_RR.root");
+  Configurable<string> config_pathSE_PR_OutputFile(
+      "path_output",
+      "/home/szhu/work/alice/analysis/PairFlow/output/SE_PR.root");
 
   // DeltaPhi_DeltaEta
   TFile *file_input_pr = TFile::Open(config_pathSE_PR_InputFile.data.c_str());
@@ -81,6 +84,13 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   StyleFlow::DeltaPhi_DeltaEta(pad6, h_se2me_rr);
   TCanvas *c4 = new TCanvas("c4", "c4", 600, 600);
   StyleFlow::DeltaPhi_DeltaEta(c4, h_se2me_rr);
+
+  TFile *file_output =
+      new TFile(config_pathSE_PR_OutputFile.data.c_str(), "RECREATE");
+  file_output->cd();
+  h_se2me->Write();
+  h_se2me_rr->Write();
+  file_output->Close();
 }
 
 int main(int argc, char **argv) {
