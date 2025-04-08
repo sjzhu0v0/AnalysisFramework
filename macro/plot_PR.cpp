@@ -44,7 +44,8 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
 
   h_se2me->GetXaxis()->SetRangeUser(-3, 3);
   h_se2me->Scale(h_DeltaPhi_DeltaEta_ME_PR->Integral() /
-                 h_DeltaPhi_DeltaEta_SE_PR->Integral());
+                     h_DeltaPhi_DeltaEta_SE_PR->Integral(),
+                 "nosw2");
 
   TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
   c1->Divide(2, 2);
@@ -72,7 +73,8 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   h_se2me_rr->Divide(h_DeltaPhi_DeltaEta_ME_RR);
   h_se2me_rr->GetXaxis()->SetRangeUser(-1.8, 1.8);
   h_se2me_rr->Scale(h_DeltaPhi_DeltaEta_ME_RR->Integral() /
-                    h_DeltaPhi_DeltaEta_SE_RR->Integral());
+                        h_DeltaPhi_DeltaEta_SE_RR->Integral(),
+                    "nosw2");
   TCanvas *c3 = new TCanvas("c3", "c3", 600, 600);
   c3->Divide(2, 2);
   // get the first pad
@@ -97,8 +99,8 @@ int main(int argc, char **argv) {
   TString path_config = "../config.json";
   if (argc != 1)
     path_config = argv[1];
-//   TApplication *app = new TApplication("app", &argc, argv);
+  //   TApplication *app = new TApplication("app", &argc, argv);
   plot_PR(path_config);
-//   app->Run();
+  //   app->Run();
   return 0;
 }
