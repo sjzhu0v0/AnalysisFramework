@@ -76,22 +76,7 @@ void HistMerge(std::vector<TFile *> inputFilesPtr, TString name_hist) {
   outputHist->Write();
 }
 
-void RMerge() {
-  // 输入文件列表
-  std::vector<const char *> inputFiles = {
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster1.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster10.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster11.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster12.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster13.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster2.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster3.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster4.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster5.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster6.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster7.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster8.root",
-      "/home/szhu/work/alice/analysis/data/pairflow/grid/r_cluster9.root"};
+void RMerge(TString name_output, std::vector<const char *> inputFiles) {
   std::vector<TFile *> inputFilesPtr;
 
   for (const auto &inputFile : inputFiles) {
@@ -99,13 +84,16 @@ void RMerge() {
     inputFilesPtr.push_back(file);
   }
 
-  outputFile = new TFile("output.root", "RECREATE");
+  outputFile = new TFile(name_output, "RECREATE");
 
   std::vector<TString> histNames;
 
   TList *keyList = inputFilesPtr[0]->GetListOfKeys();
   TIter next(keyList);
   while (TKey *key = (TKey *)next()) {
+    if (key->GetClassName() == TString("TDirectoryFile")) {
+      continue;
+    }
     TString histName = key->GetName();
     histNames.push_back(histName);
   }
@@ -120,4 +108,23 @@ void RMerge() {
   }
 
   outputFile->Close();
+}
+
+int main(int argc, char **argv) {
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0]
+              << " output_file input_file1 [input_file2 ...]" << std::endl;
+    return 1;
+  }
+
+  TString name_output = argv[1];
+  std::vector<const char *> inputFiles;
+
+  for (int i = 2; i < argc; ++i) {
+    inputFiles.push_back(argv[i]);
+  }
+
+  RMerge(name_output, inputFiles);
+
+  return 0;
 }
