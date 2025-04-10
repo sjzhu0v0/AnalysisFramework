@@ -31,21 +31,25 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   TFile *file_input_pr = TFile::Open(config_pathSE_PR_InputFile.data.c_str());
   TH2D *h_DeltaPhi_DeltaEta_SE_PR =
       (TH2D *)file_input_pr->Get("DeltaEta_DeltaPhi");
+  h_DeltaPhi_DeltaEta_SE_PR->SetName("DeltaPhi_DeltaEta_SE_PR");
   TFile *file_input_me_pr =
       TFile::Open(config_pathME_PR_InputFile.data.c_str());
   TH2D *h_DeltaPhi_DeltaEta_ME_PR =
       (TH2D *)file_input_me_pr->Get("DeltaEta_DeltaPhi");
+  h_DeltaPhi_DeltaEta_ME_PR->SetName("DeltaPhi_DeltaEta_ME_PR");
 
   TH2D *h_se2me = (TH2D *)h_DeltaPhi_DeltaEta_SE_PR->Clone("h_se2me");
 
   h_se2me->SetTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me->SetZTitle("R(#Delta #eta, #Delta #phi)");
-  h_se2me->Divide(h_DeltaPhi_DeltaEta_ME_PR);
+  //   h_se2me->Divide(h_DeltaPhi_DeltaEta_ME_PR);
 
+  HistDivide2D(h_se2me, h_DeltaPhi_DeltaEta_SE_PR, h_DeltaPhi_DeltaEta_ME_PR);
   h_se2me->GetXaxis()->SetRangeUser(-3, 3);
-  h_se2me->Scale(h_DeltaPhi_DeltaEta_ME_PR->Integral() /
-                     h_DeltaPhi_DeltaEta_SE_PR->Integral(),
-                 "nosw2");
+  //   h_se2me->Scale(h_DeltaPhi_DeltaEta_ME_PR->Integral() /
+  //                  h_DeltaPhi_DeltaEta_SE_PR->Integral());
+  ScaleHisto2D(h_se2me, h_DeltaPhi_DeltaEta_ME_PR->Integral() /
+                            h_DeltaPhi_DeltaEta_SE_PR->Integral());
 
   TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
   c1->Divide(2, 2);
@@ -63,18 +67,22 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
   TFile *file_input_rr = TFile::Open(config_pathSE_RR_InputFile.data.c_str());
   TH2D *h_DeltaPhi_DeltaEta_SE_RR =
       (TH2D *)file_input_rr->Get("DeltaEta_DeltaPhi");
+  h_DeltaPhi_DeltaEta_SE_RR->SetName("DeltaPhi_DeltaEta_SE_RR");
   TFile *file_input_me_rr =
       TFile::Open(config_pathME_RR_InputFile.data.c_str());
   TH2D *h_DeltaPhi_DeltaEta_ME_RR =
       (TH2D *)file_input_me_rr->Get("DeltaEta_DeltaPhi");
+  h_DeltaPhi_DeltaEta_ME_RR->SetName("DeltaPhi_DeltaEta_ME_RR");
   TH2D *h_se2me_rr = (TH2D *)h_DeltaPhi_DeltaEta_SE_RR->Clone("h_se2me_rr");
   h_se2me_rr->SetTitle("R(#Delta #eta, #Delta #phi)");
   h_se2me_rr->SetZTitle("R(#Delta #eta, #Delta #phi)");
-  h_se2me_rr->Divide(h_DeltaPhi_DeltaEta_ME_RR);
+  //   h_se2me_rr->Divide(h_DeltaPhi_DeltaEta_ME_RR);
+  HistDivide2D(h_se2me_rr, h_DeltaPhi_DeltaEta_SE_RR,
+               h_DeltaPhi_DeltaEta_ME_RR);
   h_se2me_rr->GetXaxis()->SetRangeUser(-1.8, 1.8);
-  h_se2me_rr->Scale(h_DeltaPhi_DeltaEta_ME_RR->Integral() /
-                        h_DeltaPhi_DeltaEta_SE_RR->Integral(),
-                    "nosw2");
+  ScaleHisto2D(h_se2me_rr,
+               h_DeltaPhi_DeltaEta_ME_RR->Integral() /
+                   h_DeltaPhi_DeltaEta_SE_RR->Integral()); // scale to ME
   TCanvas *c3 = new TCanvas("c3", "c3", 600, 600);
   c3->Divide(2, 2);
   // get the first pad
@@ -91,7 +99,13 @@ funcWithJson(void, plot_PR)(TString path_config = "../config.json") {
       new TFile(config_pathSE_PR_OutputFile.data.c_str(), "RECREATE");
   file_output->cd();
   h_se2me->Write();
+  SliceYTH2D(h_se2me, file_output);
+  SliceYTH2D(h_DeltaPhi_DeltaEta_SE_PR, file_output);
+  SliceYTH2D(h_DeltaPhi_DeltaEta_ME_PR, file_output);
   h_se2me_rr->Write();
+  SliceYTH2D(h_DeltaPhi_DeltaEta_SE_RR, file_output);
+  SliceYTH2D(h_DeltaPhi_DeltaEta_ME_RR, file_output);
+  SliceYTH2D(h_se2me_rr, file_output);
   file_output->Close();
 }
 
@@ -99,8 +113,8 @@ int main(int argc, char **argv) {
   TString path_config = "../config.json";
   if (argc != 1)
     path_config = argv[1];
-  //   TApplication *app = new TApplication("app", &argc, argv);
+  TApplication *app = new TApplication("app", &argc, argv);
   plot_PR(path_config);
-  //   app->Run();
+  app->Run();
   return 0;
 }

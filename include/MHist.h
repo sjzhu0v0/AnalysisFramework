@@ -69,6 +69,68 @@ int GetBinIndex(double value, int nbins, double low, double high) {
   return (value - low) / binWidth;
 }
 
+void ScaleHisto2D(TH2D *h, double scale) {
+  for (int i = 1; i <= h->GetNbinsX(); i++) {
+    for (int j = 1; j <= h->GetNbinsY(); j++) {
+      double binContent = h->GetBinContent(i, j);
+      double binError = h->GetBinError(i, j);
+      h->SetBinContent(i, j, binContent * scale);
+      h->SetBinError(i, j, binError * scale);
+    }
+  }
+}
+
+void SliceYTH2D(TH2D *h2, TDirectory *dir,
+                void (*func)(TH1D *, double *) = nullptr,
+                double *par = nullptr) {
+  TString name_h2 = h2->GetName();
+  dir->cd();
+  dir->mkdir("silceY_" + name_h2);
+  dir->cd("silceY_" + name_h2);
+
+  for (int i = 1; i <= h2->GetNbinsX(); i++) {
+    TString name_h1 = TString::Format("sliceY_%d", i);
+    TH1D *h1 = h2->ProjectionY(name_h1, i, i);
+    TString title_h1 = h2->GetYaxis()->GetTitle();
+    TString title_axis = h2->GetXaxis()->GetTitle();
+    double low = h2->GetXaxis()->GetBinLowEdge(i);
+    double up = h2->GetXaxis()->GetBinUpEdge(i);
+    h1->SetTitle(title_axis + TString::Format(":[%.2f,%.2f];", low, up) +
+                 title_h1);
+    if (func)
+      func(h1, par);
+    h1->SetDirectory(gDirectory);
+    h1->SetOption("E1");
+    h1->Write();
+  }
+  dir->cd();
+}
+
+void HistDivide2D(TH2D *result, TH2D *h1, TH2D *h2) {
+  for (int i = 1; i <= result->GetNbinsX(); i++) {
+    for (int j = 1; j <= result->GetNbinsY(); j++) {
+      double binContent1 = h1->GetBinContent(i, j);
+      double binContent2 = h2->GetBinContent(i, j);
+      if (binContent2 != 0) {
+        result->SetBinContent(i, j, binContent1 / binContent2);
+      } else {
+        result->SetBinContent(i, j, 0);
+      }
+      double binError1 = h1->GetBinError(i, j);
+      double binError2 = h2->GetBinError(i, j);
+      if (binContent2 != 0) {
+        double error = binContent1 / binContent2;
+        double error1 = binError1 / binContent2;
+        double error2 = binContent1 * binError2 / (binContent2 * binContent2);
+        result->SetBinError(i, j,
+                            TMath::Sqrt(error1 * error1 + error2 * error2));
+      } else {
+        result->SetBinError(i, j, 0);
+      }
+    }
+  }
+}
+
 #endif
 
 #ifdef MRDF
