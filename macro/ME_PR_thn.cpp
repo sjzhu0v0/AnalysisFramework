@@ -23,40 +23,30 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   ROOT::RDataFrame rdf(*tree_event);
 
   /* #region rdf_all definition */
-  auto rdf_all =
-      rdf.Define("DeltaPhi",
-                 [](float phi, float phi_ref) {
-                   double delta = phi - phi_ref;
-                   int n = 0;
-                   while (delta > 1.5 * M_PI && n < 10) {
-                     n++;
-                     delta -= 2 * M_PI;
-                   }
-                   while (delta < -0.5 * M_PI && n < 10) {
-                     n++;
-                     delta += 2 * M_PI;
-                   }
-                   if (n >= 10)
-                     return -999.;
-                   else
-                     return delta;
-                 },
-                 {"fPhi", "fPhi1"})
-          .Define("DeltaEta",
-                  [](float eta, float eta_ref) {
-                    double delta = eta - eta_ref;
-                    return delta;
-                  },
-                  {"fEta", "fEta1"})
-          .Define("fVtxZ_extended",
-                  [](const float &vtxZ, const RVec<float> &delta_phi) {
-                    ROOT::RVec<double> vtxZ_extended;
-                    for (size_t i = 0; i < delta_phi.size(); ++i) {
-                      vtxZ_extended.emplace_back(vtxZ);
-                    }
-                    return vtxZ_extended;
-                  },
-                  {"fVtxZ", "DeltaPhi"});
+  auto rdf_all = rdf.Define("DeltaPhi",
+                            [](float phi, float phi_ref) {
+                              double delta = phi - phi_ref;
+                              int n = 0;
+                              while (delta > 1.5 * M_PI && n < 10) {
+                                n++;
+                                delta -= 2 * M_PI;
+                              }
+                              while (delta < -0.5 * M_PI && n < 10) {
+                                n++;
+                                delta += 2 * M_PI;
+                              }
+                              if (n >= 10)
+                                return -999.;
+                              else
+                                return delta;
+                            },
+                            {"fPhi", "fPhi1"})
+                     .Define("DeltaEta",
+                             [](float eta, float eta_ref) {
+                               double delta = eta - eta_ref;
+                               return delta;
+                             },
+                             {"fEta", "fEta1"});
   ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
