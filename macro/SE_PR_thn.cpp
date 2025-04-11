@@ -73,7 +73,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                              {"fSelection"})
                      .Define("fNumContribCalibrated",
                              Calib_NumContrib_fPosZ_Run::NumContribCalibrated,
-                             {"fMultVtxContri", "fPosZ"});
+                             {"fMultVtxContri", "fVtxZ"});
   auto rdf_noPileup =
       rdf_all.Filter("isntSameBunchPileup", "no same bunch pileup");
   auto rdf_Pileup = rdf_all.Filter("!isntSameBunchPileup", "same bunch pileup");
