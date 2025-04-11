@@ -3,8 +3,8 @@
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
-#include "TApplication.h"
 #include "MShare.h"
+#include "TApplication.h"
 funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
@@ -81,24 +81,28 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
       df.Histo3D(h3_mult, v1.fName, v2.fName, v3.fName));
 
   /* #endregion */
-  Int_t nbins[] = {var_DeltaEta.fNbins, var_DeltaPhi.fNbins, var_VtxZ.fNbins,
-                   var_Mass.fNbins, var_Pt.fNbins};
-  Double_t xmin[] = {var_DeltaEta.fBins.front(), var_DeltaPhi.fBins.front(),
-                     var_VtxZ.fBins.front(), var_Mass.fBins.front(),
-                     var_Pt.fBins.front()};
-  Double_t xmax[] = {var_DeltaEta.fBins.back(), var_DeltaPhi.fBins.back(),
-                     var_VtxZ.fBins.back(), var_Mass.fBins.back(),
-                     var_Pt.fBins.back()};
+  Int_t nbins[] = {var_DeltaEta.fNbins, var_DeltaPhi.fNbins,
+                   var_VtxZ.fNbins,     var_Mass.fNbins,
+                   var_Pt.fNbins,       var_NumContrib.fNbins};
+  // Double_t xmin[] = {var_DeltaEta.fBins.front(), var_DeltaPhi.fBins.front(),
+  //                    var_VtxZ.fBins.front(), var_Mass.fBins.front(),
+  //                    var_Pt.fBins.front()};
+  // Double_t xmax[] = {var_DeltaEta.fBins.back(), var_DeltaPhi.fBins.back(),
+  //                    var_VtxZ.fBins.back(), var_Mass.fBins.back(),
+  //                    var_Pt.fBins.back()};
+  vector<vector<double>> vec_bins = {var_DeltaEta.fBins, var_DeltaPhi.fBins,
+                                     var_VtxZ.fBins,     var_Mass.fBins,
+                                     var_Pt.fBins,       var_NumContrib.fBins};
 
-  string name_hist_info = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt";
-  string name_hist_title = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt"
+  string name_hist_info = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt_NumContrib";
+  string name_hist_title = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt_NumContrib;"
                            ";#Delta #eta;#Delta #phi;V_{Z} (cm);"
-                           "Mass (GeV/c^{2});p_{T} (GeV/c)";
+                           "Mass (GeV/c^{2});p_{T} (GeV/c); NumContrib";
 
   THnDModel h_multinfo(name_hist_info.c_str(), name_hist_title.c_str(), 5,
-                       nbins, xmin, xmax);
+                       nbins, vec_bins);
   ColumnNames_t colnames_info = {
-      {"DeltaEta", "DeltaPhi", "fVtxZ", "fMass", "fPT"}};
+      {"DeltaEta", "DeltaPhi", "fVtxZ", "fMass", "fPT", "fMultVtxContri"}};
   // Set axis titles
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
 

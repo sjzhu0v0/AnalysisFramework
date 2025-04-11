@@ -6,6 +6,7 @@ FLAGS_MINUIT=-lMinuit
 all: \
 	kit/TreeClone.exe \
 	kit/hadd_center.exe \
+	kit/RMerge.exe \
 	macro/SE_PR.exe \
 	macro/ME_PR.exe \
 	macro/SE_PR_thn.exe \
@@ -18,6 +19,9 @@ kit/TreeClone.exe: kit/TreeClone.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
 kit/hadd_center.exe: kit/hadd_center.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
+
+kit/RMerge.exe: kit/RMerge.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
 macro/NumContribCalibrationTest.exe: macro/NumContribCalibrationTest.cpp
