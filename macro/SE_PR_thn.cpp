@@ -85,7 +85,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                   },
                   {"fNumContribCalibrated", "DeltaPhi"})
           .Define("fVtxZ_extended",
-                  [](const double &vtxZ, const RVec<float> &delta_phi) {
+                  [](const float &vtxZ, const RVec<float> &delta_phi) {
                     ROOT::RVec<double> vtxZ_extended;
                     for (size_t i = 0; i < delta_phi.size(); ++i) {
                       vtxZ_extended.emplace_back(vtxZ);
