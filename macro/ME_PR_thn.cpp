@@ -99,11 +99,12 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   // Set axis titles
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
 
-  rdf_all.HistoND(h_multinfo, colnames_info);
+  auto info_multDim = rdf_all.HistoND(h_multinfo, colnames_info);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
+  info_multDim->Write();
   fOutput->Close();
 }
 
