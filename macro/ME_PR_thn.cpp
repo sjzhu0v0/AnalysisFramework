@@ -100,6 +100,7 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
 
   auto info_multDim = rdf_all.HistoND(h_multinfo, colnames_info);
+  gRResultHandlesFast.push_back(info_multDim);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
