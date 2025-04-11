@@ -9,7 +9,7 @@ StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 100, {1., 5.});
 StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 10, {0., 10.});
 
 // 0,22.5,30.6,37,42.9,48.7,54.7,61.5,69.8,82,260.5 bin NumContrib
-StrVar4Hist var_NumContrib("NumContrib", "NumContrib", "", 10,
+StrVar4Hist var_NumContrib("fNumContribCalibrated", "fNumContrib Calibrated", "", 10,
                            {0., 22.5, 30.6, 37., 42.9, 48.7, 54.7, 61.5, 69.8,
                             82., 300.});
 /* #endregion */
