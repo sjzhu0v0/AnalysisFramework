@@ -34,46 +34,47 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   ROOT::RDataFrame rdf(*tree_event);
 
   /* #region rdf_all definition */
-  auto rdf_all = rdf.Define("DeltaPhi",
-                            [](const ROOT::RVec<float> &phi,
-                               const ROOT::RVec<float> &phi_ref) {
-                              ROOT::RVec<float> delta_phi;
-                              for (size_t i = 0; i < phi.size(); ++i)
-                                for (size_t j = 0; j < phi_ref.size(); ++j) {
-                                  double delta = phi[i] - phi_ref[j];
-                                  int n = 0;
-                                  while (delta > 1.5 * M_PI && n < 10) {
-                                    n++;
-                                    delta -= 2 * M_PI;
-                                  }
-                                  while (delta < -0.5 * M_PI && n < 10) {
-                                    n++;
-                                    delta += 2 * M_PI;
-                                  }
-                                  if (n >= 10)
-                                    delta = -999.;
-                                  delta_phi.emplace_back(delta);
-                                }
-                              return delta_phi;
-                            },
-                            {"fPhi", "fPhiREF"})
-                     .Define("DeltaEta",
-                             [](const ROOT::RVec<float> &eta,
-                                const ROOT::RVec<float> &eta_ref) {
-                               ROOT::RVec<float> delta_eta;
-                               for (size_t i = 0; i < eta.size(); ++i)
-                                 for (size_t j = 0; j < eta_ref.size(); ++j) {
-                                   double delta = eta[i] - eta_ref[j];
-                                   delta_eta.emplace_back(delta);
-                                 }
-                               return delta_eta;
-                             },
-                             {"fEta", "fEtaREF"})
-                     .Define("isntSameBunchPileup", MALICE::IsntSameBunchPileup,
-                             {"fSelection"})
-                     .Define("fNumContribCalibrated",
-                             Calib_NumContrib_fPosZ_Run::NumContribCalibrated,
-                             {"fMultVtxContri", "fVtxZ"});
+  auto rdf_all =
+      rdf.Define("DeltaPhi",
+                 [](const ROOT::RVec<float> &phi,
+                    const ROOT::RVec<float> &phi_ref) {
+                   ROOT::RVec<float> delta_phi;
+                   for (size_t i = 0; i < phi.size(); ++i)
+                     for (size_t j = 0; j < phi_ref.size(); ++j) {
+                       double delta = phi[i] - phi_ref[j];
+                       int n = 0;
+                       while (delta > 1.5 * M_PI && n < 10) {
+                         n++;
+                         delta -= 2 * M_PI;
+                       }
+                       while (delta < -0.5 * M_PI && n < 10) {
+                         n++;
+                         delta += 2 * M_PI;
+                       }
+                       if (n >= 10)
+                         delta = -999.;
+                       delta_phi.emplace_back(delta);
+                     }
+                   return delta_phi;
+                 },
+                 {"fPhi", "fPhiREF"})
+          .Define("DeltaEta",
+                  [](const ROOT::RVec<float> &eta,
+                     const ROOT::RVec<float> &eta_ref) {
+                    ROOT::RVec<float> delta_eta;
+                    for (size_t i = 0; i < eta.size(); ++i)
+                      for (size_t j = 0; j < eta_ref.size(); ++j) {
+                        double delta = eta[i] - eta_ref[j];
+                        delta_eta.emplace_back(delta);
+                      }
+                    return delta_eta;
+                  },
+                  {"fEta", "fEtaREF"})
+          .Define("isntSameBunchPileup", MALICE::IsntSameBunchPileup,
+                  {"fSelection"})
+          .Define("fNumContribCalibrated",
+                  Calib_NumContrib_fPosZ_Run::NumContribCalibratedFloat,
+                  {"fMultVtxContri", "fVtxZ"});
   auto rdf_noPileup =
       rdf_all.Filter("isntSameBunchPileup", "no same bunch pileup");
   auto rdf_Pileup = rdf_all.Filter("!isntSameBunchPileup", "same bunch pileup");

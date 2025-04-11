@@ -1,9 +1,9 @@
 #ifndef MCALIBRATION_H
 #define MCALIBRATION_H
 
-#include "TH1D.h"
-#include "TFile.h"
 #include "TF1.h"
+#include "TFile.h"
+#include "TH1D.h"
 #include "TProfile.h"
 #include "TString.h"
 
@@ -84,6 +84,10 @@ public:
   }
 
   static double NumContribCalibrated(unsigned short numContrib, float posZ) {
+    return numContrib * GetCaliFactor(posZ) / 50. / fMeanNumContrib;
+  }
+
+  static double NumContribCalibratedFloat(float numContrib, float posZ) {
     return numContrib * GetCaliFactor(posZ) / 50. / fMeanNumContrib;
   }
 };
