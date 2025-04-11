@@ -56,29 +56,7 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
                     }
                     return vtxZ_extended;
                   },
-                  {"fVtxZ", "DeltaPhi"})
-          .Define("fMass_extended",
-                  [](const ROOT::RVec<float> &mass,
-                     const ROOT::RVec<float> &phi_ref) {
-                    ROOT::RVec<float> mass_extended;
-                    for (size_t i = 0; i < mass.size(); ++i)
-                      for (size_t j = 0; j < phi_ref.size(); ++j) {
-                        mass_extended.emplace_back(mass[i]);
-                      }
-                    return mass_extended;
-                  },
-                  {"fMass", "fPhiREF"})
-          .Define("fPT_extended",
-                  [](const ROOT::RVec<float> &pt,
-                     const ROOT::RVec<float> &phi_ref) {
-                    ROOT::RVec<float> pt_extended;
-                    for (size_t i = 0; i < pt.size(); ++i)
-                      for (size_t j = 0; j < phi_ref.size(); ++j) {
-                        pt_extended.emplace_back(pt[i]);
-                      }
-                    return pt_extended;
-                  },
-                  {"fPT", "fPhiREF"});
+                  {"fVtxZ", "DeltaPhi"});
   ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
@@ -126,8 +104,8 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
 
   THnDModel h_multinfo(name_hist_info.c_str(), name_hist_title.c_str(), 5,
                        nbins, vec_bins);
-  ColumnNames_t colnames_info = {"DeltaEta", "DeltaPhi", "fVtxZ_extended", "fMass_extended",
-                                 "fPT_extended"};
+  ColumnNames_t colnames_info = {"DeltaEta", "DeltaPhi", "fVtxZ", "fMass",
+                                 "fPT"};
   // Set axis titles
   RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
 
