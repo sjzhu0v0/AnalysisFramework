@@ -84,6 +84,15 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                     return numContrib_extended;
                   },
                   {"fNumContribCalibrated", "DeltaPhi"})
+          .Define("NumContribCalibrated_extended2",
+                  [](const double &numContrib, const RVec<float> &delta_phi) {
+                    ROOT::RVec<double> numContrib_extended;
+                    for (size_t i = 0; i < delta_phi.size(); ++i) {
+                      numContrib_extended.emplace_back(numContrib);
+                    }
+                    return numContrib_extended;
+                  },
+                  {"fNumContribCalibrated", "DeltaPhi"})
           .Define("fVtxZ_extended",
                   [](const float &vtxZ, const RVec<float> &delta_phi) {
                     ROOT::RVec<double> vtxZ_extended;
@@ -92,7 +101,16 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                     }
                     return vtxZ_extended;
                   },
-                  {"fVtxZ", "DeltaPhi"})
+                  {"fVtxZ", "fMass"})
+          .Define("fVtxZ_extended2",
+                  [](const float &vtxZ, const RVec<float> &delta_phi) {
+                    ROOT::RVec<double> vtxZ_extended;
+                    for (size_t i = 0; i < delta_phi.size(); ++i) {
+                      vtxZ_extended.emplace_back(vtxZ);
+                    }
+                    return vtxZ_extended;
+                  },
+                  {"fVtxZ", "fMass"})
           .Define("fMass_extended",
                   [](const ROOT::RVec<float> &mass,
                      const ROOT::RVec<float> &phi_ref) {
@@ -176,11 +194,26 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   ColumnNames_t colnames_info = {
       "DeltaEta",       "DeltaPhi",     "fVtxZ_extended",
       "fMass_extended", "fPT_extended", "NumContribCalibrated_extended"};
-  // Set axis titles
-  // RHistDefine2DLoop(rdf_all, vec_vars[0], vec_vars[1], gEmptyString);
+
+  Int_t nbins_triggered[] = {var_VtxZ.fNbins, var_Mass.fNbins, var_Pt.fNbins,
+                             var_NumContrib.fNbins};
+  vector<vector<double>> vec_bins_triggered = {
+      var_VtxZ.fBins, var_Mass.fBins, var_Pt.fBins, var_NumContrib.fBins};
+  string name_hist_triggered = "VtxZ_Mass_Pt_NumContribCalib";
+  string name_hist_title_triggered =
+      "VtxZ_Mass_Pt_NumContribCalib;V_{Z} (cm);Mass (GeV/c^{2});p_{T} (GeV/c);"
+      "NumContrib Calib";
+  THnDModel h_multinfo_triggered(name_hist_triggered.c_str(),
+                                 name_hist_title_triggered.c_str(), 4,
+                                 nbins_triggered, vec_bins_triggered);
+  ColumnNames_t colnames_info_triggered = {"fVtxZ_extended2", "fMass", "fPT",
+                                           "NumContribCalibrated_extended2"};
 
   auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
   gRResultHandlesFast.push_back(info_multDim);
+  auto info_triggered =
+      rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
+  gRResultHandlesFast.push_back(info_triggered);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
