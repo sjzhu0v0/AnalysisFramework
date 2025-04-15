@@ -195,8 +195,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   THnDModel h_multinfo(name_hist_info.c_str(), name_hist_title.c_str(), 6,
                        nbins, vec_bins);
   ColumnNames_t colnames_info = {
-      "DeltaEta",       "DeltaPhi",     "fVtxZ_extended",
-      "fMass_extended", "fPT_extended", "NumContribCalibrated_extended"};
+      "DeltaEta", "DeltaPhi", "fVtxZ", "fMass", "fPT", "fNumContribCalibrated"};
 
   Int_t nbins_triggered[] = {var_VtxZ.fNbins, var_Mass.fNbins, var_Pt.fNbins,
                              var_NumContrib.fNbins};
@@ -212,8 +211,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   ColumnNames_t colnames_info_triggered = {"fVtxZ", "fMass", "fPT",
                                            "fNumContribCalibrated"};
 
-  // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
-  // gRResultHandlesFast.push_back(info_multDim);
+  auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
+  gRResultHandlesFast.push_back(info_multDim);
   auto info_triggered =
       rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
   gRResultHandlesFast.push_back(info_triggered);
@@ -221,7 +220,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
-  // info_multDim->Write();
+  info_multDim->Write();
   fOutput->Close();
 }
 
