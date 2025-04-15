@@ -5,4 +5,5 @@
 *.exe
 data/
 output/
+test/
 .config_rsync

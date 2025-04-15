@@ -1,10 +1,10 @@
 #define MRDF
 #include "MALICE.h"
+#include "MDefinition.h"
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
 #include "TApplication.h"
-#include "MShare.h"
 funcWithJson(void, SE_RR)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
@@ -69,8 +69,6 @@ funcWithJson(void, SE_RR)(TString path_config = "../config.json") {
   auto h_DeltaEta = rdf_all.Histo1D("DeltaEta");
   gRResultHandlesFast.push_back(h_DeltaEta);
   /* #endregion */
-
-
 
   /* #region macro definition */
 #define RHistDefine2DLoop(df, v1, v2, cond)                                    \

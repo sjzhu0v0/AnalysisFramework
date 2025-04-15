@@ -3,7 +3,7 @@
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
-#include "MShare.h"
+#include "MDefinition.h"
 #include "TApplication.h"
 funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
