@@ -61,6 +61,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                      }
                      delta_phi.emplace_back(delta_phi_i);
                    }
+                   return delta_phi;
                  },
                  {"fPhi", "fPhiREF"})
           .Define("DeltaEta",
