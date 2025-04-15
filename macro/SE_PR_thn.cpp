@@ -211,8 +211,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   ColumnNames_t colnames_info_triggered = {"fVtxZ", "fMass", "fPT",
                                            "fNumContribCalibrated"};
 
-  auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
-  gRResultHandlesFast.push_back(info_multDim);
+  // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
+  // gRResultHandlesFast.push_back(info_multDim);
   auto info_triggered =
       rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
   gRResultHandlesFast.push_back(info_triggered);
@@ -220,7 +220,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
-  info_multDim->Write();
+  // info_multDim->Write();
   fOutput->Close();
 }
 
