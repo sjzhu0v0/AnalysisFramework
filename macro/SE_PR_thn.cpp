@@ -201,7 +201,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
-  // info_multDim->Write();
+  info_multDim->Write();
+  info_triggered->Write();
   fOutput->Close();
 }
 
