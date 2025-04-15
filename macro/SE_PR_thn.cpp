@@ -139,7 +139,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   THnDModel h_multinfo(name_hist_info.c_str(), name_hist_title.c_str(), 6,
                        nbins, vec_bins);
   ColumnNames_t colnames_info = {
-      "DeltaEta", "DeltaPhi", "fVtxZ", "fMass", "fPT", "fNumContribCalibrated"};
+      "fEta - fEtaREF", "fPhi - fPhiREF", "fVtxZ", "fMass", "fPT", "fNumContribCalibrated"};
 
   Int_t nbins_triggered[] = {var_VtxZ.fNbins, var_Mass.fNbins, var_Pt.fNbins,
                              var_NumContrib.fNbins};
