@@ -65,7 +65,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
           .Define("DeltaEta",
                   [](const ROOT::RVec<float> &eta,
                      const ROOT::RVec<float> &eta_ref) {
-                    ROOT::RVec<ROOT::RVec<double>> delta_eta;
+                    ROOT::RVec<double> delta_eta;
                     for (size_t i = 0; i < eta.size(); ++i) {
                       for (size_t j = 0; j < eta_ref.size(); ++j) {
                         double delta = eta[i] - eta_ref[j];
