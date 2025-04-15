@@ -9,10 +9,23 @@ StrVar4Hist var_Mass("fMass", "Mass", "GeV/c^{2}", 100, {1., 5.});
 StrVar4Hist var_Pt("fPT", "p_{T}", "GeV/c", 10, {0., 10.});
 
 // 0,22.5,30.6,37,42.9,48.7,54.7,61.5,69.8,82,260.5 bin NumContrib
-StrVar4Hist var_NumContrib("fNumContribCalibrated", "fNumContrib Calibrated", "", 10,
+StrVar4Hist var_NumContrib("fNumContribCalibrated", "fNumContrib Calibrated",
+                           "", 10,
                            {0., 22.5, 30.6, 37., 42.9, 48.7, 54.7, 61.5, 69.8,
                             82., 300.});
 /* #endregion */
 vector<StrVar4Hist> vec_vars = {var_DeltaEta, var_DeltaPhi, var_VtxZ};
+vector<StrVar4Hist> glib_vars = {var_DeltaEta, var_DeltaPhi, var_VtxZ,
+                                 var_Mass,     var_Pt,       var_NumContrib};
+
+enum gtype_vars {
+  kDeltaEta = 0,
+  kDeltaPhi,
+  kVtxZ,
+  kMass,
+  kPt,
+  kNumContrib,
+  kNvar
+};
 
 #endif
