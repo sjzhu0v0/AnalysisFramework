@@ -161,9 +161,9 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
 
   // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
   // gRResultHandlesFast.push_back(info_multDim);
-  auto info_triggered =
-      rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
-  gRResultHandlesFast.push_back(info_triggered);
+  // auto info_triggered =
+  //     rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
+  // gRResultHandlesFast.push_back(info_triggered);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
