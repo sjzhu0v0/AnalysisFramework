@@ -209,14 +209,14 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   THnDModel h_multinfo_triggered(name_hist_triggered.c_str(),
                                  name_hist_title_triggered.c_str(), 4,
                                  nbins_triggered, vec_bins_triggered);
-  ColumnNames_t colnames_info_triggered = {"fVtxZ_extended2", "fMass", "fPT",
-                                           "NumContribCalibrated_extended2"};
+  ColumnNames_t colnames_info_triggered = {"fVtxZ", "fMass", "fPT",
+                                           "NumContribCalibrated"};
 
   // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
   // gRResultHandlesFast.push_back(info_multDim);
-  // auto info_triggered =
-  //     rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
-  // gRResultHandlesFast.push_back(info_triggered);
+  auto info_triggered =
+      rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
+  gRResultHandlesFast.push_back(info_triggered);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
