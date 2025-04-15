@@ -101,7 +101,10 @@ bool IsntTPCPileup(ULong64_t fSelection) {
 }
 
 // kNoSameBunchPileup
-bool IsntSameBunchPileup(ULong64_t fSelection) {
+// bool IsntSameBunchPileup(ULong64_t fSelection) {
+//   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
+// }
+bool IsntSameBunchPileup(unsigned int, ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }
 

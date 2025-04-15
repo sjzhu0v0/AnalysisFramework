@@ -87,7 +87,8 @@ public:
     return numContrib * GetCaliFactor(posZ) / 50. / fMeanNumContrib;
   }
 
-  static double NumContribCalibratedFloat(float numContrib, float posZ) {
+  static double NumContribCalibratedFloat(unsigned int, float numContrib,
+                                          float posZ) {
     return numContrib * GetCaliFactor(posZ) / 50. / fMeanNumContrib;
   }
 };

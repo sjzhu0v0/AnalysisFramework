@@ -33,6 +33,9 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   vector<RResultHandle> gRResultHandlesFast;
   ROOT::RDataFrame rdf(*tree_event);
 
+  // turn off the multithreading
+  // ROOT::RDF::RDataFrame::SetDefaultNThreads(1);
+
   /* #region rdf_all definition */
   auto rdf_all =
       rdf.Define("DeltaPhi",
@@ -70,11 +73,11 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                     return delta_eta;
                   },
                   {"fEta", "fEtaREF"})
-          .Define("isntSameBunchPileup", MALICE::IsntSameBunchPileup,
-                  {"fSelection"})
-          .Define("fNumContribCalibrated",
-                  Calib_NumContrib_fPosZ_Run::NumContribCalibratedFloat,
-                  {"fMultVtxContri", "fVtxZ"})
+          .DefineSlot("isntSameBunchPileup", MALICE::IsntSameBunchPileup,
+                      {"fSelection"})
+          .DefineSlot("fNumContribCalibrated",
+                      Calib_NumContrib_fPosZ_Run::NumContribCalibratedFloat,
+                      {"fMultVtxContri", "fVtxZ"})
           .Define("NumContribCalibrated_extended",
                   [](const double &numContrib, const RVec<float> &delta_phi) {
                     ROOT::RVec<double> numContrib_extended;
@@ -92,7 +95,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                     }
                     return numContrib_extended;
                   },
-                  {"fNumContribCalibrated", "DeltaPhi"})
+                  {"fNumContribCalibrated", "fMass"})
           .Define("fVtxZ_extended",
                   [](const float &vtxZ, const RVec<float> &delta_phi) {
                     ROOT::RVec<double> vtxZ_extended;
@@ -209,16 +212,16 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   ColumnNames_t colnames_info_triggered = {"fVtxZ_extended2", "fMass", "fPT",
                                            "NumContribCalibrated_extended2"};
 
-  auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
-  gRResultHandlesFast.push_back(info_multDim);
-  auto info_triggered =
-      rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
-  gRResultHandlesFast.push_back(info_triggered);
+  // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
+  // gRResultHandlesFast.push_back(info_multDim);
+  // auto info_triggered =
+  //     rdf_noPileup.HistoND(h_multinfo_triggered, colnames_info_triggered);
+  // gRResultHandlesFast.push_back(info_triggered);
   RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
-  info_multDim->Write();
+  // info_multDim->Write();
   fOutput->Close();
 }
 
