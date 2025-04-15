@@ -210,7 +210,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                                  name_hist_title_triggered.c_str(), 4,
                                  nbins_triggered, vec_bins_triggered);
   ColumnNames_t colnames_info_triggered = {"fVtxZ", "fMass", "fPT",
-                                           "NumContribCalibrated"};
+                                           "fNumContribCalibrated"};
 
   // auto info_multDim = rdf_noPileup.HistoND(h_multinfo, colnames_info);
   // gRResultHandlesFast.push_back(info_multDim);
