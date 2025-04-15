@@ -82,65 +82,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                       {"fSelection"})
           .DefineSlot("fNumContribCalibrated",
                       Calib_NumContrib_fPosZ_Run::NumContribCalibratedFloat,
-                      {"fMultVtxContri", "fVtxZ"})
-          .Define("NumContribCalibrated_extended",
-                  [](const double &numContrib, const RVec<float> &delta_phi) {
-                    ROOT::RVec<double> numContrib_extended;
-                    for (size_t i = 0; i < delta_phi.size(); ++i) {
-                      numContrib_extended.emplace_back(numContrib);
-                    }
-                    return numContrib_extended;
-                  },
-                  {"fNumContribCalibrated", "DeltaPhi"})
-          .Define("NumContribCalibrated_extended2",
-                  [](const double &numContrib, const RVec<float> &delta_phi) {
-                    ROOT::RVec<double> numContrib_extended;
-                    for (size_t i = 0; i < delta_phi.size(); ++i) {
-                      numContrib_extended.emplace_back(numContrib);
-                    }
-                    return numContrib_extended;
-                  },
-                  {"fNumContribCalibrated", "fMass"})
-          .Define("fVtxZ_extended",
-                  [](const float &vtxZ, const RVec<float> &delta_phi) {
-                    ROOT::RVec<double> vtxZ_extended;
-                    for (size_t i = 0; i < delta_phi.size(); ++i) {
-                      vtxZ_extended.emplace_back(vtxZ);
-                    }
-                    return vtxZ_extended;
-                  },
-                  {"fVtxZ", "fMass"})
-          .Define("fVtxZ_extended2",
-                  [](const float &vtxZ, const RVec<float> &delta_phi) {
-                    ROOT::RVec<double> vtxZ_extended;
-                    for (size_t i = 0; i < delta_phi.size(); ++i) {
-                      vtxZ_extended.emplace_back(vtxZ);
-                    }
-                    return vtxZ_extended;
-                  },
-                  {"fVtxZ", "fMass"})
-          .Define("fMass_extended",
-                  [](const ROOT::RVec<float> &mass,
-                     const ROOT::RVec<float> &phi_ref) {
-                    ROOT::RVec<float> mass_extended;
-                    for (size_t i = 0; i < mass.size(); ++i)
-                      for (size_t j = 0; j < phi_ref.size(); ++j) {
-                        mass_extended.emplace_back(mass[i]);
-                      }
-                    return mass_extended;
-                  },
-                  {"fMass", "fPhiREF"})
-          .Define("fPT_extended",
-                  [](const ROOT::RVec<float> &pt,
-                     const ROOT::RVec<float> &phi_ref) {
-                    ROOT::RVec<float> pt_extended;
-                    for (size_t i = 0; i < pt.size(); ++i)
-                      for (size_t j = 0; j < phi_ref.size(); ++j) {
-                        pt_extended.emplace_back(pt[i]);
-                      }
-                    return pt_extended;
-                  },
-                  {"fPT", "fPhiREF"});
+                      {"fMultVtxContri", "fVtxZ"});
 
   auto rdf_noPileup =
       rdf_all.Filter("isntSameBunchPileup", "no same bunch pileup");
