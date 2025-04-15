@@ -41,9 +41,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
       rdf.Define("DeltaPhi",
                  [](const ROOT::RVec<float> &phi,
                     const ROOT::RVec<float> &phi_ref) {
-                   ROOT::RVec<ROOT::RVec<double>> delta_phi;
+                   ROOT::RVec<double> delta_phi;
                    for (size_t i = 0; i < phi.size(); ++i) {
-                     ROOT::RVec<double> delta_phi_i;
                      for (size_t j = 0; j < phi_ref.size(); ++j) {
                        double delta = phi[i] - phi_ref[j];
                        int n = 0;
@@ -57,9 +56,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                        }
                        if (n >= 10)
                          delta = -999.;
-                       delta_phi_i.emplace_back(delta);
+                       delta_phi.emplace_back(delta);
                      }
-                     delta_phi.emplace_back(delta_phi_i);
                    }
                    return delta_phi;
                  },
@@ -69,12 +67,10 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                      const ROOT::RVec<float> &eta_ref) {
                     ROOT::RVec<ROOT::RVec<double>> delta_eta;
                     for (size_t i = 0; i < eta.size(); ++i) {
-                      ROOT::RVec<double> delta_eta_i;
                       for (size_t j = 0; j < eta_ref.size(); ++j) {
                         double delta = eta[i] - eta_ref[j];
-                        delta_eta_i.emplace_back(delta);
+                        delta_eta.emplace_back(delta);
                       }
-                      delta_eta.emplace_back(delta_eta_i);
                     }
                     return delta_eta;
                   },
