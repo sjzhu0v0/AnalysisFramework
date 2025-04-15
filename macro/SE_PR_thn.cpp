@@ -37,9 +37,9 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   // ROOT::RDF::RDataFrame::SetDefaultNThreads(1);
 
   /* #region rdf_all definition */
-  auto rdf_all =
-      rdf.Define("DeltaPhi",
-                 [](const ROOT::RVec<float> &phi,
+  auto rdf_all = 
+      rdf.Define("DeltaPhi", "fPhi - fPhiREF"
+                /*  [](const ROOT::RVec<float> &phi,
                     const ROOT::RVec<float> &phi_ref) {
                    ROOT::RVec<double> delta_phi;
                    for (size_t i = 0; i < phi.size(); ++i) {
@@ -61,9 +61,9 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                    }
                    return delta_phi;
                  },
-                 {"fPhi", "fPhiREF"})
-          .Define("DeltaEta",
-                  [](const ROOT::RVec<float> &eta,
+                 {"fPhi", "fPhiREF"} */)
+          .Define("DeltaEta", "fEta - fEtaREF"
+                 /*  [](const ROOT::RVec<float> &eta,
                      const ROOT::RVec<float> &eta_ref) {
                     ROOT::RVec<double> delta_eta;
                     for (size_t i = 0; i < eta.size(); ++i) {
@@ -74,7 +74,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                     }
                     return delta_eta;
                   },
-                  {"fEta", "fEtaREF"})
+                  {"fEta", "fEtaREF"} */)
           .DefineSlot("isntSameBunchPileup", MALICE::IsntSameBunchPileup,
                       {"fSelection"})
           .DefineSlot("fNumContribCalibrated",
@@ -139,7 +139,7 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   THnDModel h_multinfo(name_hist_info.c_str(), name_hist_title.c_str(), 6,
                        nbins, vec_bins);
   ColumnNames_t colnames_info = {
-      "fEta - fEtaREF", "fPhi - fPhiREF", "fVtxZ", "fMass", "fPT", "fNumContribCalibrated"};
+      "DeltaEta", "DeltaPhi", "fVtxZ", "fMass", "fPT", "fNumContribCalibrated"};
 
   Int_t nbins_triggered[] = {var_VtxZ.fNbins, var_Mass.fNbins, var_Pt.fNbins,
                              var_NumContrib.fNbins};
