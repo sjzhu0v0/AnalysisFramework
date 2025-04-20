@@ -102,13 +102,13 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   auto info_multDim = rdf_all.HistoND(h_multinfo, colnames_info);
   gRResultHandlesFast.push_back(info_multDim);
 
+  RunGraphs(gRResultHandlesFast);
+
   info_multDim->GetAxis(0)->SetTitle("#Delta #eta");
   info_multDim->GetAxis(1)->SetTitle("#Delta #phi");
   info_multDim->GetAxis(2)->SetTitle("V_{Z} (cm)");
   info_multDim->GetAxis(3)->SetTitle("Mass (GeV/c^{2})");
   info_multDim->GetAxis(4)->SetTitle("p_{T} (GeV/c)");
-
-  RunGraphs(gRResultHandlesFast);
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
