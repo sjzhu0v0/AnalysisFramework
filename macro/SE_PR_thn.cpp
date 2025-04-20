@@ -203,10 +203,21 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   gRResultHandlesFast.push_back(info_triggered);
   RunGraphs(gRResultHandlesFast);
 
+  info_multDim->GetAxis(0)->SetTitle("#Delta #eta");
+  info_multDim->GetAxis(1)->SetTitle("#Delta #phi");
+  info_multDim->GetAxis(2)->SetTitle("V_{Z} (cm)");
+  info_multDim->GetAxis(3)->SetTitle("Mass (GeV/c^{2})");
+  info_multDim->GetAxis(4)->SetTitle("p_{T} (GeV/c)");
+  info_multDim->GetAxis(5)->SetTitle("NumContrib Calib");
+
+  info_triggered->GetAxis(0)->SetTitle("V_{Z} (cm)");
+  info_triggered->GetAxis(1)->SetTitle("Mass (GeV/c^{2})");
+  info_triggered->GetAxis(2)->SetTitle("p_{T} (GeV/c)");
+  info_triggered->GetAxis(3)->SetTitle("NumContrib Calib");
+
+
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
-  info_multDim->Write();
-  info_triggered->Write();
   fOutput->Close();
 }
 

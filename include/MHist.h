@@ -177,6 +177,8 @@ public:
   // information print
   void PrintAllAxis() {
     cout << "Number of dimensions: " << fNDimensions << endl;
+    cout << "Name: " << hN->GetName() << endl;
+    cout << "Title: " << hN->GetTitle() << endl;
     for (int i = 0; i < fNDimensions; i++) {
       cout << "Axis " << i << ": " << hN->GetAxis(i)->GetName()
            << ", title: " << hN->GetAxis(i)->GetTitle()
@@ -210,14 +212,13 @@ public:
         continue;
       }
       int bin2set = i + binMore;
-      double min =
-          hN->GetAxis(bin2set + 1)->GetBinLowEdge(binsTargets[bin2set]);
+      double min = hN->GetAxis(bin2set)->GetBinLowEdge(binsTargets[bin2set]);
       double max =
-          min + hN->GetAxis(bin2set + 1)->GetBinWidth(binsTargets[bin2set]);
-      hN->GetAxis(bin2set + 1)->SetRangeUser(min, max);
+          min + hN->GetAxis(bin2set)->GetBinWidth(binsTargets[bin2set]);
+      hN->GetAxis(bin2set)->SetRangeUser(min, max);
     }
 
-    TH1D *h1D = hN->Projection(dimTarget + 1);
+    TH1D *h1D = hN->Projection(dimTarget);
     return h1D;
   }
 
@@ -237,10 +238,10 @@ public:
       double min = hN->GetAxis(bin2set)->GetBinLowEdge(binsTargets[bin2set]);
       double max =
           min + hN->GetAxis(bin2set)->GetBinWidth(binsTargets[bin2set]);
-      hN->GetAxis(bin2set + 1)->SetRangeUser(min, max);
+      hN->GetAxis(bin2set)->SetRangeUser(min, max);
     }
 
-    TH2D *h2D = hN->Projection(dimTarget1 + 1, dimTarget2 + 1);
+    TH2D *h2D = hN->Projection(dimTarget1, dimTarget2);
     return h2D;
   }
 
