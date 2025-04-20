@@ -31,7 +31,6 @@ int GenerateUID() {
 
 double gThresholdBootstrap = 0.5;
 bool IsInBootstrap(unsigned int n) {
-  gRandom->SetSeed(GenerateUID());
   return gRandom->Uniform(0, 1) < gThresholdBootstrap;
 }
 
