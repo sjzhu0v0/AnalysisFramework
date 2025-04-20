@@ -8,6 +8,7 @@
 
 funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
+  gRandom->SetSeed(0);
   Configurable<string> config_pathInputFile(
       "path_input", "/home/szhu/work/alice/analysis/PairFlow/data/pairflow/"
                     "O2dqflowpairpr.root");
@@ -214,7 +215,6 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   info_triggered->GetAxis(1)->SetTitle("Mass (GeV/c^{2})");
   info_triggered->GetAxis(2)->SetTitle("p_{T} (GeV/c)");
   info_triggered->GetAxis(3)->SetTitle("NumContrib Calib");
-
 
   fOutput->cd();
   RResultWrite(gRResultHandlesFast);
