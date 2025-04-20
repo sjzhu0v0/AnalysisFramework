@@ -15,6 +15,7 @@
 #include "TLine.h"
 #include "TList.h"
 #include "TROOT.h"
+#include "TRandom3.h"
 #include "TTree.h"
 #include "fstream"
 #include "iostream"
@@ -26,6 +27,11 @@ using namespace std;
 int GenerateUID() {
   static int uid = 0;
   return uid++;
+}
+
+double gThresholdBootstrap = 0.5;
+bool IsInBootstrap(unsigned int n) {
+  return gRandom->Uniform(0, 1) < gThresholdBootstrap;
 }
 
 TString gEmptyString = "";

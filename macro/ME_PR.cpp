@@ -4,7 +4,7 @@
 #include "MHist.h"
 #include "MRootIO.h"
 #include "TApplication.h"
-#include "MShare.h"
+#include "MDefinition.h"
 funcWithJson(void, ME_PR)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(

@@ -40,6 +40,8 @@ typedef struct StrVar4Hist {
   TString CompleteTitle() { return fTitle + ";" + fName + " (" + fUnit + ")"; }
 } StrVar4Hist;
 
+#include "MDefinition.h"
+
 #define HistDefine(histType, histName, histTitle, ...)                         \
   histType *histName =                                                         \
       new histType(histName, histName + ";" + histTitle, __VA_ARGS__);
@@ -130,6 +132,155 @@ void HistDivide2D(TH2D *result, TH2D *h1, TH2D *h2) {
     }
   }
 }
+
+void DensityHisto1DNoWeight(TH1D *h1) {
+  double integral = h1->Integral();
+  for (int iBin = 1; iBin <= h1->GetNbinsX(); iBin++) {
+    double binContent = h1->GetBinContent(iBin);
+    double binError = h1->GetBinError(iBin);
+    double binWidth = h1->GetBinWidth(iBin);
+    h1->SetBinContent(iBin, binContent / integral / binWidth);
+    double error = sqrt(binContent * (integral - binContent) / integral) /
+                   integral / binWidth;
+    h1->SetBinError(iBin, error);
+  }
+}
+
+void DensityHisto2DNoWeight(TH2D *h2) {
+  double integral = h2->Integral();
+  for (int iBinX = 1; iBinX <= h2->GetNbinsX(); iBinX++) {
+    for (int iBinY = 1; iBinY <= h2->GetNbinsY(); iBinY++) {
+      double binContent = h2->GetBinContent(iBinX, iBinY);
+      double binError = h2->GetBinError(iBinX, iBinY);
+      double binWidthX = h2->GetXaxis()->GetBinWidth(iBinX);
+      double binWidthY = h2->GetYaxis()->GetBinWidth(iBinY);
+      h2->SetBinContent(iBinX, iBinY,
+                        binContent / integral / binWidthX / binWidthY);
+      double error = sqrt(binContent * (integral - binContent) / integral) /
+                     integral / binWidthX / binWidthY;
+      h2->SetBinError(iBinX, iBinY, error);
+    }
+  }
+}
+
+class MHnTool {
+public:
+  THnD *hN = nullptr;
+  int fNDimensions = 0;
+
+  MHnTool(THnD *h) { SetHn(h); }
+  ~MHnTool() {
+    if (hN)
+      hN->Delete();
+  }
+
+  // information print
+  void PrintAllAxis() {
+    cout << "Number of dimensions: " << fNDimensions << endl;
+    for (int i = 0; i < fNDimensions; i++) {
+      cout << "Axis " << i << ": " << hN->GetAxis(i)->GetName()
+           << ", title: " << hN->GetAxis(i)->GetTitle()
+           << "  nbins:" << hN->GetAxis(i)->GetNbins() << endl;
+    }
+  }
+
+  void SetHn(THnD *h) {
+    if (hN != h)
+      hN = h;
+
+    if (!hN) {
+      cerr << "Error: MHnTool::SetHn: hN is null" << endl;
+      exit(1);
+    }
+    fNDimensions = hN->GetNdimensions();
+  }
+
+  TH1D *Project(int dimTarget, vector<int> binsTargets) {
+    if (binsTargets.size() + 1 != dimTarget) {
+      cerr << "Error: MHnTool::Project: binsTargets.size() + 1 != dimTarget"
+           << endl;
+      exit(1);
+    }
+
+    int posTarget = 0;
+    int binMore = 0;
+    for (int i = 0; i < fNDimensions; i++) {
+      if (i == dimTarget) {
+        binMore++;
+        continue;
+      }
+      int bin2set = i + binMore;
+      double min =
+          hN->GetAxis(bin2set + 1)->GetBinLowEdge(binsTargets[bin2set]);
+      double max =
+          min + hN->GetAxis(bin2set + 1)->GetBinWidth(binsTargets[bin2set]);
+      hN->GetAxis(bin2set + 1)->SetRangeUser(min, max);
+    }
+
+    TH1D *h1D = hN->Projection(dimTarget + 1);
+    return h1D;
+  }
+
+  TH2D *Project(int dimTarget1, int dimTarget2, vector<int> binsTargets) {
+    if (binsTargets.size() + 2 != dimTarget1) {
+      cerr << "Error: MHnTool::Project: binsTargets.size() + 1 != dimTarget"
+           << endl;
+      exit(1);
+    }
+    int binMore = 0;
+    for (int i = 0; i < fNDimensions; i++) {
+      if (i == dimTarget1 || i == dimTarget2) {
+        binMore++;
+        continue;
+      }
+      int bin2set = i + binMore;
+      double min = hN->GetAxis(bin2set)->GetBinLowEdge(binsTargets[bin2set]);
+      double max =
+          min + hN->GetAxis(bin2set)->GetBinWidth(binsTargets[bin2set]);
+      hN->GetAxis(bin2set + 1)->SetRangeUser(min, max);
+    }
+
+    TH2D *h2D = hN->Projection(dimTarget1 + 1, dimTarget2 + 1);
+    return h2D;
+  }
+
+  void Rebin(int dimTarget, int n) {
+    if (hN == nullptr) {
+      cerr << "Error: MHnTool::Rebin: hN is null" << endl;
+      exit(1);
+    }
+    vector<int> vec_rebin;
+    for (int i = 0; i < fNDimensions; i++) {
+      if (i == dimTarget) {
+        vec_rebin.push_back(n);
+      } else {
+        vec_rebin.push_back(1);
+      }
+    }
+    hN->Rebin(vec_rebin.data());
+  }
+
+  void RebinTotal(int dimTarget) {
+    if (dimTarget > hN->GetNdimensions()) {
+      cerr << "Error: MHnTool::RebinAll: dimTarget > hN->GetNdimensions()"
+           << endl;
+      exit(1);
+    }
+    if (hN == nullptr) {
+      cerr << "Error: MHnTool::RebinAll: hN is null" << endl;
+      exit(1);
+    }
+    vector<int> vec_rebin;
+    for (int i = 0; i < fNDimensions; i++) {
+      if (i == dimTarget) {
+        vec_rebin.push_back(hN->GetAxis(i)->GetNbins());
+      } else {
+        vec_rebin.push_back(1);
+      }
+    }
+    hN->Rebin(vec_rebin.data());
+  }
+};
 
 #endif
 

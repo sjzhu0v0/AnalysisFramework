@@ -3,8 +3,8 @@
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
-#include "MDefinition.h"
 #include "TApplication.h"
+
 funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
@@ -87,8 +87,8 @@ funcWithJson(void, ME_PR_thn)(TString path_config = "../config.json") {
                                      var_VtxZ.fBins, var_Mass.fBins,
                                      var_Pt.fBins};
 
-  string name_hist_info = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt";
-  string name_hist_title = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt_NumContrib;"
+  string name_hist_info = "DeltaEta_DeltaPhi_VtxZ_Mass_Pt";
+  string name_hist_title = "DeltaEta_DeltaPhi_VtxZ_Mass_Pt_NumContrib;"
                            ";#Delta #eta;#Delta #phi;V_{Z} (cm);"
                            "Mass (GeV/c^{2});p_{T} (GeV/c)";
 

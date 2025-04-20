@@ -1,6 +1,5 @@
 #define MRDF
 #include "MALICE.h"
-#include "MDefinition.h"
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"

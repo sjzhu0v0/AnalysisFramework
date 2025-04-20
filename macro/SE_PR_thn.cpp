@@ -4,13 +4,12 @@
 #include "MHead.h"
 #include "MHist.h"
 #include "MRootIO.h"
-#include "MShare.h"
 #include "TApplication.h"
 
 funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   SetUpJson(path_config.Data());
   Configurable<string> config_pathInputFile(
-      "path_input", " /home/szhu/work/alice/analysis/PairFlow/data/pairflow/"
+      "path_input", "/home/szhu/work/alice/analysis/PairFlow/data/pairflow/"
                     "O2dqflowpairpr.root");
   Configurable<string> config_pathOutputFile(
       "path_output",
@@ -20,6 +19,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
   Configurable<string> config_pathCaliFile_run("path_cali_run",
                                                "path/to/cali.root:aaa");
   Configurable<int> config_runNumber("run_number", 0);
+  Configurable<double> config_valuebootstrap("value_bootstrap", 0.9);
+  gThresholdBootstrap = config_valuebootstrap.data;
 
   TFile *file_event = TFile::Open(config_pathInputFile.data.c_str());
   TFile *fOutput = new TFile(config_pathOutputFile.data.c_str(), "RECREATE");
@@ -115,20 +116,23 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                       {"fSelection"})
           .DefineSlot("fNumContribCalibrated",
                       Calib_NumContrib_fPosZ_Run::NumContribCalibratedFloat,
-                      {"fMultVtxContri", "fVtxZ"});
+                      {"fMultVtxContri", "fVtxZ"})
+          .DefineSlot("IsInBootstrap", IsInBootstrap);
 
+  auto rdf_bootstrap = rdf_all.Filter("IsInBootstrap", "bootstrap filter");
   auto rdf_noPileup =
-      rdf_all.Filter("isntSameBunchPileup", "no same bunch pileup");
-  auto rdf_Pileup = rdf_all.Filter("!isntSameBunchPileup", "same bunch pileup");
+      rdf_bootstrap.Filter("isntSameBunchPileup", "no same bunch pileup");
+  auto rdf_Pileup =
+      rdf_bootstrap.Filter("!isntSameBunchPileup", "same bunch pileup");
   ROOT::RDF::Experimental::AddProgressBar(rdf_all);
   /* #endregion */
 
   /* #region histo4qa definition */
-  auto h_DeltaPhi = rdf_all.Histo1D("DeltaPhi");
+  auto h_DeltaPhi = rdf_bootstrap.Histo1D("DeltaPhi");
   gRResultHandlesFast.push_back(h_DeltaPhi);
-  auto h_DeltaEta = rdf_all.Histo1D("DeltaEta");
+  auto h_DeltaEta = rdf_bootstrap.Histo1D("DeltaEta");
   gRResultHandlesFast.push_back(h_DeltaEta);
-  auto h_NumContrib = rdf_all.Histo1D("fNumContribCalibrated");
+  auto h_NumContrib = rdf_bootstrap.Histo1D("fNumContribCalibrated");
   gRResultHandlesFast.push_back(h_NumContrib);
   auto h_NumContrib_Pileup = rdf_Pileup.Histo1D("fNumContribCalibrated");
   gRResultHandlesFast.push_back(h_NumContrib_Pileup);
@@ -167,8 +171,8 @@ funcWithJson(void, SE_PR_thn)(TString path_config = "../config.json") {
                                      var_VtxZ.fBins,     var_Mass.fBins,
                                      var_Pt.fBins,       var_NumContrib.fBins};
 
-  string name_hist_info = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt_NumContribCalib";
-  string name_hist_title = "DeltaPhi_DeltaEta_VtxZ_Mass_Pt_NumContribCalib;"
+  string name_hist_info = "DeltaEta_DeltaPhi_VtxZ_Mass_Pt_NumContribCalib";
+  string name_hist_title = "DeltaEta_DeltaPhi_VtxZ_Mass_Pt_NumContribCalib;"
                            ";#Delta #eta;#Delta #phi;V_{Z} (cm);"
                            "Mass (GeV/c^{2});p_{T} (GeV/c); NumContrib Calib";
 
