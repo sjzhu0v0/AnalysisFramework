@@ -7,8 +7,9 @@
     "path_output": "OUTPUT_ME_PR"
   },
   "SE_PR": {
-    "path_input": "INPUT_SE_PR",
-    "path_output": "OUTPUT_SE_PR"
+    "path_input": "aaaa",
+    "path_output": "INPUT_SE_RR",
+    "/path_output": "INPUT_SE_RR"
   },
   "ME_RR": {
     "path_input": "INPUT_ME_RR",

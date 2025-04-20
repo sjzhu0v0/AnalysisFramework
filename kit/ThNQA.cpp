@@ -3,7 +3,7 @@
 
 void ThNQA(TString hist4check =
                "/home/szhu/work/alice/analysis/PairFlow/test/"
-               "group1.root:VtxZ_Mass_Pt_NumContribCalib") {
+               "group1.root:DeltaEta_DeltaPhi_VtxZ_Mass_Pt_NumContribCalib") {
   TString path_file = hist4check(0, hist4check.Index(":"));
   TString path_hist =
       hist4check(hist4check.Index(":") + 1, hist4check.Length());
