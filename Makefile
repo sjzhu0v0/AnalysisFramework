@@ -47,3 +47,6 @@ macro/ME_RR.exe: macro/ME_RR.cpp
 
 macro/plot_PR.exe: macro/plot_PR.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
+
+macro/RFunc_PR.exe: macro/RFunc_PR.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)

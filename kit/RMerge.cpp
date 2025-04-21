@@ -42,8 +42,8 @@ public:
 
 void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   TH2D *hist0 = sources[0];
-  for (int binx = 0; binx <= target->GetNbinsX() + 1; ++binx) {
-    for (int biny = 0; biny <= target->GetNbinsY() + 1; ++biny) {
+  for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
+    for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       //  remove the first histogram from the sources
       MDoubleR combined(hist0->GetBinContent(binx, biny),
                         hist0->GetBinError(

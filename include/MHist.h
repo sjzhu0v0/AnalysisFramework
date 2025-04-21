@@ -1,5 +1,6 @@
 #include "MHead.h"
 #include "MSystem.h"
+#include "THn.h"
 
 #ifndef MHist_h
 #define MHist_h
@@ -82,6 +83,15 @@ void ScaleHisto2D(TH2D *h, double scale) {
   }
 }
 
+void ScaleHisto1D(TH1D *h, double scale) {
+  for (int i = 1; i <= h->GetNbinsX(); i++) {
+    double binContent = h->GetBinContent(i);
+    double binError = h->GetBinError(i);
+    h->SetBinContent(i, binContent * scale);
+    h->SetBinError(i, binError * scale);
+  }
+}
+
 void SliceYTH2D(TH2D *h2, TDirectory *dir,
                 void (*func)(TH1D *, double *) = nullptr,
                 double *par = nullptr) {
@@ -133,6 +143,28 @@ void HistDivide2D(TH2D *result, TH2D *h1, TH2D *h2) {
   }
 }
 
+void HistDivide2D(TH1D *result, TH1D *h1, TH1D *h2) {
+  for (int i = 1; i <= result->GetNbinsX(); i++) {
+    double binContent1 = h1->GetBinContent(i);
+    double binContent2 = h2->GetBinContent(i);
+    if (binContent2 != 0) {
+      result->SetBinContent(i, binContent1 / binContent2);
+    } else {
+      result->SetBinContent(i, 0);
+    }
+    double binError1 = h1->GetBinError(i);
+    double binError2 = h2->GetBinError(i);
+    if (binContent2 != 0) {
+      double error = binContent1 / binContent2;
+      double error1 = binError1 / binContent2;
+      double error2 = binContent1 * binError2 / (binContent2 * binContent2);
+      result->SetBinError(i, TMath::Sqrt(error1 * error1 + error2 * error2));
+    } else {
+      result->SetBinError(i, 0);
+    }
+  }
+}
+
 void DensityHisto1DNoWeight(TH1D *h1) {
   double integral = h1->Integral();
   for (int iBin = 1; iBin <= h1->GetNbinsX(); iBin++) {
@@ -148,6 +180,9 @@ void DensityHisto1DNoWeight(TH1D *h1) {
 
 void DensityHisto2DNoWeight(TH2D *h2) {
   double integral = h2->Integral();
+  if (integral == 0) {
+    return;
+  }
   for (int iBinX = 1; iBinX <= h2->GetNbinsX(); iBinX++) {
     for (int iBinY = 1; iBinY <= h2->GetNbinsY(); iBinY++) {
       double binContent = h2->GetBinContent(iBinX, iBinY);
@@ -198,32 +233,48 @@ public:
   }
 
   TH1D *Project(int dimTarget, vector<int> binsTargets) {
-    if (binsTargets.size() + 1 != dimTarget) {
+    if (binsTargets.size() + 1 != fNDimensions) {
       cerr << "Error: MHnTool::Project: binsTargets.size() + 1 != dimTarget"
            << endl;
       exit(1);
     }
 
-    int posTarget = 0;
     int binMore = 0;
     for (int i = 0; i < fNDimensions; i++) {
       if (i == dimTarget) {
         binMore++;
         continue;
       }
-      int bin2set = i + binMore;
-      double min = hN->GetAxis(bin2set)->GetBinLowEdge(binsTargets[bin2set]);
-      double max =
-          min + hN->GetAxis(bin2set)->GetBinWidth(binsTargets[bin2set]);
-      hN->GetAxis(bin2set)->SetRangeUser(min, max);
+      double min, max;
+      int bin2set = i - binMore;
+      int index_bins = binsTargets[bin2set];
+      if (index_bins != 0 && index_bins > hN->GetAxis(i)->GetNbins()) {
+        cerr << "Error: MHnTool::Project: index_bins is out of range" << endl;
+        cerr << "index_bins = " << index_bins
+             << ", hN->GetAxis(i)->GetNbins() = " << hN->GetAxis(i)->GetNbins()
+             << endl;
+        cerr << "hist name: " << hN->GetName() << endl;
+        cerr << "axis title: " << hN->GetAxis(bin2set)->GetTitle() << endl;
+        exit(1);
+      }
+      if (index_bins > 0) {
+        min = hN->GetAxis(i)->GetBinLowEdge(index_bins);
+        max = min + hN->GetAxis(i)->GetBinWidth(index_bins);
+      } else {
+        min = hN->GetAxis(i)->GetXmin();
+        max = hN->GetAxis(i)->GetXmax();
+      }
+      hN->GetAxis(i)->SetRangeUser(min, max);
     }
 
     TH1D *h1D = hN->Projection(dimTarget);
+    h1D->SetName(Form("%s_%s_%d_%d_%d", hN->GetName(), hN->GetTitle(),
+                      dimTarget, binsTargets[0], GenerateUID()));
     return h1D;
   }
 
   TH2D *Project(int dimTarget1, int dimTarget2, vector<int> binsTargets) {
-    if (binsTargets.size() + 2 != dimTarget1) {
+    if (binsTargets.size() + 2 != fNDimensions) {
       cerr << "Error: MHnTool::Project: binsTargets.size() + 1 != dimTarget"
            << endl;
       exit(1);
@@ -234,52 +285,54 @@ public:
         binMore++;
         continue;
       }
-      int bin2set = i + binMore;
-      double min = hN->GetAxis(bin2set)->GetBinLowEdge(binsTargets[bin2set]);
-      double max =
-          min + hN->GetAxis(bin2set)->GetBinWidth(binsTargets[bin2set]);
-      hN->GetAxis(bin2set)->SetRangeUser(min, max);
+      int bin2set = i - binMore;
+      int index_bins = binsTargets[bin2set];
+      double min, max;
+      if (index_bins != 0 && index_bins > hN->GetAxis(i)->GetNbins()) {
+        cerr << "Error: MHnTool::Project: index_bins is out of range" << endl;
+        cerr << "index_bins = " << index_bins
+             << ", hN->GetAxis(i)->GetNbins() = " << hN->GetAxis(i)->GetNbins()
+             << endl;
+        cerr << "hist name: " << hN->GetName() << endl;
+        cerr << "axis title: " << hN->GetTitle() << endl;
+        exit(1);
+      }
+
+      if (index_bins > 0) {
+        min = hN->GetAxis(i)->GetBinLowEdge(index_bins);
+        max = min + hN->GetAxis(i)->GetBinWidth(index_bins);
+      } else {
+        min = hN->GetAxis(i)->GetXmin();
+        max = hN->GetAxis(i)->GetXmax();
+      }
+      hN->GetAxis(i)->SetRangeUser(min, max);
     }
 
     TH2D *h2D = hN->Projection(dimTarget1, dimTarget2);
+    h2D->SetName(Form("%s_%s_%d_%d_%d", hN->GetName(), hN->GetTitle(),
+                      dimTarget1, dimTarget2, GenerateUID()));
+
     return h2D;
   }
 
   void Rebin(int dimTarget, int n) {
-    if (hN == nullptr) {
-      cerr << "Error: MHnTool::Rebin: hN is null" << endl;
+    if (dimTarget < 0 || dimTarget >= fNDimensions) {
+      cerr << "Error: MHnTool::Rebin: dimTarget is out of range" << endl;
       exit(1);
     }
-    vector<int> vec_rebin;
-    for (int i = 0; i < fNDimensions; i++) {
-      if (i == dimTarget) {
-        vec_rebin.push_back(n);
-      } else {
-        vec_rebin.push_back(1);
-      }
-    }
-    hN->Rebin(vec_rebin.data());
-  }
+    vector<int> vec_rebin(fNDimensions, 1);
+    vec_rebin[dimTarget] = n;
 
-  void RebinTotal(int dimTarget) {
-    if (dimTarget > hN->GetNdimensions()) {
-      cerr << "Error: MHnTool::RebinAll: dimTarget > hN->GetNdimensions()"
-           << endl;
-      exit(1);
-    }
-    if (hN == nullptr) {
-      cerr << "Error: MHnTool::RebinAll: hN is null" << endl;
-      exit(1);
-    }
-    vector<int> vec_rebin;
+    THnD *h_new = (THnD *)hN->Rebin(vec_rebin.data());
+    TString name = hN->GetName();
+    hN->SetName(name + "_rebin");
+    h_new->SetName(name);
+    h_new->SetTitle(hN->GetTitle());
     for (int i = 0; i < fNDimensions; i++) {
-      if (i == dimTarget) {
-        vec_rebin.push_back(hN->GetAxis(i)->GetNbins());
-      } else {
-        vec_rebin.push_back(1);
-      }
+      h_new->GetAxis(i)->SetTitle(hN->GetAxis(i)->GetTitle());
     }
-    hN->Rebin(vec_rebin.data());
+    hN->Delete();
+    hN = h_new;
   }
 };
 
