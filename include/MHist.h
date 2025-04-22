@@ -17,7 +17,7 @@ typedef struct StrVar4Hist {
   TString fName;
   TString fTitle;
   TString fUnit;
-  const int fNbins;
+  int fNbins;
   vector<double> fBins;
   StrVar4Hist(TString name, TString title, TString unit, int nbins,
               vector<double> bins)
@@ -39,6 +39,27 @@ typedef struct StrVar4Hist {
     }
   }
   TString CompleteTitle() { return fTitle + ";" + fName + " (" + fUnit + ")"; }
+  void rebin(int n) {
+    if (n > fNbins) {
+      cout << "Error: rebinning factor is too large" << endl;
+      exit(1);
+    }
+    fNbins /= n;
+    for (int i = 0; i < fNbins; i++) {
+      fBins[i] = fBins[i * n];
+    }
+    double finalbin = fBins[fNbins];
+    fBins.resize(fNbins);
+    fBins.push_back(finalbin);
+  }
+  int FindBin(double value) {
+    for (int i = 0; i < fNbins; i++) {
+      if (value >= fBins[i] && value < fBins[i + 1]) {
+        return i;
+      }
+    }
+    return -1;
+  }
 } StrVar4Hist;
 
 #include "MDefinition.h"
@@ -335,6 +356,112 @@ public:
     hN = h_new;
   }
 };
+
+template <typename T> class MHGroupTool {
+private:
+  vector<T *> fHistos;
+  vector<StrVar4Hist> fStrsVar4Hist;
+  vector<int> fNbin_Var;
+  vector<int> fN4process;
+
+  vector<int> GetBinIndex(int i) {
+    vector<int> vec_index(fNbin_Var.size(), 0);
+    for (int j = 0; j < fNbin_Var.size(); j++)
+      vec_index[j] = i / fN4process[j] % fNbin_Var[j];
+    return vec_index;
+  }
+
+  int GetBinIndex(vector<int> vec_index) {
+    if (vec_index.size() != fNbin_Var.size()) {
+      cerr << "Error: MHGroupTool::GetBinIndex: vec_index size is not equal to "
+              "fNbin_Var size"
+           << endl;
+      exit(1);
+    }
+    int index = 0;
+    for (int i = 0; i < fNbin_Var.size(); i++) {
+      index += vec_index[i] * fN4process[i];
+    }
+    return index;
+  }
+
+public:
+  MHGroupTool(TFile *file, TString name_tag,
+              vector<StrVar4Hist> vec_strVar4Hist, vector<int> vec_rebin = {}) {
+    fStrsVar4Hist = vec_strVar4Hist;
+    if (vec_rebin.size() != 0) {
+      if (vec_rebin.size() != fStrsVar4Hist.size()) {
+        cout << "Error: vec_rebin size is not equal to vec_strVar4Hist size"
+             << endl;
+        exit(1);
+      }
+      for (int i = 0; i < vec_rebin.size(); i++) {
+        fStrsVar4Hist[i].rebin(vec_rebin[i]);
+      }
+    }
+
+    for (auto &str : fStrsVar4Hist) {
+      fNbin_Var.push_back(str.fNbins);
+    }
+
+    int nbins_total = 1;
+    for (auto &str : fStrsVar4Hist) {
+      nbins_total *= str.fNbins;
+    }
+    int nbins_total_temp = nbins_total;
+    for (int i = 0; i < fNbin_Var.size(); i++) {
+      fN4process.push_back(nbins_total_temp / fNbin_Var[i]);
+      nbins_total_temp /= fNbin_Var[i];
+    }
+    for (int i = 0; i < nbins_total; i++) {
+      vector<int> vec_index = GetBinIndex(i);
+      TString name = name_tag;
+      for (int j = 0; j < fNbin_Var.size(); j++)
+        name.Replace(name.First("%d"), 2, Form("%d", vec_index[j]));
+
+      T *histo = (T *)file->Get(name);
+    }
+  };
+
+  ~MHGroupTool() {
+    for (auto h : fHistos) {
+      if (h) {
+        h->Delete();
+      }
+    }
+  };
+
+  int FindBin(double value, int dim) {
+    if (dim < 0 || dim >= fNbin_Var.size()) {
+      cerr << "Error: MHGroupTool::FindBin: dim is out of range" << endl;
+      exit(1);
+    }
+    return fStrsVar4Hist[dim].FindBin(value);
+  };
+  T *GetHist(int i) {
+    if (i < 0 || i >= fHistos.size()) {
+      cerr << "Error: MHGroupTool::GetHist: i is out of range" << endl;
+      exit(1);
+    }
+    return fHistos[i];
+  };
+  T *GetHist(vector<int> vec_index) {
+    if (vec_index.size() != fNbin_Var.size()) {
+      cerr << "Error: MHGroupTool::GetHist: vec_index size is not equal to "
+              "fNbin_Var size"
+           << endl;
+      exit(1);
+    }
+    int index = 0;
+    for (int i = 0; i < fNbin_Var.size(); i++) {
+      index += vec_index[i] * fN4process[i];
+    }
+    return GetHist(index);
+  };
+};
+
+using MHGroupTool1D = MHGroupTool<TH1D>;
+using MHGroupTool2D = MHGroupTool<TH2D>;
 
 #endif
 

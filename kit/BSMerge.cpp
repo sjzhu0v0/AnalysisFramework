@@ -14,38 +14,10 @@
 
 TFile *outputFile = nullptr;
 
-class MDoubleR {
-public:
-  double fValue;
-  double fError;
-
-  MDoubleR(double value = 0.0, double error = INFINITY)
-      : fValue(value), fError(error) {}
-
-  MDoubleR &operator+=(const MDoubleR &other) {
-    if (fError == 0.0) {
-      *this = other;
-      return *this;
-    }
-    if (other.fError == 0.0) {
-      return *this;
-    }
-
-    double w1 = 1.0 / (fError * fError);
-    double w2 = 1.0 / (other.fError * other.fError);
-
-    fValue = (w1 * fValue + w2 * other.fValue) / (w1 + w2);
-    fError = std::sqrt(1.0 / (w1 + w2));
-
-    return *this;
-  }
-};
-
 void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
   TH1D *hist0 = sources[0];
-  TStatistic stat;
   for (int bin = 1; bin <= target->GetNbinsX() + 1; ++bin) {
-    stat.Clear();
+    TStatistic stat;
     double content = hist0->GetBinContent(bin);
     if (content != 0)
       stat.Fill(content);
@@ -62,10 +34,9 @@ void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
 
 void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   TH2D *hist0 = sources[0];
-  TStatistic stat;
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
-      stat.Clear();
+      TStatistic stat;
       double content = hist0->GetBinContent(binx, biny);
       if (content != 0)
         stat.Fill(content);
@@ -83,11 +54,10 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
 
 void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
   TH3D *hist0 = sources[0];
-  TStatistic stat;
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       for (int binz = 1; binz <= target->GetNbinsZ() + 1; ++binz) {
-        stat.Clear();
+        TStatistic stat;
         double content = hist0->GetBinContent(binx, biny, binz);
         if (content != 0)
           stat.Fill(content);
