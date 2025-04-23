@@ -19,7 +19,7 @@ Generate1() {
 
   local file_json_job=${path_job}/${file_json}${tag_bs}.json
   cp ${file_json_init} ${file_json_job}
-  JsonSet.py ${file_json_job} SE_PR_thn --force path_input=/lustre/alice/users/szhu/job/JpsiFlowPair/output3_22highIR_pass4/${tag_job}/O2dqflowvecd.root \
+  JsonSet.py ${file_json_job} SE_PR_thn --mute --force path_input=/lustre/alice/users/szhu/job/JpsiFlowPair/output3_22highIR_pass4/${tag_job}/O2dqflowvecd.root \
     path_output=/lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/${tag_job}/SE_PR_thn${tag_bs}.root \
     path_cali_vtxz=/lustre/alice/users/szhu/job/Mult_22pass4/General/22highIR_pass4_study.root:fPosZ_fNumContribNoPileup_pfx_px \
     path_cali_run=/lustre/alice/users/szhu/job/Mult_22pass4/General/22pass4_highIR.root:fNumContribNoPileup \
@@ -46,7 +46,7 @@ Generate2() {
   local file_json_job=${path_job}/config${tag_bs}.json
   cp ${file_json_init} ${file_json_job}
 
-  JsonSet.py ${file_json_job} ME_PR_thn --force path_input=/lustre/alice/users/szhu/job/JpsiFlowPair/output2_22highIR_pass4/${tag_job}/O2dqflowpairpr.root \
+  JsonSet.py ${file_json_job} ME_PR_thn --mute --force path_input=/lustre/alice/users/szhu/job/JpsiFlowPair/output2_22highIR_pass4/${tag_job}/O2dqflowpairpr.root \
     path_output=/lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/${tag_job}/ME_PR_thn${tag_bs}.root
 }
 
