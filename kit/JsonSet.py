@@ -45,9 +45,10 @@ def add_json_branches(file_path: str, main_branch: str, *sub_branches: str) -> b
     Returns:
         bool: True if successful, False otherwise
     """
-    # Parse force mode flag
+    # Parse flags
     force_mode = '--force' in sub_branches
-    sub_branches = [arg for arg in sub_branches if arg != '--force']
+    mute_mode = '--mute' in sub_branches
+    sub_branches = [arg for arg in sub_branches if arg not in ('--force', '--mute')]
     
     try:
         # Load JSON data
@@ -57,7 +58,8 @@ def add_json_branches(file_path: str, main_branch: str, *sub_branches: str) -> b
         # Create main branch if it doesn't exist
         if main_branch not in data:
             data[main_branch] = {}
-            print(f"[INFO] Created new main branch: '{main_branch}'")
+            if not mute_mode:
+                print(f"[INFO] Created new main branch: '{main_branch}'")
         
         branch_data = data[main_branch]
         
@@ -80,9 +82,11 @@ def add_json_branches(file_path: str, main_branch: str, *sub_branches: str) -> b
                         if source_branch not in data:
                             raise KeyError(f"Source branch '{source_branch}' not found")
                         value = get_nested_value(data[source_branch], source_key)
-                        print(f"[COPY] Copied value from '{source_branch}.{source_key}'")
+                        if not mute_mode:
+                            print(f"[COPY] Copied value from '{source_branch}.{source_key}'")
                     except Exception as e:
-                        print(f"[ERROR] Failed to copy value: {str(e)}")
+                        if not mute_mode:
+                            print(f"[ERROR] Failed to copy value: {str(e)}")
                         continue
                 else:
                     # Handle backslashes in direct values
@@ -106,8 +110,13 @@ def add_json_branches(file_path: str, main_branch: str, *sub_branches: str) -> b
                     if force_mode:
                         branch_data[key] = value
                         updated += 1
-                        print(f"[UPDATE] Forced update: '{key}' = '{value}' (was: '{current_val}')")
+                        if not mute_mode:
+                            print(f"[UPDATE] Forced update: '{key}' = '{value}' (was: '{current_val}')")
                     else:
+                        if mute_mode:
+                            # In mute mode, skip conflicts unless forced
+                            skipped += 1
+                            continue
                         choice = input(
                             f"[CONFLICT] '{key}' exists (current: '{current_val}'). "
                             f"Overwrite with '{value}'? [y/N] "
@@ -115,48 +124,57 @@ def add_json_branches(file_path: str, main_branch: str, *sub_branches: str) -> b
                         if choice == 'y':
                             branch_data[key] = value
                             updated += 1
-                            print(f"[UPDATE] Updated '{key}'")
+                            if not mute_mode:
+                                print(f"[UPDATE] Updated '{key}'")
                         else:
                             skipped += 1
-                            print(f"[SKIP] Kept original value for '{key}'")
+                            if not mute_mode:
+                                print(f"[SKIP] Kept original value for '{key}'")
                 else:
                     skipped += 1
-                    print(f"[SKIP] Value unchanged for '{key}'")
+                    if not mute_mode:
+                        print(f"[SKIP] Value unchanged for '{key}'")
             else:
                 branch_data[key] = value
                 added += 1
-                print(f"[ADD] New sub-branch: '{key}' = '{value}'")
+                if not mute_mode:
+                    print(f"[ADD] New sub-branch: '{key}' = '{value}'")
         
         # Save modified data with proper backslash escaping
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         
-        print(
-            f"[SUCCESS] Operations completed: "
-            f"{added} added, {updated} updated, {skipped} skipped"
-        )
+        if not mute_mode:
+            print(
+                f"[SUCCESS] Operations completed: "
+                f"{added} added, {updated} updated, {skipped} skipped"
+            )
         return True
         
     except FileNotFoundError:
-        print("[ERROR] File not found:", file_path)
+        if not mute_mode:
+            print("[ERROR] File not found:", file_path)
         return False
     except json.JSONDecodeError:
-        print("[ERROR] Invalid JSON format in", file_path)
+        if not mute_mode:
+            print("[ERROR] Invalid JSON format in", file_path)
         return False
     except Exception as e:
-        print(f"[ERROR] {str(e)}")
+        if not mute_mode:
+            print(f"[ERROR] {str(e)}")
         return False
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(
-            "Usage: ./json_branch_modifier.py <file> <main_branch> [--force] "
+            "Usage: ./json_branch_modifier.py <file> <main_branch> [--force] [--mute] "
             "[sub1=val1] [sub2=source_branch:source_key] [sub3] ...\n"
             "Note: Use \\\\ to represent a single backslash in values\n"
             "Examples:\n"
             "  ./json_branch_modifier.py config.json NewBranch path=C:\\\\temp\n"
             "  ./json_branch_modifier.py config.json ME_PR_thn path_input=SE_PR_thn:path_input\n"
-            "  ./json_branch_modifier.py config.json Paths --force win_path=C:\\\\Program Files\\\\App"
+            "  ./json_branch_modifier.py config.json Paths --force win_path=C:\\\\Program Files\\\\App\n"
+            "  ./json_branch_modifier.py config.json Paths --mute silent_path=C:\\\\Silent"
         )
         sys.exit(1)
     
