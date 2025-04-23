@@ -19,11 +19,13 @@ void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
   for (int bin = 1; bin <= target->GetNbinsX() + 1; ++bin) {
     TStatistic stat;
     double content = hist0->GetBinContent(bin);
-    stat.Fill(content);
+    if (content != 0)
+      stat.Fill(content);
     for (size_t i = 1; i < sources.size(); ++i) {
       TH1D *hist = sources[i];
       double content1 = hist->GetBinContent(bin);
-      stat.Fill(content1);
+      if (content1 != 0)
+        stat.Fill(content1);
     }
     target->SetBinContent(bin, stat.GetMean());
     target->SetBinError(bin, stat.GetRMS());
@@ -36,11 +38,13 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       TStatistic stat;
       double content = hist0->GetBinContent(binx, biny);
-      stat.Fill(content);
+      if (content != 0)
+        stat.Fill(content);
       for (size_t i = 1; i < sources.size(); ++i) {
         TH2D *hist = sources[i];
         double content1 = hist->GetBinContent(binx, biny);
-        stat.Fill(content1);
+        if (content1 != 0)
+          stat.Fill(content1);
       }
       target->SetBinContent(binx, biny, stat.GetMean());
       target->SetBinError(binx, biny, stat.GetRMS());
@@ -55,11 +59,13 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
       for (int binz = 1; binz <= target->GetNbinsZ() + 1; ++binz) {
         TStatistic stat;
         double content = hist0->GetBinContent(binx, biny, binz);
-        stat.Fill(content);
+        if (content != 0)
+          stat.Fill(content);
         for (size_t i = 1; i < sources.size(); ++i) {
           TH3D *hist = sources[i];
           double content1 = hist->GetBinContent(binx, biny, binz);
-          stat.Fill(content1);
+          if (content1 != 0)
+            stat.Fill(content1);
         }
         target->SetBinContent(binx, biny, binz, stat.GetMean());
         target->SetBinError(binx, biny, binz, stat.GetRMS());
