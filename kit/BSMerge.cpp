@@ -13,6 +13,7 @@
 #include <vector>
 
 TFile *outputFile = nullptr;
+double gScaleBS = 1;
 
 void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
   TH1D *hist0 = sources[0];
@@ -28,7 +29,7 @@ void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
         stat.Fill(content1);
     }
     target->SetBinContent(bin, stat.GetMean());
-    target->SetBinError(bin, stat.GetRMS());
+    target->SetBinError(bin, stat.GetRMS() * gScaleBS);
   }
 }
 
@@ -47,7 +48,7 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
           stat.Fill(content1);
       }
       target->SetBinContent(binx, biny, stat.GetMean());
-      target->SetBinError(binx, biny, stat.GetRMS());
+      target->SetBinError(binx, biny, stat.GetRMS() * gScaleBS);
     }
   }
 }
@@ -68,7 +69,7 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
             stat.Fill(content1);
         }
         target->SetBinContent(binx, biny, binz, stat.GetMean());
-        target->SetBinError(binx, biny, binz, stat.GetRMS());
+        target->SetBinError(binx, biny, binz, stat.GetRMS() * gScaleBS);
       }
     }
   }
@@ -177,13 +178,17 @@ void BSMerge(TString name_output, std::vector<const char *> inputFiles) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
+  if (argc < 4) {
     std::cerr << "Usage: " << argv[0]
-              << " output_file input_file1 [input_file2 ...]" << std::endl;
+              << "fraction output_file input_file1 [input_file2 ...]"
+              << std::endl;
     return 1;
   }
 
-  TString name_output = argv[1];
+  double fraction = std::stod(argv[1]);
+  gScaleBS = fraction / sqrt(1 - fraction);
+
+  TString name_output = argv[2];
   std::vector<const char *> inputFiles;
 
   for (int i = 2; i < argc; ++i) {
