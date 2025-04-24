@@ -46,6 +46,43 @@ public:
     delete fHnTrigger;
   }
 
+  void Rebin(int dimTarget, int n) {
+    switch (dimTarget) {
+
+    case kDeltaEta:
+      fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
+      break;
+    case kDeltaPhi:
+      fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
+      break;
+    case kVtxZ:
+      fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
+      fHnTrigger->Rebin(0, n);
+      break;
+    case kMass:
+      fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
+      fHnTrigger->Rebin(1, n);
+      break;
+    case kPt:
+      fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
+      fHnTrigger->Rebin(2, n);
+      break;
+    case kNumContrib:
+      fHnSame->Rebin(dimTarget, n);
+      fHnTrigger->Rebin(3, n);
+      break;
+    default:
+      cerr << "Error: AssocYeildHelper_v1::Rebin: dimTarget is out of range"
+           << endl;
+      exit(1);
+    }
+  }
+
   TH2D *AssociatedYeildVtxZSum(int iVtxZ, int iMass, int iPt, int iMult) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});

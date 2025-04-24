@@ -40,6 +40,23 @@ public:
   }
 };
 
+void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
+  TH1D *hist0 = sources[0];
+  for (int bin = 1; bin <= target->GetNbinsX() + 1; ++bin) {
+    MDoubleR combined(
+        hist0->GetBinContent(bin),
+        hist0->GetBinError(bin)); // Initialize with the first histogram
+    for (size_t i = 1; i < sources.size(); ++i) {
+      TH1D *hist = sources[i];
+      double value = hist->GetBinContent(bin);
+      double error = hist->GetBinError(bin);
+      combined += MDoubleR(value, error);
+    }
+    target->SetBinContent(bin, combined.fValue);
+    target->SetBinError(bin, combined.fError);
+  }
+}
+
 void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   TH2D *hist0 = sources[0];
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
@@ -60,20 +77,77 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   }
 }
 
-void HistMerge(std::vector<TFile *> inputFilesPtr, TString name_hist) {
-  std::vector<TH2D *> histograms;
-  for (const auto &inputFile : inputFilesPtr) {
-    TH2D *hist = (TH2D *)inputFile->Get(name_hist);
-    if (hist) {
-      histograms.push_back(hist);
+void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
+  TH3D *hist0 = sources[0];
+  for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
+    for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
+      for (int binz = 1; binz <= target->GetNbinsZ() + 1; ++binz) {
+        MDoubleR combined(hist0->GetBinContent(binx, biny, binz),
+                          hist0->GetBinError(binx, biny, binz));
+        for (size_t i = 1; i < sources.size(); ++i) {
+          TH3D *hist = sources[i];
+          double value = hist->GetBinContent(binx, biny, binz);
+          double error = hist->GetBinError(binx, biny, binz);
+          combined += MDoubleR(value, error);
+        }
+        target->SetBinContent(binx, biny, binz, combined.fValue);
+        target->SetBinError(binx, biny, binz, combined.fError);
+      }
     }
   }
-  outputFile->cd();
-  TH2D *outputHist = (TH2D *)histograms[0]->Clone(name_hist);
-  outputHist->SetDirectory(outputFile);
+}
 
-  MergeTH2D(outputHist, histograms);
-  outputHist->Write();
+void HistMerge(std::vector<TFile *> inputFilesPtr, TString name_hist) {
+  TH1 *hist = (TH1 *)inputFilesPtr[0]->Get(name_hist);
+  int dim = hist->GetDimension();
+  if (dim == 1) {
+    TH1D *outputHist = (TH1D *)hist->Clone(name_hist);
+    outputHist->SetDirectory(outputFile);
+    std::vector<TH1D *> histograms;
+    for (const auto &inputFile : inputFilesPtr) {
+      TH1D *hist = (TH1D *)inputFile->Get(name_hist);
+      if (hist) {
+        histograms.push_back(hist);
+      }
+    }
+    MergeTH1D(outputHist, histograms);
+    for (const auto &hist : histograms)
+      hist->Delete();
+    outputHist->Write();
+    outputHist->Delete();
+  } else if (dim == 2) {
+    TH2D *outputHist = (TH2D *)hist->Clone(name_hist);
+    outputHist->SetDirectory(outputFile);
+    std::vector<TH2D *> histograms;
+    for (const auto &inputFile : inputFilesPtr) {
+      TH2D *hist = (TH2D *)inputFile->Get(name_hist);
+      if (hist) {
+        histograms.push_back(hist);
+      }
+    }
+    MergeTH2D(outputHist, histograms);
+    for (const auto &hist : histograms)
+      hist->Delete();
+    outputHist->Write();
+    outputHist->Delete();
+  } else if (dim == 3) {
+    TH3D *outputHist = (TH3D *)hist->Clone(name_hist);
+    outputHist->SetDirectory(outputFile);
+    std::vector<TH3D *> histograms;
+    for (const auto &inputFile : inputFilesPtr) {
+      TH3D *hist = (TH3D *)inputFile->Get(name_hist);
+      if (hist) {
+        histograms.push_back(hist);
+      }
+    }
+    MergeTH3D(outputHist, histograms);
+    for (const auto &hist : histograms)
+      hist->Delete();
+    outputHist->Write();
+    outputHist->Delete();
+  } else if (dim > 3) {
+    std::cerr << "Error: Histogram dimension is greater than 3." << std::endl;
+  }
 }
 
 void RMerge(TString name_output, std::vector<const char *> inputFiles) {

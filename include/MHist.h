@@ -219,6 +219,32 @@ void DensityHisto2DNoWeight(TH2D *h2) {
   }
 }
 
+void HistSubstraction1D(TH1D *result, TH1D *h1, TH1D *h2) {
+  for (int i = 1; i <= result->GetNbinsX(); i++) {
+    double binContent1 = h1->GetBinContent(i);
+    double binContent2 = h2->GetBinContent(i);
+    result->SetBinContent(i, binContent1 - binContent2);
+    double binError1 = h1->GetBinError(i);
+    double binError2 = h2->GetBinError(i);
+    result->SetBinError(
+        i, TMath::Sqrt(binError1 * binError1 + binError2 * binError2));
+  }
+}
+
+void HistSubstraction2D(TH2D *result, TH2D *h1, TH2D *h2) {
+  for (int i = 1; i <= result->GetNbinsX(); i++) {
+    for (int j = 1; j <= result->GetNbinsY(); j++) {
+      double binContent1 = h1->GetBinContent(i, j);
+      double binContent2 = h2->GetBinContent(i, j);
+      result->SetBinContent(i, j, binContent1 - binContent2);
+      double binError1 = h1->GetBinError(i, j);
+      double binError2 = h2->GetBinError(i, j);
+      result->SetBinError(
+          i, TMath::Sqrt(binError1 * binError1 + binError2 * binError2));
+    }
+  }
+}
+
 class MHnTool {
 public:
   THnD *hN = nullptr;

@@ -3,7 +3,8 @@
 *.root
 .vscode
 *.exe
-data/
+data/*/
 output/
 test/
+draw/results/
 .config_rsync

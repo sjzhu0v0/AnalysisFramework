@@ -102,21 +102,6 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
 }
 
 void HistMerge(std::vector<TFile *> inputFilesPtr, TString name_hist) {
-  // std::vector<TH2D *> histograms;
-  // for (const auto &inputFile : inputFilesPtr) {
-  //   TH2D *hist = (TH2D *)inputFile->Get(name_hist);
-  //   if (hist) {
-  //     histograms.push_back(hist);
-  //   }
-  // }
-  // outputFile->cd();
-  // TH2D *outputHist = (TH2D *)histograms[0]->Clone(name_hist);
-  // outputHist->SetDirectory(outputFile);
-
-  // MergeTH2D(outputHist, histograms);
-  // outputHist->Write();
-
-  // judge the type of histogram
   TH1 *hist = (TH1 *)inputFilesPtr[0]->Get(name_hist);
   int dim = hist->GetDimension();
   if (dim == 1) {

@@ -106,6 +106,12 @@ void SetTh1LineMarker(vector<TH1D *> h1, const int (*group_color)[3]) {
   }
 }
 
+void SetTextCentral(TLatex *lat, double x_center = 0.5) {
+  double width = lat->GetXsize();
+  double pos = x_center - width / 2;
+  lat->SetX(pos);
+}
+
 } // namespace MRootGraphic
 
 class MPublisherCanvas {
@@ -242,25 +248,46 @@ MPublisherCanvas *gPublisherCanvas;
 
 namespace StyleFlow {
 void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2) {
+  // set pad as transparent
+  pad->SetFillStyle(4000);
   pad->cd();
   h2->Draw("SURF1");
+  pad->SetTopMargin(0.15);
+  pad->SetBottomMargin(0.05);
+  pad->SetLeftMargin(0.15);
+  pad->SetRightMargin(0.05);
 
   pad->SetTheta(70);
   pad->SetPhi(40);
 
-  h2->GetXaxis()->SetTitleOffset(1.5);
-  h2->GetXaxis()->SetTitleSize(0.05);
-  h2->GetYaxis()->SetTitleSize(0.05);
+  TString title = h2->GetTitle();
+  h2->SetTitle("");
+  TLatex *tex = new TLatex(0.5, 0.95, title);
+  // center the title
+  double linewidth = tex->GetXsize();
+  double pos = 0.55 - linewidth / 2;
+  tex->SetX(pos);
+  tex->SetNDC();
+  tex->SetTextSize(0.055);
+  tex->Draw();
+
+  h2->SetTitleSize(0.05);
+
   h2->GetXaxis()->SetLabelSize(0.04);
   h2->GetYaxis()->SetLabelSize(0.04);
-  h2->GetZaxis()->SetTitleSize(0.04);
+  h2->GetZaxis()->SetLabelSize(0.04);
+
+  h2->GetXaxis()->SetTitleOffset(1.5);
+
+  h2->GetXaxis()->SetTitleSize(0.05);
+  h2->GetYaxis()->SetTitleSize(0.05);
+  h2->GetZaxis()->SetTitleSize(0.05);
 
   h2->GetXaxis()->CenterTitle(true);
   h2->GetYaxis()->CenterTitle(true);
   h2->GetXaxis()->SetNdivisions(505);
   h2->GetYaxis()->SetNdivisions(505);
   h2->GetZaxis()->SetNdivisions(505);
-  
 }
 } // namespace StyleFlow
 
