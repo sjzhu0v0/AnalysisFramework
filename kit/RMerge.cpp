@@ -43,14 +43,13 @@ public:
 void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
   TH1D *hist0 = sources[0];
   for (int bin = 1; bin <= target->GetNbinsX() + 1; ++bin) {
-    MDoubleR combined(
-        hist0->GetBinContent(bin),
-        hist0->GetBinError(bin)); // Initialize with the first histogram
-    for (size_t i = 1; i < sources.size(); ++i) {
+    MDoubleR combined(0, INFINITY); // Initialize with the first histogram
+    for (size_t i = 0; i < sources.size(); ++i) {
       TH1D *hist = sources[i];
       double value = hist->GetBinContent(bin);
       double error = hist->GetBinError(bin);
-      combined += MDoubleR(value, error);
+      if (value != 0)
+        combined += MDoubleR(value, error);
     }
     target->SetBinContent(bin, combined.fValue);
     target->SetBinError(bin, combined.fError);
@@ -61,15 +60,13 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   TH2D *hist0 = sources[0];
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
-      //  remove the first histogram from the sources
-      MDoubleR combined(hist0->GetBinContent(binx, biny),
-                        hist0->GetBinError(
-                            binx, biny)); // Initialize with the first histogram
-      for (size_t i = 1; i < sources.size(); ++i) {
+      MDoubleR combined(0, INFINITY);
+      for (size_t i = 0; i < sources.size(); ++i) {
         TH2D *hist = sources[i];
         double value = hist->GetBinContent(binx, biny);
         double error = hist->GetBinError(binx, biny);
-        combined += MDoubleR(value, error);
+        if (value != 0)
+          combined += MDoubleR(value, error);
       }
       target->SetBinContent(binx, biny, combined.fValue);
       target->SetBinError(binx, biny, combined.fError);
@@ -82,13 +79,13 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       for (int binz = 1; binz <= target->GetNbinsZ() + 1; ++binz) {
-        MDoubleR combined(hist0->GetBinContent(binx, biny, binz),
-                          hist0->GetBinError(binx, biny, binz));
-        for (size_t i = 1; i < sources.size(); ++i) {
+        MDoubleR combined(0, INFINITY);
+        for (size_t i = 0; i < sources.size(); ++i) {
           TH3D *hist = sources[i];
           double value = hist->GetBinContent(binx, biny, binz);
           double error = hist->GetBinError(binx, biny, binz);
-          combined += MDoubleR(value, error);
+          if (value != 0)
+            combined += MDoubleR(value, error);
         }
         target->SetBinContent(binx, biny, binz, combined.fValue);
         target->SetBinError(binx, biny, binz, combined.fError);
