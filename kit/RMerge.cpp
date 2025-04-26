@@ -38,6 +38,8 @@ public:
 
     return *this;
   }
+
+  bool Valid() const { return fError != INFINITY && fValue != 0; }
 };
 
 void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
@@ -48,11 +50,16 @@ void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
       TH1D *hist = sources[i];
       double value = hist->GetBinContent(bin);
       double error = hist->GetBinError(bin);
-      if (value != 0)
+      if (value != 0 && error > 0)
         combined += MDoubleR(value, error);
     }
-    target->SetBinContent(bin, combined.fValue);
-    target->SetBinError(bin, combined.fError);
+    if (combined.Valid()) {
+      target->SetBinContent(bin, combined.fValue);
+      target->SetBinError(bin, combined.fError);
+    } else {
+      target->SetBinContent(bin, 0);
+      target->SetBinError(bin, 0);
+    }
   }
 }
 
@@ -65,11 +72,16 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
         TH2D *hist = sources[i];
         double value = hist->GetBinContent(binx, biny);
         double error = hist->GetBinError(binx, biny);
-        if (value != 0)
+        if (value != 0 && error > 0)
           combined += MDoubleR(value, error);
       }
-      target->SetBinContent(binx, biny, combined.fValue);
-      target->SetBinError(binx, biny, combined.fError);
+      if (combined.Valid()) {
+        target->SetBinContent(binx, biny, combined.fValue);
+        target->SetBinError(binx, biny, combined.fError);
+      } else {
+        target->SetBinContent(binx, biny, 0);
+        target->SetBinError(binx, biny, 0);
+      }
     }
   }
 }
@@ -84,11 +96,16 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
           TH3D *hist = sources[i];
           double value = hist->GetBinContent(binx, biny, binz);
           double error = hist->GetBinError(binx, biny, binz);
-          if (value != 0)
+          if (value != 0 && error > 0)
             combined += MDoubleR(value, error);
         }
-        target->SetBinContent(binx, biny, binz, combined.fValue);
-        target->SetBinError(binx, biny, binz, combined.fError);
+        if (combined.Valid()) {
+          target->SetBinContent(binx, biny, binz, combined.fValue);
+          target->SetBinError(binx, biny, binz, combined.fError);
+        } else {
+          target->SetBinContent(binx, biny, binz, 0);
+          target->SetBinError(binx, biny, binz, 0);
+        }
       }
     }
   }
