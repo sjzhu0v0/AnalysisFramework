@@ -32,7 +32,8 @@ void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
       if (content1 != 0)
         stat.Fill(content1);
     }
-    eff = 1 - eff / (double)n_source;
+    eff = 1;
+    // eff = 1 - eff / (double)n_source;
     target->SetBinContent(bin, stat.GetMean());
     if (eff == 0)
       target->SetBinError(bin, -1.);
@@ -59,6 +60,7 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
         if (content1 != 0)
           stat.Fill(content1);
       }
+      eff = 1;
       eff = 1 - eff / (double)n_source;
       target->SetBinContent(binx, biny, stat.GetMean());
       if (eff == 0)
@@ -89,7 +91,8 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
           if (content1 != 0)
             stat.Fill(content1);
         }
-        eff = 1 - eff / (double)n_source;
+        eff = 1;
+        // eff = 1 - eff / (double)n_source;
         target->SetBinContent(binx, biny, binz, stat.GetMean());
         if (eff == 0)
           target->SetBinError(binx, biny, binz, -1.);
