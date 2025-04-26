@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
   TString name_output = argv[2];
   std::vector<const char *> inputFiles;
 
-  for (int i = 2; i < argc; ++i) {
+  for (int i = 3; i < argc; ++i) {
     inputFiles.push_back(argv[i]);
   }
 
