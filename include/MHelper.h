@@ -111,7 +111,7 @@ public:
     double number_triggered =
         fHnTrigger->hN->GetBinContent(vec_idTrigger.data());
 
-    int index_bin_deltaEta = h2D->GetXaxis()->FindBin(deltaEta / 2.);
+    int index_bin_deltaEta = h2D->GetXaxis()->FindBin(-1. * deltaEta) - 1;
     TH1D *h1_same = h2D->ProjectionY(Form("h1_same_%d", GenerateUID()), 1,
                                      index_bin_deltaEta);
     TH1D *h1_same2 = h2D->ProjectionY(Form("h1_same_%d", GenerateUID()),

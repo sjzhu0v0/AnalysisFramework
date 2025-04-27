@@ -10,9 +10,9 @@ awk '{
 awk '{
     gsub(/,/, " ")
     for (t in types) {
-        printf "hadd -f /lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/merge/%s_cluster%d.root ", types[t], NR
+        printf "hadd -f /lustre/alice/users/szhu/job/${gname_job}/analysis_22highIR_pass4/merge/%s_cluster%d.root ", types[t], NR
         for (i = 1; i <= NF; i++)
-            printf "/lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/%s/%s.root ", $i, types[t]
+            printf "/lustre/alice/users/szhu/job/${gname_job}/analysis_22highIR_pass4/%s/%s.root ", $i, types[t]
         print ""
     }
 }

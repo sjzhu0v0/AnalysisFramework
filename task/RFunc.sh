@@ -1,0 +1,13 @@
+path_base=/lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/merge
+
+cd ${path_base}/RFunc
+for i in `seq 1 13`; do
+        for j in `seq 1 20`; do
+                config=config_group${i}_bs${j}.json
+                cp ~/empty.json ${config}
+                JsonSet.py ${config} RFunc_PR --force path_input_me=${path_base}/ME_PR_thn/group${i}.root \
+                path_input_se=${path_base}/SE_PR_thn/group${i}_bs_${j}.root \
+                path_output=${path_base}/RFunc/group${i}_bs_${j}.root \
+                delta_eta=1.
+        done
+done
