@@ -126,7 +126,7 @@ public:
     h1_mix->Add(h1_mix2);
     TH1D *h1_results = (TH1D *)h1_same->Clone(
         Form("h1_asso_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
-    HistDivide2D(h1_results, h1_same, h1_mix);
+    HistDivide1D(h1_results, h1_same, h1_mix);
     h2D->Delete();
     h2DMix->Delete();
     h1_same->Delete();

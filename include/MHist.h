@@ -164,7 +164,7 @@ void HistDivide2D(TH2D *result, TH2D *h1, TH2D *h2) {
   }
 }
 
-void HistDivide2D(TH1D *result, TH1D *h1, TH1D *h2) {
+void HistDivide1D(TH1D *result, TH1D *h1, TH1D *h2) {
   for (int i = 1; i <= result->GetNbinsX(); i++) {
     double binContent1 = h1->GetBinContent(i);
     double binContent2 = h2->GetBinContent(i);

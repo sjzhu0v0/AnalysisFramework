@@ -65,12 +65,23 @@ funcWithJson(void, RFunc_PR)(TString path_config = "../config.json") {
         }
         auto h2 = assoYeildHelper.AssociatedYeild(iMass, iPt, iMult);
         auto h1 = assoYeildHelper.AssociatedYeild(deltaEta, iMass, iPt, iMult);
+        int bin1 = h2->GetXaxis()->FindBin(-deltaEta) - 1;
+        int bin2 = h2->GetXaxis()->FindBin(deltaEta);
+        auto h1_sub1 =
+            h2->ProjectionY(Form("h1_sub_%d", GenerateUID()), 1, bin1);
+        auto h1_sub2 = h2->ProjectionY(Form("h1_sub_%d", GenerateUID()), bin2,
+                                       h2->GetNbinsY());
+        h1_sub1->Add(h1_sub2);
         h2->SetName(Form("h2_asso_mass%d_pt%d_mult%d", iMass, iPt, iMult));
         h2->Write();
         h2->Delete();
         h1->SetName(Form("h1_asso_mass%d_pt%d_mult%d", iMass, iPt, iMult));
         h1->Write();
         h1->Delete();
+        h1_sub1->SetName(Form("h2_int_mass%d_pt%d_mult%d", iMass, iPt, iMult));
+        h1_sub1->Write();
+        h1_sub1->Delete();
+        h1_sub2->Delete();
       }
     }
   }
