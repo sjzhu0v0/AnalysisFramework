@@ -8,6 +8,6 @@ for i in `seq 1 13`; do
                 JsonSet.py ${config} RFunc_PR --force path_input_me=${path_base}/ME_PR_thn/group${i}.root \
                 path_input_se=${path_base}/SE_PR_thn/group${i}_bs_${j}.root \
                 path_output=${path_base}/RFunc/group${i}_bs_${j}.root \
-                delta_eta=1.
+                delta_eta=0.
         done
 done
