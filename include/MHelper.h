@@ -201,4 +201,15 @@ public:
   }
 };
 
+class AssocYeildGroupHelper_v1 {
+private:
+  MHGroupTool1D *fHGroupTool;
+  TFile* fFileInput;
+
+public:
+  AssocYeildGroupHelper_v1(TFile* fileInput) {
+    fFileInput = fileInput;
+  }
+  
+};
 #endif

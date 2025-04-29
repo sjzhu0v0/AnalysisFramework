@@ -55,7 +55,7 @@ typedef struct StrVar4Hist {
   int FindBin(double value) {
     for (int i = 0; i < fNbins; i++) {
       if (value >= fBins[i] && value < fBins[i + 1]) {
-        return i;
+        return i + 1;
       }
     }
     return -1;
@@ -392,8 +392,9 @@ private:
 
   vector<int> GetBinIndex(int i) {
     vector<int> vec_index(fNbin_Var.size(), 0);
+    cout << "i: " << i << endl;
     for (int j = 0; j < fNbin_Var.size(); j++)
-      vec_index[j] = i / fN4process[j] % fNbin_Var[j];
+      vec_index[j] = i / fN4process[j] % fNbin_Var[j] + 1;
     return vec_index;
   }
 
@@ -406,7 +407,7 @@ private:
     }
     int index = 0;
     for (int i = 0; i < fNbin_Var.size(); i++) {
-      index += vec_index[i] * fN4process[i];
+      index += (vec_index[i] - 1) * fN4process[i];
     }
     return index;
   }
@@ -444,8 +445,8 @@ public:
       TString name = name_tag;
       for (int j = 0; j < fNbin_Var.size(); j++)
         name.Replace(name.First("%d"), 2, Form("%d", vec_index[j]));
-
       T *histo = (T *)file->Get(name);
+      fHistos.push_back(histo);
     }
   };
 
@@ -456,7 +457,13 @@ public:
       }
     }
   };
-
+  void Print() {
+    cout << "Number of histograms: " << fHistos.size() << endl;
+    for (int i = 0; i < fHistos.size(); i++) {
+      cout << "Histogram " << i << ": " << fHistos[i]->GetName()
+           << " with integral: " << fHistos[i]->Integral() << " with entries: "<< fHistos[i]->GetEntries() << endl;
+    }
+  }
   int FindBin(double value, int dim) {
     if (dim < 0 || dim >= fNbin_Var.size()) {
       cerr << "Error: MHGroupTool::FindBin: dim is out of range" << endl;
@@ -478,10 +485,7 @@ public:
            << endl;
       exit(1);
     }
-    int index = 0;
-    for (int i = 0; i < fNbin_Var.size(); i++) {
-      index += vec_index[i] * fN4process[i];
-    }
+    int index = GetBinIndex(vec_index);
     return GetHist(index);
   };
 };
