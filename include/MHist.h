@@ -51,10 +51,6 @@ typedef struct StrVar4Hist {
     }
     fBins.resize(fNbins);
     fBins.push_back(finalbin);
-    // print
-    for (auto i : fBins)
-      cout << i << endl;
-    cout << endl;
   }
   int FindBin(double value) {
     for (int i = 0; i < fNbins; i++) {
@@ -492,7 +488,10 @@ public:
       cerr << "Error: MHGroupTool::GetNBins: dim is out of range" << endl;
       exit(1);
     }
-    return fNbin_Var[dim];
+    if (dim != 0)
+      return fNbin_Var[dim];
+    else
+      return fHistos[0]->GetNbinsX();
   };
   T *GetHist(int i) {
     if (i < 0 || i >= fHistos.size()) {

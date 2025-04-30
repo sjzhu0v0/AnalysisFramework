@@ -222,6 +222,19 @@ public:
   }
 
   void SetMultBin(int low, int high) {
+    if (low < 0 || high < 0) {
+      cerr << "Error: AssocYeildSub_v1::SetMultBin: low or high is negative"
+           << endl;
+      exit(1);
+    } else if (low > high) {
+      cerr << "Error: AssocYeildSub_v1::SetMultBin: low is greater than high"
+           << endl;
+      exit(1);
+    } else if (low > fNbin_Var[2] || high > fNbin_Var[2]) {
+      cerr << "Error: AssocYeildSub_v1::SetMultBin: low or high is out of range"
+           << endl;
+      exit(1);
+    }
     fBinLowMult = low;
     fBinHighMult = high;
   }

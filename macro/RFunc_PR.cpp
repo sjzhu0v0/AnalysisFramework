@@ -19,7 +19,8 @@ funcWithJson(void, RFunc_PR)(TString path_config = "../config.json") {
       "path_output",
       "/home/szhu/work/alice/analysis/PairFlow/output/RFunc.root");
   Configurable<double> config_deltaEta("delta_eta", 1.);
-  Configurable<double> config_nRebin_mult("nRebin_mult", 5.);
+  Configurable<double> config_nRebin_mult("nRebin_mult", 5);
+  Configurable<double> config_nRebin_mass("nRebin_mass", 4);
 
   double deltaEta = config_deltaEta.data;
   TFile *file_input_se = TFile::Open(config_pathInputFile_se.data.c_str());
@@ -37,7 +38,7 @@ funcWithJson(void, RFunc_PR)(TString path_config = "../config.json") {
   MHnTool *hntool_trigger = new MHnTool(hn_trigger);
 
   AssocYeildHelper_v1 assoYeildHelper(hntool_se, hntool_me, hntool_trigger);
-  assoYeildHelper.Rebin(gtype_vars::kMass, 2);
+  assoYeildHelper.Rebin(gtype_vars::kMass, config_nRebin_mass.data);
   assoYeildHelper.Rebin(gtype_vars::kPt, 2);
   assoYeildHelper.Rebin(gtype_vars::kNumContrib, config_nRebin_mult.data);
   // auto h2 = assoYeildHelper.AssociatedYeild(0, 0, 0);
