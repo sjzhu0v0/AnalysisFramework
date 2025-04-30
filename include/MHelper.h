@@ -201,15 +201,82 @@ public:
   }
 };
 
-class AssocYeildGroupHelper_v1 {
+class AssocYeildSub_v1 : public MHGroupTool1D {
 private:
-  MHGroupTool1D *fHGroupTool;
-  TFile* fFileInput;
+  int fBinLowMult = 0;
+  int fBinHighMult = 0;
 
 public:
-  AssocYeildGroupHelper_v1(TFile* fileInput) {
-    fFileInput = fileInput;
+  AssocYeildSub_v1(MHGroupTool1D *hgroupTool1d)
+      : MHGroupTool1D(hgroupTool1d) {};
+  ~AssocYeildSub_v1() {};
+
+  void Rebin(int n) {
+    for (int i = 0; i < fHistos.size(); i++) {
+      fHistos[i]->Rebin(n);
+    }
   }
-  
+
+  void SetMultBin(int low, int high) {
+    fBinLowMult = low;
+    fBinHighMult = high;
+  }
+
+  double GetBinContent(int phi, int mass, int pt, int mult) {
+    TH1D *h1 = fHistos[GetBinIndex({mass, pt, mult})];
+    if (h1 == nullptr) {
+      cerr << "Error: AssocYeildSub_v1::GetBinContent: h1 is null" << endl;
+      exit(1);
+    }
+    return h1->GetBinContent(phi);
+  }
+
+  double GetBinError(int phi, int mass, int pt, int mult) {
+    TH1D *h1 = fHistos[GetBinIndex({mass, pt, mult})];
+    if (h1 == nullptr) {
+      cerr << "Error: AssocYeildSub_v1::GetBinError: h1 is null" << endl;
+      exit(1);
+    }
+    return h1->GetBinError(phi);
+  }
+
+  double GetBinContentMultSub(int phi, int mass, int pt) {
+    if (fBinLowMult == fBinHighMult) {
+      cerr << "Error: AssocYeildSub_v1::GetBinContentMultSub: "
+              "fBinLowMult or fBinHighMult is not set"
+           << endl;
+      exit(1);
+    }
+    return GetBinContent(phi, mass, pt, fBinHighMult) -
+           GetBinContent(phi, mass, pt, fBinLowMult);
+  }
+
+  double GetBinErrorMultSub(int phi, int mass, int pt) {
+    if (fBinLowMult == fBinHighMult) {
+      cerr << "Error: AssocYeildSub_v1::GetBinErrorMultSub: "
+              "fBinLowMult or fBinHighMult is not set"
+           << endl;
+      exit(1);
+    }
+    return TMath::Sqrt(GetBinError(phi, mass, pt, fBinHighMult) *
+                           GetBinError(phi, mass, pt, fBinHighMult) +
+                       GetBinError(phi, mass, pt, fBinLowMult) *
+                           GetBinError(phi, mass, pt, fBinLowMult));
+  }
+
+  TH1D *GetAssoYeild_Mass(int phi, int pt) {
+    StrVar4Hist strMass = fStrsVar4Hist[0];
+    TH1D *h1_assoYeild_mass =
+        new TH1D(Form("h1_%d", GenerateUID()), strMass.CompleteTitle(),
+                 strMass.fNbins, strMass.fBins.data());
+
+    for (int imass = 1; imass <= strMass.fNbins; imass++) {
+      h1_assoYeild_mass->SetBinContent(imass,
+                                       GetBinContentMultSub(phi, imass, pt));
+      h1_assoYeild_mass->SetBinError(imass, GetBinErrorMultSub(phi, imass, pt));
+    }
+    return h1_assoYeild_mass;
+  }
+
 };
 #endif

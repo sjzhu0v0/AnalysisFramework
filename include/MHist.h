@@ -45,12 +45,16 @@ typedef struct StrVar4Hist {
       exit(1);
     }
     fNbins /= n;
+    double finalbin = fBins.back();
     for (int i = 0; i < fNbins; i++) {
       fBins[i] = fBins[i * n];
     }
-    double finalbin = fBins[fNbins];
     fBins.resize(fNbins);
     fBins.push_back(finalbin);
+    // print
+    for (auto i : fBins)
+      cout << i << endl;
+    cout << endl;
   }
   int FindBin(double value) {
     for (int i = 0; i < fNbins; i++) {
@@ -384,7 +388,7 @@ public:
 };
 
 template <typename T> class MHGroupTool {
-private:
+protected:
   vector<T *> fHistos;
   vector<StrVar4Hist> fStrsVar4Hist;
   vector<int> fNbin_Var;
@@ -392,7 +396,6 @@ private:
 
   vector<int> GetBinIndex(int i) {
     vector<int> vec_index(fNbin_Var.size(), 0);
-    cout << "i: " << i << endl;
     for (int j = 0; j < fNbin_Var.size(); j++)
       vec_index[j] = i / fN4process[j] % fNbin_Var[j] + 1;
     return vec_index;
@@ -446,10 +449,22 @@ public:
       for (int j = 0; j < fNbin_Var.size(); j++)
         name.Replace(name.First("%d"), 2, Form("%d", vec_index[j]));
       T *histo = (T *)file->Get(name);
+      histo->SetDirectory(0);
+      if (!histo) {
+        cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
+        exit(1);
+      }
       fHistos.push_back(histo);
     }
   };
-
+  MHGroupTool(MHGroupTool *hgroupTool) {
+    fStrsVar4Hist = hgroupTool->fStrsVar4Hist;
+    fNbin_Var = hgroupTool->fNbin_Var;
+    fN4process = hgroupTool->fN4process;
+    for (auto h : hgroupTool->fHistos) {
+      fHistos.push_back((T *)h->Clone());
+    }
+  };
   ~MHGroupTool() {
     for (auto h : fHistos) {
       if (h) {
@@ -461,7 +476,8 @@ public:
     cout << "Number of histograms: " << fHistos.size() << endl;
     for (int i = 0; i < fHistos.size(); i++) {
       cout << "Histogram " << i << ": " << fHistos[i]->GetName()
-           << " with integral: " << fHistos[i]->Integral() << " with entries: "<< fHistos[i]->GetEntries() << endl;
+           << " with integral: " << fHistos[i]->Integral()
+           << " with entries: " << fHistos[i]->GetEntries() << endl;
     }
   }
   int FindBin(double value, int dim) {
@@ -470,6 +486,13 @@ public:
       exit(1);
     }
     return fStrsVar4Hist[dim].FindBin(value);
+  };
+  int GetNBins(int dim) {
+    if (dim < 0 || dim >= fNbin_Var.size()) {
+      cerr << "Error: MHGroupTool::GetNBins: dim is out of range" << endl;
+      exit(1);
+    }
+    return fNbin_Var[dim];
   };
   T *GetHist(int i) {
     if (i < 0 || i >= fHistos.size()) {
