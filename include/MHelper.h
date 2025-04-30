@@ -83,6 +83,10 @@ public:
     }
   }
 
+  int GetNBins(int dimTarget) {
+    return fHnSame->hN->GetAxis(dimTarget)->GetNbins();
+  }
+
   TH2D *AssociatedYeildVtxZSum(int iVtxZ, int iMass, int iPt, int iMult) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
@@ -277,6 +281,5 @@ public:
     }
     return h1_assoYeild_mass;
   }
-
 };
 #endif

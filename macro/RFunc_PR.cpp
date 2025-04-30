@@ -35,12 +35,11 @@ funcWithJson(void, RFunc_PR)(TString path_config = "../config.json") {
   MHnTool *hntool_se = new MHnTool(hn_se);
   MHnTool *hntool_me = new MHnTool(hn_me);
   MHnTool *hntool_trigger = new MHnTool(hn_trigger);
-  hntool_se->Rebin(gtype_vars::kMass, 2);
-  hntool_se->Rebin(gtype_vars::kPt, 2);
-  hntool_se->Rebin(gtype_vars::kNumContrib, config_nRebin_mult.data);
 
   AssocYeildHelper_v1 assoYeildHelper(hntool_se, hntool_me, hntool_trigger);
-
+  assoYeildHelper.Rebin(gtype_vars::kMass, 2);
+  assoYeildHelper.Rebin(gtype_vars::kPt, 2);
+  assoYeildHelper.Rebin(gtype_vars::kNumContrib, config_nRebin_mult.data);
   // auto h2 = assoYeildHelper.AssociatedYeild(0, 0, 0);
 
   // TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
@@ -49,9 +48,10 @@ funcWithJson(void, RFunc_PR)(TString path_config = "../config.json") {
   file_output->cd();
   int total = glib_vars[kMass].fNbins * glib_vars[kPt].fNbins *
               glib_vars[kNumContrib].fNbins / 4;
-  for (int iMass = 1; iMass <= glib_vars[kMass].fNbins / 2; iMass++) {
-    for (int iPt = 1; iPt <= glib_vars[kPt].fNbins / 2; iPt++) {
-      for (int iMult = 1; iMult <= glib_vars[kNumContrib].fNbins; iMult++) {
+  for (int iMass = 1; iMass <= assoYeildHelper.GetNBins(kMass); iMass++) {
+    for (int iPt = 1; iPt <= assoYeildHelper.GetNBins(kPt); iPt++) {
+      for (int iMult = 1; iMult <= assoYeildHelper.GetNBins(kNumContrib);
+           iMult++) {
         // process bar in percentage
         int index = (iMass - 1) * glib_vars[kPt].fNbins *
                         glib_vars[kNumContrib].fNbins / 2 +
