@@ -16,3 +16,9 @@ done
 # for i in `seq 1 20` ;do /lustre/alice/users/szhu/work/Analysis/PairFlow/kit/RMerge.exe BS${i}.root ~/dir_lustre/job/JpsiFlowPair/analysis_22highIR_pass4/merge/RFunc/group*_bs_${i}.root ; done
 
 # for i in `seq 1 13` ;do /lustre/alice/users/szhu/work/Analysis/PairFlow/kit/BSMerge.exe group${i}.root ~/dir_lustre/job/JpsiFlowPair/analysis_22highIR_pass4/merge/RFunc/group${i}_*.root ; done
+
+# /lustre/alice/users/szhu/work/Analysis/PairFlow/kit/BSMerge.exe 0.9 result_r_bs.root *
+
+#  ~/dir_lustre/work/Analysis/PairFlow
+# /lustre/alice/users/szhu/job/JpsiFlowPair/analysis_22highIR_pass4/merge/RFunc_R 
+

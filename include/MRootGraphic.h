@@ -169,7 +169,7 @@ public:
     float x1 = 1. / (float)(fNWidth) * ((fIndexPadCurrent - 1) % fNWidth);
     float x2 = x1 + 1. / (float)(fNWidth);
     float y1 =
-        1. - (1. / (fNHeight / 0.95) * ((fIndexPadCurrent - 1) / fNHeight));
+        1. - (1. / (fNHeight / 0.95) * ((fIndexPadCurrent - 1) / fNWidth));
     float y2 = y1 - 1. / (fNHeight / 0.95);
     TPad *pad = new TPad(Form("pad_%d", fIndexPadCurrent), "", x1, y2, x2, y1);
     pad->SetFillStyle(4000);
