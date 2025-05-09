@@ -21,6 +21,20 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
   }
   return chain;
 }
+TChain *OpenChain(TFile *f, const char *name_tree) {
+  TChain *chain = new TChain(name_tree);
+
+  TList *list = f->GetListOfKeys();
+  for (int i = 0; i < list->GetSize(); i++) {
+    TKey *key = (TKey *)list->At(i);
+    if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
+      if (string(key->GetName()).find("DF_") != string::npos)
+        chain->Add(TString(name_file) + "/" + TString(key->GetName()) +
+                   TString("/") + TString(name_tree));
+    }
+  }
+  return chain;
+}
 
 vector<TObject *> GetObjectRecursive(TObject *folder,
                                      vector<string> &vec_string) {
