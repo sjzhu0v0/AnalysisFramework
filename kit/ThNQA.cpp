@@ -18,7 +18,7 @@ void ThNQA(TString hist4check =
   MHnTool *hNTool = new MHnTool(hist);
   vector<int> vec_bins = {2, 2, 2, 2};
   hist->Rebin(2);
-  THnD *h = (THnD*)hist->Rebin(vec_bins.data());
+  THnD *h = (THnD *)hist->Rebin(vec_bins.data());
 
   cout << h->GetAxis(0)->GetNbins() << endl;
   cout << hist->GetAxis(1)->GetNbins() << endl;

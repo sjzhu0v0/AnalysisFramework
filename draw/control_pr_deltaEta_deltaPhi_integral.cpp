@@ -77,7 +77,7 @@ void control_pr_deltaEta_deltaPhi_integral(
   double a1 = f1->GetParameter(1);
   double a2 = f1->GetParameter(2);
   double a3 = f1->GetParameter(3);
-  
+
   h1->Draw();
   // draw all order
   TF1 *f2 = new TF1("f2", "[0]+[1]*cos(x)", -0.5 * M_PI, 1.5 * M_PI);

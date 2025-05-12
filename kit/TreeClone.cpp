@@ -11,14 +11,22 @@ void TreeClone(TString path_file_input,
     name_tree.Remove(0, pos + delimiter.Length());
   }
   string_chain_split.push_back(name_tree);
+  for (auto &i : string_chain_split) {
+    cout << i.Data() << endl;
+  }
 
   TFile *file_input = TFile::Open(path_file_input);
   TFile *file_output = new TFile(path_file_output, "RECREATE");
   for (auto &name : string_chain_split) {
-    TChain *chain = MRootIO::OpenChain(file_input, name_tree);
+    cout << "Tree name: " << name << endl;
+    TChain *chain = MRootIO::OpenChain(file_input, name);
     TTree *tree_output = chain->CloneTree();
+    cout << "Tree name: " << chain->GetName() << endl;
+    chain->GetListOfLeaves()->ls();
+    file_output->cd();
     tree_output->Write();
   }
+  file_output->ls();
   file_output->Close();
 }
 
