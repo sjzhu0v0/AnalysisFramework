@@ -19,33 +19,37 @@ void NJpsiCandidatePerEvent(
   vector<RResultHandle> gRResultHandlesFast;
   ROOT::RDataFrame rdf(*tree_event);
 
+  auto isJPsiCandidate = [](float mass, int sign) {
+    return (mass > 2.5f && mass < 3.2f && sign == 0);
+  };
+
   /* #region rdf_all definition */
   auto rdf_all =
-      rdf.Define(
-             "NJpsiCandidata",
-             [](const ROOT::RVec<float> &mass, const ROOT::RVec<float> &sign) {
-               int nJpsiCandidate = 0;
-               for (size_t i = 0; i < mass.size(); ++i) {
-                 if (mass[i] > 2.5 && mass[i] < 3.2 && sign[i] == 0)
-                   nJpsiCandidate++;
-               }
-               return nJpsiCandidate;
-             },
-             {"fMass", "fSign"})
-          .Define(
-              "mass_pair",
-              [](const ROOT::RVec<float> &mass, const ROOT::RVec<float> &sign) {
-                ROOT::VecOps::RVec<std::pair<double, double>> pairs;
-                for (size_t i = 0; i < mass.size(); ++i) {
-                  for (size_t j = i + 1; j < mass.size(); ++j) {
-                    if (sign[i] == 0 && sign[j] == 0) {
-                      pairs.push_back(std::make_pair(mass[i], mass[j]));
+      rdf.Define("NJpsiCandidata",
+                 [isJPsiCandidate](const ROOT::RVec<float> &mass,
+                                   const ROOT::RVec<float> &sign) {
+                   int nJpsiCandidate = 0;
+                   for (size_t i = 0; i < mass.size(); ++i) {
+                     if (isJPsiCandidate(mass[i], sign[i]))
+                       nJpsiCandidate++;
+                   }
+                   return nJpsiCandidate;
+                 },
+                 {"fMass", "fSign"})
+          .Define("mass_pair",
+                  [isJPsiCandidate](const ROOT::RVec<float> &mass,
+                                    const ROOT::RVec<float> &sign) {
+                    ROOT::VecOps::RVec<std::pair<double, double>> pairs;
+                    for (size_t i = 0; i < mass.size(); ++i) {
+                      for (size_t j = i + 1; j < mass.size(); ++j) {
+                        if (sign[i] == 0 && sign[j] == 0) {
+                          pairs.push_back(std::make_pair(mass[i], mass[j]));
+                        }
+                      }
                     }
-                  }
-                }
-                return pairs;
-              },
-              {"fMass", "fSign"})
+                    return pairs;
+                  },
+                  {"fMass", "fSign"})
           .Define(
               "mass_pair1",
               [](const ROOT::VecOps::RVec<std::pair<double, double>> pairs) {
@@ -102,8 +106,8 @@ void NJpsiCandidatePerEvent(
   gRResultHandlesFast.push_back(rdf_all.Histo1D(
       {"k_star", "k* (GeV); k* (GeV)", 11000, -2, 10}, "k_star"));
   gRResultHandlesFast.push_back(
-      rdf_all.Histo2D({"pair_mass", "Mass Pair; Mass (GeV); Mass (GeV)", 80, 1.,
-                       5., 80, 1., 5.},
+      rdf_all.Histo2D({"pair_mass", "Mass Pair; Mass (GeV); Mass (GeV)", 10, 1.,
+                       5., 10, 1., 5.},
                       "mass_pair1", "mass_pair2"));
 
   RunGraphs(gRResultHandlesFast);
