@@ -102,8 +102,8 @@ void NJpsiCandidatePerEvent(
   gRResultHandlesFast.push_back(rdf_all.Histo1D(
       {"k_star", "k* (GeV); k* (GeV)", 11000, -2, 10}, "k_star"));
   gRResultHandlesFast.push_back(
-      rdf_all.Histo2D({"pair_mass", "Mass Pair; Mass (GeV); Mass (GeV)", 10, 1.,
-                       5., 10, 1., 5.},
+      rdf_all.Histo2D({"pair_mass", "Mass Pair; Mass (GeV); Mass (GeV)", 80, 1.,
+                       5., 80, 1., 5.},
                       "mass_pair1", "mass_pair2"));
 
   RunGraphs(gRResultHandlesFast);
