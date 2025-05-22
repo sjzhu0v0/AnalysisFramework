@@ -55,3 +55,6 @@ macro/plot_PR.exe: macro/plot_PR.cpp
 
 macro/RFunc_PR.exe: macro/RFunc_PR.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
+
+macro/NJpsiCandidatePerEvent.exe: macro/NJpsiCandidatePerEvent.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)

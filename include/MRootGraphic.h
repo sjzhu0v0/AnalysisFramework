@@ -1,4 +1,5 @@
 #include "MHead.h"
+#include "TStyle.h"
 
 #ifndef MRootGraphic_h
 #define MRootGraphic_h
@@ -110,6 +111,40 @@ void SetTextCentral(TLatex *lat, double x_center = 0.5) {
   double width = lat->GetXsize();
   double pos = x_center - width / 2;
   lat->SetX(pos);
+}
+
+void StyleCommon(TStyle *style = gStyle) {
+  style->SetOptStat(0);
+  style->SetOptTitle(0);
+  style->SetPalette(1);
+  style->SetNumberContours(255);
+  style->SetPadTopMargin(0.05);
+  style->SetPadBottomMargin(0.15);
+  style->SetPadLeftMargin(0.15);
+  style->SetPadRightMargin(0.05);
+}
+
+void StyleHistCommon1D(TH1 *hist_mb) {
+  hist_mb->GetXaxis()->SetLabelSize(0.03);
+  hist_mb->GetXaxis()->SetTitleSize(0.04);
+  hist_mb->GetXaxis()->SetTitleOffset(1.2);
+  hist_mb->GetYaxis()->SetLabelSize(0.03);
+  hist_mb->GetYaxis()->SetTitleSize(0.04);
+  hist_mb->GetYaxis()->SetTitleOffset(1.2);
+  hist_mb->GetXaxis()->SetNdivisions(10);
+  hist_mb->GetXaxis()->SetTickLength(0.02);
+  hist_mb->GetYaxis()->SetNdivisions(10);
+  hist_mb->GetYaxis()->SetTickLength(0.02);
+  hist_mb->GetXaxis()->SetLabelOffset(0.01);
+  hist_mb->GetYaxis()->SetLabelOffset(0.01);
+  hist_mb->GetXaxis()->SetLabelFont(42);
+  hist_mb->GetYaxis()->SetLabelFont(42);
+  hist_mb->GetXaxis()->SetTitleFont(42);
+  hist_mb->GetYaxis()->SetTitleFont(42);
+  hist_mb->GetXaxis()->SetTickLength(0.02);
+  hist_mb->GetYaxis()->SetTickLength(0.02);
+  hist_mb->GetXaxis()->CenterLabels();
+  hist_mb->GetYaxis()->CenterLabels();
 }
 
 } // namespace MRootGraphic

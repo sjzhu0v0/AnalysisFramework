@@ -160,6 +160,21 @@ bool IsntSameBunchPileup(unsigned int, ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }
 
+// kNoITSROFrameBorder
+bool IsntITSROFrameBorder(ULong64_t fSelection) {
+  return (fSelection >> EventSelectionFlags::kNoITSROFrameBorder) & 1;
+}
+
+// kNoTimeFrameBorder
+bool IsntTimeFrameBorder(ULong64_t fSelection) {
+  return (fSelection >> EventSelectionFlags::kNoTimeFrameBorder) & 1;
+}
+
+// kIsTriggerTVX
+bool IsTriggerTVX(ULong64_t fSelection) {
+  return (fSelection >> EventSelectionFlags::kIsTriggerTVX) & 1;
+}
+
 TH1D *h1_runInfo = nullptr;
 double
 EventNumberMinbias(int run,
