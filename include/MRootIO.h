@@ -279,6 +279,28 @@ TH1D *GetTH1D(TString path) {
   return hist;
 }
 
+TH2D *GetTH2D(TString path) {
+  TString path_file = path(0, path.First(":"));
+  TString path_hist = path(path.First(":") + 1, path.Length());
+
+  TFile *file = TFile::Open(path_file);
+  if (!file || file->IsZombie()) {
+    std::cerr << "Error: Could not open file " << path_file << std::endl;
+    exit(1);
+  }
+
+  auto hist = dynamic_cast<TH2D *>(file->Get(path_hist));
+  hist->SetDirectory(0);
+  if (!hist) {
+    std::cerr << "Error: Could not find histogram " << path_hist << std::endl;
+    file->Close();
+    exit(1);
+  }
+
+  file->Close();
+  return hist;
+}
+
 THnD *GetTHnD(TString path) {
   TString path_file = path(0, path.First(":"));
   TString path_hist = path(path.First(":") + 1, path.Length());
@@ -320,6 +342,7 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
     bool is_th2 = false;
     bool is_th3 = false;
     bool is_thn = false;
+    bool is_pro1 = false;
     try {
       auto th1 = handle.GetPtr<TH1D>();
       is_th1 = true;
@@ -344,6 +367,12 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
     } catch (const std::exception &e) {
       is_thn = false;
     }
+    try {
+      auto pro1 = handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>();
+      is_pro1 = true;
+    } catch (const std::exception &e) {
+      is_pro1 = false;
+    }
 
     if (is_th1) {
       name = handle.GetPtr<TH1D>()->GetName();
@@ -353,6 +382,9 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
       name = handle.GetPtr<TH3D>()->GetName();
     } else if (is_thn) {
       name = handle.GetPtr<THnD>()->GetName();
+    } else if (is_pro1) {
+      name = handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>()
+                 ->GetName();
     } else {
       cout << "Error: Unknown histogram type" << endl;
       continue;
@@ -383,6 +415,8 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
         handle.GetPtr<TH3D>()->Write();
       } else if (is_thn) {
         handle.GetPtr<THnD>()->Write();
+      } else if (is_pro1) {
+        handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>()->Write();
       }
     } else {
       if (is_th1) {
@@ -402,6 +436,13 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
         handle.GetPtr<THnD>()->SetName(
             Form("%s_%d", handle.GetPtr<THn>()->GetName(), time[index_exist]));
         handle.GetPtr<THnD>()->Write();
+      } else if (is_pro1) {
+        handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>()->SetName(
+            Form("%s_%d",
+                 handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>()
+                     ->GetName(),
+                 time[index_exist]));
+        handle.GetPtr<ROOT::RDF::RResultPtr<ROOT::RDF::RProfile1D>>()->Write();
       }
     }
   }

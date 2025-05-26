@@ -3,6 +3,7 @@
 #include "MRootIO.h"
 #include "TMath.h"
 #include "vector"
+#include <ROOT/RDataFrame.hxx>
 
 using std::vector;
 
@@ -144,6 +145,19 @@ vector<double> triggermap(ULong64_t fSelection) {
   return trigger_map;
 }
 
+ROOT::RVec<double> triggermapRVec(ULong64_t fSelection) {
+  // EventSelectionFlags::kNsel
+  ROOT::RVec<double> trigger_map;
+  for (int i = 0; i < EventSelectionFlags::kNsel; i++) {
+    if ((fSelection >> i) & 1)
+      trigger_map.push_back(i);
+  }
+  trigger_map.push_back(kNsel);
+  // if (trigger_map.size() == 0)
+  //   trigger_map.push_back(-1);
+  return trigger_map;
+}
+
 bool IsntSPDPileup(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoPileupFromSPD) & 1;
 }
@@ -152,10 +166,9 @@ bool IsntTPCPileup(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoPileupTPC) & 1;
 }
 
-// kNoSameBunchPileup
-// bool IsntSameBunchPileup(ULong64_t fSelection) {
-//   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
-// }
+bool IsntSameBunchPileup_NoSlot(ULong64_t fSelection) {
+  return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
+}
 bool IsntSameBunchPileup(unsigned int, ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }

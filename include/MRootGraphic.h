@@ -131,7 +131,7 @@ void StyleHistCommon1D(TH1 *hist_mb) {
   hist_mb->GetYaxis()->SetLabelSize(0.03);
   hist_mb->GetYaxis()->SetTitleSize(0.04);
   hist_mb->GetYaxis()->SetTitleOffset(1.2);
-  hist_mb->GetXaxis()->SetNdivisions(10);
+  hist_mb->GetXaxis()->SetNdivisions(505);
   hist_mb->GetXaxis()->SetTickLength(0.02);
   hist_mb->GetYaxis()->SetNdivisions(10);
   hist_mb->GetYaxis()->SetTickLength(0.02);
@@ -143,8 +143,8 @@ void StyleHistCommon1D(TH1 *hist_mb) {
   hist_mb->GetYaxis()->SetTitleFont(42);
   hist_mb->GetXaxis()->SetTickLength(0.02);
   hist_mb->GetYaxis()->SetTickLength(0.02);
-  hist_mb->GetXaxis()->CenterLabels();
-  hist_mb->GetYaxis()->CenterLabels();
+  hist_mb->GetXaxis()->CenterTitle();
+  hist_mb->GetYaxis()->CenterTitle();
 }
 
 } // namespace MRootGraphic
