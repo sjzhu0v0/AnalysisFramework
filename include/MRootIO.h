@@ -367,6 +367,12 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
     } catch (const std::exception &e) {
       is_thn = false;
     }
+    try {
+      auto pro1 = handle.GetPtr<TProfile>();
+      is_pro1 = true;
+    } catch (const std::exception &e) {
+      is_pro1 = false;
+    }
 
     if (is_th1) {
       name = handle.GetPtr<TH1D>()->GetName();
@@ -376,6 +382,8 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
       name = handle.GetPtr<TH3D>()->GetName();
     } else if (is_thn) {
       name = handle.GetPtr<THnD>()->GetName();
+    } else if (is_pro1) {
+      name = handle.GetPtr<TProfile>()->GetName();
     } else {
       cout << "Error: Unknown histogram type" << endl;
       continue;
@@ -406,6 +414,8 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
         handle.GetPtr<TH3D>()->Write();
       } else if (is_thn) {
         handle.GetPtr<THnD>()->Write();
+      } else if (is_pro1) {
+        handle.GetPtr<TProfile>()->Write();
       }
     } else {
       if (is_th1) {
@@ -425,6 +435,10 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
         handle.GetPtr<THnD>()->SetName(
             Form("%s_%d", handle.GetPtr<THn>()->GetName(), time[index_exist]));
         handle.GetPtr<THnD>()->Write();
+      } else if (is_pro1) {
+        handle.GetPtr<TProfile>()->SetName(Form(
+            "%s_%d", handle.GetPtr<TProfile>()->GetName(), time[index_exist]));
+        handle.GetPtr<TProfile>()->Write();
       }
     }
   }
