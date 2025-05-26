@@ -89,6 +89,7 @@
     "shared_mutex": "cpp",
     "text_encoding": "cpp",
     "valarray": "cpp",
-    "__nullptr": "cpp"
+    "__nullptr": "cpp",
+    "__locale": "cpp"
   }
 }
