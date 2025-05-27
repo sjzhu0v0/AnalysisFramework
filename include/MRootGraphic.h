@@ -124,7 +124,7 @@ void StyleCommon(TStyle *style = gStyle) {
   style->SetPadRightMargin(0.05);
 }
 
-void StyleHistCommon1D(TH1 *hist_mb) {
+void StyleHistCommonHist(TH1 *hist_mb) {
   hist_mb->GetXaxis()->SetLabelSize(0.03);
   hist_mb->GetXaxis()->SetTitleSize(0.04);
   hist_mb->GetXaxis()->SetTitleOffset(1.2);
