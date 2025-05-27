@@ -301,6 +301,28 @@ TProfile *GetTProfile(TString path) {
   return hist;
 }
 
+template <typename T> T *GetObjectDiectly(TString path) {
+  TString path_file = path(0, path.First(":"));
+  TString path_hist = path(path.First(":") + 1, path.Length());
+
+  TFile *file = TFile::Open(path_file);
+  if (!file || file->IsZombie()) {
+    std::cerr << "Error: Could not open file " << path_file << std::endl;
+    exit(1);
+  }
+
+  auto obj = dynamic_cast<T *>(file->Get(path_hist));
+  if (!obj) {
+    std::cerr << "Error: Could not find object " << path_hist << std::endl;
+    file->Close();
+    exit(1);
+  }
+
+  obj->SetDirectory(0);
+  file->Close();
+  return obj;
+}
+
 TH2D *GetTH2D(TString path) {
   TString path_file = path(0, path.First(":"));
   TString path_hist = path(path.First(":") + 1, path.Length());
