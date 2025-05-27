@@ -279,6 +279,28 @@ TH1D *GetTH1D(TString path) {
   return hist;
 }
 
+TProfile *GetTProfile(TString path) {
+  TString path_file = path(0, path.First(":"));
+  TString path_hist = path(path.First(":") + 1, path.Length());
+
+  TFile *file = TFile::Open(path_file);
+  if (!file || file->IsZombie()) {
+    std::cerr << "Error: Could not open file " << path_file << std::endl;
+    exit(1);
+  }
+
+  auto hist = dynamic_cast<TProfile *>(file->Get(path_hist));
+  hist->SetDirectory(0);
+  if (!hist) {
+    std::cerr << "Error: Could not find histogram " << path_hist << std::endl;
+    file->Close();
+    exit(1);
+  }
+
+  file->Close();
+  return hist;
+}
+
 TH2D *GetTH2D(TString path) {
   TString path_file = path(0, path.First(":"));
   TString path_hist = path(path.First(":") + 1, path.Length());

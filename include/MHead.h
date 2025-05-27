@@ -9,6 +9,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "TProfile.h"
 #include "THashList.h"
 #include "TKey.h"
 #include "TLatex.h"

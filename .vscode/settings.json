@@ -90,6 +90,7 @@
     "text_encoding": "cpp",
     "valarray": "cpp",
     "__nullptr": "cpp",
-    "__locale": "cpp"
+    "__locale": "cpp",
+    "filesystem": "cpp"
   }
 }
