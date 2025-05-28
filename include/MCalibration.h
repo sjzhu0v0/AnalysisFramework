@@ -87,7 +87,7 @@ public:
     file->Close();
   }
 
-  static bool IsInCut(float numContrib, int multTPC) {
+  static bool IsInCut(double numContrib, int multTPC) {
     if (!fFuncCut) {
       std::cerr << "Error: Cut_MultTPC_NumContrib::IsInCut: fFuncCut is not "
                    "initialized"
@@ -98,7 +98,7 @@ public:
     return multTPC < cutValue && numContrib >= 6;
   }
 
-  static bool isInCutSlot(unsigned int, float numContrib, float multTPC) {
+  static bool isInCutSlot(unsigned int, double numContrib, float multTPC) {
     return IsInCut(numContrib, multTPC);
   }
 };
