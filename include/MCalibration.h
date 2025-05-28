@@ -94,7 +94,7 @@ public:
       return false;
     }
     double cutValue = fFuncCut->Eval(numContrib);
-    return multTPC < cutValue;
+    return multTPC < cutValue && numContrib >= 6;
   }
 
   static bool isInCutSlot(unsigned int, unsigned short numContrib,
