@@ -98,7 +98,7 @@ public:
     return multTPC < cutValue && numContrib >= 6;
   }
 
-  static bool isInCutSlot(unsigned int, double numContrib, float multTPC) {
+  static bool isInCutSlot(unsigned int, double numContrib, int multTPC) {
     return IsInCut(numContrib, multTPC);
   }
 };
