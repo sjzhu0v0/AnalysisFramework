@@ -60,12 +60,12 @@ class Cut_MultTPC_NumContrib {
   static TF1 *fFuncCut;
 
 public:
-  static void init(TString path_func) {
+  static void init(TString path_func_calib) {
     if (fFuncCut) {
       delete fFuncCut;
     }
-    TString path_file = path_func(0, path_func.First(":"));
-    TString path_func = path_func(path_func.First(":") + 1, path_func.Length());
+    TString path_file = path_func_calib(0, path_func_calib.First(":"));
+    TString path_func = path_func_calib(path_func.First(":") + 1, path_func_calib.Length());
     TFile *file = TFile::Open(path_file);
     if (!file || file->IsZombie()) {
       std::cerr << "Error: Could not open file " << path_file << std::endl;
