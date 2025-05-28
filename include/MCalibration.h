@@ -70,6 +70,7 @@ public:
     TFile *file = TFile::Open(path_file);
     if (!file || file->IsZombie()) {
       std::cerr << "Error: Could not open file " << path_file << std::endl;
+      exit(1);
       return;
     }
     try {
@@ -78,6 +79,7 @@ public:
       cout << "Error: Cut_MultTPC_NumContrib::init: Could not get TF1 from "
               "file: "
            << e.what() << endl;
+      exit(1);
     }
     if (!fFuncCut) {
       std::cerr << "Error: Could not get TF1 " << path_func << " from file "
@@ -92,6 +94,7 @@ public:
       std::cerr << "Error: Cut_MultTPC_NumContrib::IsInCut: fFuncCut is not "
                    "initialized"
                 << std::endl;
+      exit(1);
       return false;
     }
     double cutValue = fFuncCut->Eval(numContrib);
