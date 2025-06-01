@@ -1,5 +1,6 @@
 #include "MHead.h"
 #include "MSystem.h"
+#include "ROOT/RDF/HistoModels.hxx"
 #include "THn.h"
 
 #ifndef MHist_h
@@ -38,7 +39,9 @@ typedef struct StrVar4Hist {
       fUnit = "a.u.";
     }
   }
-  TString CompleteTitle() { return fTitle + ";" + fName + " (" + fUnit + ")"; }
+  TString CompleteTitle(TString tag = "") {
+    return fTitle + "_" + tag + ";" + fName + " (" + fUnit + ")";
+  }
   void rebin(int n) {
     if (n > fNbins) {
       cout << "Error: rebinning factor is too large" << endl;
@@ -60,7 +63,27 @@ typedef struct StrVar4Hist {
     }
     return -1;
   }
+
+  TH1DModel GetTH1DModel(TString tag = "") {
+    if (tag == "") {
+      tag = fName;
+    }
+    return TH1DModel(Form("%d_%d", fName.Data(), tag.Data()), CompleteTitle(),
+                     fNbins, fBins.data());
+  }
 } StrVar4Hist;
+
+TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
+  TString name = str1.fName + "_" + str2.fName;
+  if (tag != "") {
+    name += "_" + tag;
+  }
+  TString title = str1.fTitle + "_" + str2.fTitle + "_" + tag + ";" +
+                  str1.fName + " (" + str1.fUnit + ");" + str2.fName + " (" +
+                  str2.fUnit + ")";
+  return TH2DModel(name, title, str1.fNbins, str1.fBins.data(), str2.fNbins,
+                   str2.fBins.data());
+}
 
 #include "MDefinition.h"
 
