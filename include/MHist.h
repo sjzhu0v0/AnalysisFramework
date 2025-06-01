@@ -68,7 +68,7 @@ typedef struct StrVar4Hist {
     if (tag == "") {
       tag = fName;
     }
-    return TH1DModel(Form("%d_%d", fName.Data(), tag.Data()), CompleteTitle(),
+    return TH1DModel(Form("%s_%s", fName.Data(), tag.Data()), CompleteTitle(),
                      fNbins, fBins.data());
   }
 } StrVar4Hist;
