@@ -323,6 +323,23 @@ template <typename T> T *GetObjectDiectly(TString path) {
   return obj;
 }
 
+template <typename T> T *GetObjectDiectly(TFile *file, TString path) {
+  if (!file || file->IsZombie()) {
+    std::cerr << "Error: Could not open file " << file->GetName() << std::endl;
+    exit(1);
+  }
+
+  auto obj = dynamic_cast<T *>(file->Get(path));
+  if (!obj) {
+    std::cerr << "Error: Could not find object " << path << std::endl;
+    file->Close();
+    exit(1);
+  }
+
+  obj->SetDirectory(0);
+  return obj;
+}
+
 TH2D *GetTH2D(TString path) {
   TString path_file = path(0, path.First(":"));
   TString path_hist = path(path.First(":") + 1, path.Length());
