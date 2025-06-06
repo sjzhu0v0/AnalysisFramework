@@ -35,12 +35,10 @@ typedef struct StrVar4Hist {
     if (bins.size() == nbins + 1) {
       fBins = bins;
     }
-    if (fUnit == "") {
-      fUnit = "a.u.";
-    }
+    fUnit = unit;
   }
   TString CompleteTitle(TString tag = "") {
-    return fTitle + "_" + tag + ";" + fName + " (" + fUnit + ")";
+    return fTitle + "_" + tag + ";" + fTitle + " (" + fUnit + ")";
   }
   void rebin(int n) {
     if (n > fNbins) {
@@ -64,12 +62,21 @@ typedef struct StrVar4Hist {
     return -1;
   }
 
+  void SetTitle(TString title) { fTitle = title; }
+
   TH1DModel GetTH1DModel(TString tag = "") {
     if (tag == "") {
       tag = fName;
     }
-    return TH1DModel(Form("%s_%s", fName.Data(), tag.Data()), CompleteTitle(),
-                     fNbins, fBins.data());
+    TString title;
+    if (this->fUnit != "") {
+      title = this->fTitle + "_" + tag + ";" + this->fTitle + " (" +
+              this->fUnit + ")";
+    } else {
+      title = this->fTitle + "_" + tag + ";" + this->fTitle;
+    }
+    return TH1DModel(Form("%s_%s", fName.Data(), tag.Data()), title, fNbins,
+                     fBins.data());
   }
 } StrVar4Hist;
 
@@ -78,9 +85,20 @@ TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
   if (tag != "") {
     name += "_" + tag;
   }
-  TString title = str1.fTitle + "_" + str2.fTitle + "_" + tag + ";" +
-                  str1.fName + " (" + str1.fUnit + ");" + str2.fName + " (" +
-                  str2.fUnit + ")";
+  TString title1, title2;
+  if (str1.fUnit != "") {
+    title1 = str1.fTitle + " (" + str1.fUnit + ")";
+  } else {
+    title1 = str1.fTitle;
+  }
+  if (str2.fUnit != "") {
+    title2 = str2.fTitle + " (" + str2.fUnit + ")";
+  } else {
+    title2 = str2.fTitle;
+  }
+
+  TString title =
+      str1.fTitle + "_" + str2.fTitle + "_" + tag + ";" + title1 + ";" + title2;
   return TH2DModel(name, title, str1.fNbins, str1.fBins.data(), str2.fNbins,
                    str2.fBins.data());
 }
