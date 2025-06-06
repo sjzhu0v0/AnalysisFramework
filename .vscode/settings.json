@@ -92,6 +92,7 @@
     "__nullptr": "cpp",
     "__locale": "cpp",
     "filesystem": "cpp",
-    "SkimTreeReading.C": "cpp"
+    "SkimTreeReading.C": "cpp",
+    "QAPIDTPC_V0.C": "cpp"
   }
 }

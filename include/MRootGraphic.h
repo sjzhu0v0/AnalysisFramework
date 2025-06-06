@@ -115,7 +115,7 @@ void SetTextCentral(TLatex *lat, double x_center = 0.5) {
 
 void StyleCommon(TStyle *style = gStyle) {
   style->SetOptStat(0);
-  style->SetOptTitle(0);
+  // style->SetOptTitle(0);
   style->SetPalette(1);
   style->SetNumberContours(255);
   style->SetPadTopMargin(0.05);
@@ -147,6 +147,29 @@ void StyleHistCommonHist(TH1 *hist_mb) {
   hist_mb->GetYaxis()->CenterTitle();
 }
 
+void StyleHistCommonGraph(TGraph *hist_mb) {
+  hist_mb->GetXaxis()->SetLabelSize(0.03);
+  hist_mb->GetXaxis()->SetTitleSize(0.04);
+  hist_mb->GetXaxis()->SetTitleOffset(1.2);
+  hist_mb->GetYaxis()->SetLabelSize(0.03);
+  hist_mb->GetYaxis()->SetTitleSize(0.04);
+  hist_mb->GetYaxis()->SetTitleOffset(1.2);
+  hist_mb->GetXaxis()->SetNdivisions(505);
+  hist_mb->GetXaxis()->SetTickLength(0.02);
+  hist_mb->GetYaxis()->SetNdivisions(10);
+  hist_mb->GetYaxis()->SetTickLength(0.02);
+  hist_mb->GetXaxis()->SetLabelOffset(0.01);
+  hist_mb->GetYaxis()->SetLabelOffset(0.01);
+  hist_mb->GetXaxis()->SetLabelFont(42);
+  hist_mb->GetYaxis()->SetLabelFont(42);
+  hist_mb->GetXaxis()->SetTitleFont(42);
+  hist_mb->GetYaxis()->SetTitleFont(42);
+  hist_mb->GetXaxis()->SetTickLength(0.02);
+  hist_mb->GetYaxis()->SetTickLength(0.02);
+  hist_mb->GetXaxis()->CenterTitle();
+  hist_mb->GetYaxis()->CenterTitle();
+  hist_mb->SetLineWidth(2);
+}
 } // namespace MRootGraphic
 
 class MPublisherCanvas {
