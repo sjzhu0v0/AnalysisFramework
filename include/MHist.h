@@ -121,8 +121,6 @@ TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "", TString tag
   }
   if (title == "") {
     title = str.CompleteTitle(tag);
-  } else {
-    title = str.fTitle + "_" + tag + ";" + title;
   }
   return TH1DModel(name, title, str.fNbins, str.fBins.data());
 }
