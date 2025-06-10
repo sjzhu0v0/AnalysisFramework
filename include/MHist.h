@@ -114,6 +114,19 @@ TH2DModel GetTH2DModelWithTitle(StrVar4Hist str1, StrVar4Hist str2,
                    str2.fBins.data());
 }
 
+TH1DModel GetTH1DModel(StrVar4Hist str, TString title = "", TString tag = "") {
+  TString name = str.fName;
+  if (tag != "") {
+    name += "_" + tag;
+  }
+  if (title == "") {
+    title = str.CompleteTitle(tag);
+  } else {
+    title = str.fTitle + "_" + tag + ";" + title;
+  }
+  return TH1DModel(name, title, str.fNbins, str.fBins.data());
+}
+
 #include "MDefinition.h"
 
 #define HistDefine(histType, histName, histTitle, ...)                         \
