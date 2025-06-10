@@ -114,7 +114,8 @@ TH2DModel GetTH2DModelWithTitle(StrVar4Hist str1, StrVar4Hist str2,
                    str2.fBins.data());
 }
 
-TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "", TString tag = "") {
+TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "",
+                                TString tag = "") {
   TString name = str.fName;
   if (tag != "") {
     name += "_" + tag;
