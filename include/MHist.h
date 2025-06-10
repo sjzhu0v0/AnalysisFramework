@@ -75,8 +75,6 @@ typedef struct StrVar4Hist {
     } else {
       title = this->fTitle + "_" + tag + ";" + this->fTitle;
     }
-    cout << "Creating TH1DModel: " << Form("%s_%s", fName.Data(), tag.Data())
-         << " with title: " << title << endl;
     return TH1DModel(Form("%s_%s", fName.Data(), tag.Data()), title, fNbins,
                      fBins.data());
   }
