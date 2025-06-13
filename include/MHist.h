@@ -14,6 +14,9 @@
 #define BinDefVtxZ 20, -10, 10
 #define BinDefMult 5, 0, 2000
 
+
+using namespace ROOT::RDF;
+
 typedef struct StrVar4Hist {
   TString fName;
   TString fTitle;
