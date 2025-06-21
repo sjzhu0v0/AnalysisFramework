@@ -2,6 +2,7 @@
 #include "MSystem.h"
 #include "ROOT/RDF/HistoModels.hxx"
 #include "THn.h"
+#include "tuple"
 
 #ifndef MHist_h
 #define MHist_h
@@ -14,8 +15,28 @@
 #define BinDefVtxZ 20, -10, 10
 #define BinDefMult 5, 0, 2000
 
-
 using namespace ROOT::RDF;
+
+vector<double> GetLogBin(int n_bins, double low_bin, double high_bin) {
+  if (low_bin <= 0 || high_bin <= 0 || n_bins <= 0) {
+    cout << "Error: GetLogBin: low_bin, high_bin and n_bins must be positive"
+         << endl;
+    exit(1);
+  }
+  vector<double> bins;
+  double log_low = log10(low_bin);
+  double log_high = log10(high_bin);
+  double log_step = (log_high - log_low) / n_bins;
+  for (int i = 0; i <= n_bins; i++) {
+    double bin = pow(10, log_low + i * log_step);
+    bins.push_back(bin);
+  }
+  if (bins.size() != n_bins + 1) {
+    cout << "Error: GetLogBin: bins size is not correct" << endl;
+    exit(1);
+  }
+  return bins;
+}
 
 typedef struct StrVar4Hist {
   TString fName;
@@ -127,6 +148,42 @@ TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "",
     title = str.CompleteTitle(tag);
   }
   return TH1DModel(name, title, str.fNbins, str.fBins.data());
+}
+
+using TupleTHnDModel = tuple<THnDModel, vector<string>>;
+
+TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
+                                     TString title = "", TString tag = "") {
+  TString name_hist = vec_var[0].fName;
+  for (auto var : vec_var)
+    name_hist += "_" + var.fName;
+  if (tag != "")
+    name_hist += "_" + tag;
+
+  TString title_hist = title;
+  for (auto var : vec_var) {
+    TString title_var = var.fTitle;
+    if (var.fUnit != "")
+      title_var += " (" + var.fUnit + ")";
+    title_hist = ";" + title_var;
+  }
+
+  vector<int> nbins_hist;
+  for (auto var : vec_var)
+    nbins_hist.push_back(var.fNbins);
+
+  vector<vector<double>> bins_hist;
+  for (auto var : vec_var)
+    bins_hist.push_back(var.fBins);
+
+  THnDModel model(name_hist.Data(), title_hist.Data(), vec_var.size(),
+                  nbins_hist, bins_hist);
+
+  ColumnNames_t column_var;
+  for (auto var : vec_var)
+    column_var.push_back(var.fName.Data());
+
+  return {model, column_var};
 }
 
 #include "MDefinition.h"
