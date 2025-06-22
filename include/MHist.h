@@ -155,8 +155,8 @@ using TupleTHnDModel = tuple<THnDModel, vector<string>>;
 TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
                                      TString title = "", TString tag = "") {
   TString name_hist = vec_var[0].fName;
-  for (auto var : vec_var)
-    name_hist += "_" + var.fName;
+  for (int i = 1; i < vec_var.size(); i++)
+    name_hist += "_" + vec_var[i].fName;
   if (tag != "")
     name_hist += "_" + tag;
 
