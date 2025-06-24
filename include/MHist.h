@@ -176,6 +176,7 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
   for (auto var : vec_var)
     bins_hist.push_back(var.fBins);
 
+  cout << title_hist.Data() << endl;
   THnDModel model(name_hist.Data(), title_hist.Data(), vec_var.size(),
                   nbins_hist, bins_hist);
 
