@@ -165,7 +165,7 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
     TString title_var = var.fTitle;
     if (var.fUnit != "")
       title_var += " (" + var.fUnit + ")";
-    title_hist = ";" + title_var;
+    title_hist += ";" + title_var;
   }
 
   vector<int> nbins_hist;
