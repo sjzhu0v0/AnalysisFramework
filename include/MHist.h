@@ -161,11 +161,12 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
     name_hist += "_" + tag;
 
   TString title_hist = title;
+  title_hist += ";";
   for (auto var : vec_var) {
     TString title_var = var.fTitle;
     if (var.fUnit != "")
       title_var += " (" + var.fUnit + ")";
-    title_hist += ";" + title_var;
+    title_hist += title_var + ";";
   }
 
   vector<int> nbins_hist;
@@ -176,7 +177,6 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
   for (auto var : vec_var)
     bins_hist.push_back(var.fBins);
 
-  cout << title_hist.Data() << endl;
   THnDModel model(name_hist.Data(), title_hist.Data(), vec_var.size(),
                   nbins_hist, bins_hist);
 
