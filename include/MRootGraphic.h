@@ -118,7 +118,7 @@ void StyleCommon(TStyle *style = gStyle) {
   // style->SetOptTitle(0);
   style->SetPalette(1);
   style->SetNumberContours(255);
-  style->SetPadTopMargin(0.05);
+  style->SetPadTopMargin(0.1);
   style->SetPadBottomMargin(0.15);
   style->SetPadLeftMargin(0.15);
   style->SetPadRightMargin(0.05);
@@ -224,6 +224,7 @@ private:
   int fNHeight;
   float fW_Width;
   float fW_Height;
+  bool fDoHavePageNumber = false;
   TString fName;
   TString fTitle;
   TString fPathPdf;
@@ -233,17 +234,19 @@ public:
   int fNumberPage = 0;
 
   MPublisherCanvas(TString path_pdf, int n_width = 4, int n_height = 4,
-                   float w_width = 80000, float w_height = 60000,
-                   TString name = "c_publisher", TString title = "c_publisher")
+                   float w_width = 600, float w_height = 600,
+                   TString name = "c_publisher", TString title = "c_publisher",
+                   bool doHavePageNumber = false)
       : fPathPdf(path_pdf), fNWidth(n_width), fNHeight(n_height),
-        fW_Width(w_width), fW_Height(w_height), fName(name), fTitle(title) {
+        fW_Width(w_width), fW_Height(w_height), fName(name), fTitle(title),
+        fDoHavePageNumber(doHavePageNumber) {
     if (gCanvas)
       delete gCanvas;
 
-    gCanvas =
-        new TCanvas(fName, fTitle, fW_Width * fNWidth, fW_Height * fNHeight);
+    gCanvas = new TCanvas(fName, fTitle, fW_Width * fNWidth,
+                          fW_Height * fNHeight / 0.95);
     // set the number of pixels in the canvas
-    gCanvas->SetCanvasSize(fW_Width * fNWidth, fW_Height * fNHeight);
+    // gCanvas->SetCanvasSize(fW_Width * fNWidth, fW_Height * fNHeight);
   }
 
   ~MPublisherCanvas() { gCanvas->Update(); }
@@ -256,11 +259,16 @@ public:
       TLatex *tex = new TLatex(0., 0.01, Form("Page %d", fNumberPage));
       tex->SetNDC();
       tex->SetTextSize(0.03);
-      tex->Draw();
+      if (fDoHavePageNumber) {
+        tex->Draw();
+      }
       gCanvas->Update();
       fNumberPage == 1 ? gCanvas->Print(fPathPdf + "(")
                        : gCanvas->Print(fPathPdf);
       gCanvas->Clear();
+      gCanvas->SetCanvasSize(fW_Width * fNWidth, fW_Height * fNHeight / 0.95);
+      gCanvas->Update();
+
       delete tex;
     }
     fIndexPadCurrent++;
@@ -269,6 +277,7 @@ public:
 
   TPad *NewPad() {
     Index2Publish();
+
     gCanvas->cd();
     float x1 = 1. / (float)(fNWidth) * ((fIndexPadCurrent - 1) % fNWidth);
     float x2 = x1 + 1. / (float)(fNWidth);
@@ -278,7 +287,7 @@ public:
     TPad *pad = new TPad(Form("pad_%d", fIndexPadCurrent), "", x1, y2, x2, y1);
     pad->SetFillStyle(4000);
     pad->SetFrameFillStyle(4000);
-    pad->SetCanvasSize(fW_Width, fW_Height);
+    // pad->SetCanvasSize(fW_Width, fW_Height);
     pad->Draw();
     return pad;
   }
@@ -291,6 +300,9 @@ public:
     TLatex *tex = new TLatex(0., 0., Form("Page %d", fNumberPage));
     tex->SetNDC();
     tex->SetTextSize(0.03);
+    if (fDoHavePageNumber) {
+      tex->Draw();
+    }
     gCanvas->Update();
     gCanvas->Print(fPathPdf + ")");
   }

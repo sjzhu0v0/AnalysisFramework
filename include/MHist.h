@@ -180,7 +180,7 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
   THnDModel model(name_hist.Data(), title_hist.Data(), vec_var.size(),
                   nbins_hist, bins_hist);
 
-  ColumnNames_t column_var;
+  vector<string> column_var;
   for (auto var : vec_var)
     column_var.push_back(var.fName.Data());
 
