@@ -318,7 +318,7 @@ template <typename T> T *GetObjectDiectly(TString path) {
     exit(1);
   }
 
-  obj->SetDirectory(0);
+  // obj->SetDirectory(0);
   file->Close();
   return obj;
 }

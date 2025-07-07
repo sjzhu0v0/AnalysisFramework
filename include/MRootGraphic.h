@@ -133,7 +133,7 @@ template <typename T> void StyleHistCommon(T *hist_mb) {
   hist_mb->GetYaxis()->SetTitleOffset(1.2);
   hist_mb->GetXaxis()->SetNdivisions(505);
   hist_mb->GetXaxis()->SetTickLength(0.02);
-  hist_mb->GetYaxis()->SetNdivisions(10);
+  hist_mb->GetYaxis()->SetNdivisions(505);
   hist_mb->GetYaxis()->SetTickLength(0.02);
   hist_mb->GetXaxis()->SetLabelOffset(0.01);
   hist_mb->GetYaxis()->SetLabelOffset(0.01);
@@ -145,6 +145,9 @@ template <typename T> void StyleHistCommon(T *hist_mb) {
   hist_mb->GetYaxis()->SetTickLength(0.02);
   hist_mb->GetXaxis()->CenterTitle();
   hist_mb->GetYaxis()->CenterTitle();
+  // set the label of yaxis as scientific notation
+  // hist_mb->GetYaxis()->SetLabelFormat("%g");
+
 }
 
 void StyleHistCommonHist(TH1 *hist_mb) {
@@ -357,6 +360,17 @@ public:
         hist->Draw("AH same");
       }
     }
+  }
+
+  MPublisherCanvas operator<<(TObject *obj) {
+    this->NewPad()->cd();
+    obj->Draw();
+    return *this;
+  }
+
+  MPublisherCanvas operator<<=(TObject *obj) {
+    obj->Draw("same");
+    return *this;
   }
 };
 
