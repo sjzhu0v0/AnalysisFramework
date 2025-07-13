@@ -506,6 +506,8 @@ public:
     hN->Delete();
     hN = h_new;
   }
+
+  int GetNbins(int i) { return hN->GetAxis(i)->GetNbins(); }
 };
 
 template <typename T> class MHGroupTool {

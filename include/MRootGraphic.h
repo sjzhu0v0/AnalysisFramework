@@ -362,15 +362,15 @@ public:
     }
   }
 
-  MPublisherCanvas operator<<(TObject *obj) {
+  MPublisherCanvas* Draw(TObject *obj) {
     this->NewPad()->cd();
     obj->Draw();
-    return *this;
+    return this;
   }
 
-  MPublisherCanvas operator<<=(TObject *obj) {
+  MPublisherCanvas* DrawSame(TObject *obj) {
     obj->Draw("same");
-    return *this;
+    return this;
   }
 };
 

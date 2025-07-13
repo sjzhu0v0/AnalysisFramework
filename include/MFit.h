@@ -38,7 +38,6 @@ RooGenericPdf *GetGenericPdf(TF1 *f1, RooRealVar &x,
   }
   str_formula.ReplaceAll("[", "");
   str_formula.ReplaceAll("]", "");
-  std::cout << "Converted formula: " << str_formula.Data() << std::endl;
 
   // Prepare variable list
   RooArgList vars;
@@ -62,10 +61,6 @@ RooGenericPdf *GetGenericPdf(TF1 *f1, RooRealVar &x,
   // Construct the RooGenericPdf
   auto *obj = new RooGenericPdf(name_genericPdf, f1->GetYaxis()->GetTitle(),
                                 str_formula.Data(), vars);
-
-  std::cout << "PDF '" << name_genericPdf << "' created with "
-            << obj->getParameters(x)->getSize() << " parameters." << std::endl;
-
   return obj;
 }
 
@@ -126,38 +121,48 @@ public:
     fWs->import(*fModel);
   }
 
-  virtual void operator<<(TH1D *data) {
+  virtual void InputData(TH1D *data) {
     if (!fWs) {
       cerr << "MSignalFit::operator<<: Workspace is not initialized!" << endl;
       exit(1);
     }
     // RooDataHist datahist("Data", "J/#{psi} ee decay", *fX, data);
     fDataHist = new RooDataHist("Data", "J/#psi ee decay", *fX, data);
+
     fWs->import(*fDataHist);
   }
 
-  virtual void chi2Fit(bool doFixTemplate = true) {
+  virtual void chi2Fit() {
     if (!fWs) {
       cerr << "MSignalFit::chi2FitTo: Workspace is not initialized!" << endl;
       exit(1);
     }
-    if (doFixTemplate) {
-      RooArgSet *params = fModel->getParameters(*fX);
-      for (auto &param : *params) {
-        RooRealVar *var = dynamic_cast<RooRealVar *>(param);
-        var->setConstant(true);
-      }
-      fNsig->setConstant(false);
-      fNbkg->setConstant(false);
-    } else {
-      RooArgSet *params = fModel->getParameters(*fX);
-      for (auto &param : *params) {
-        RooRealVar *var = dynamic_cast<RooRealVar *>(param);
-        var->setConstant(false);
-      }
-    }
+    fNsig->setConstant(false);
+    fNbkg->setConstant(false);
     fResult = fModel->chi2FitTo(*fDataHist, RooFit::SumW2Error(true),
                                 RooFit::Save(), RooFit::PrintLevel(-1));
+  }
+
+  virtual void Fit() {
+    if (!fWs) {
+      cerr << "MSignalFit::FitTo: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    fNsig->setConstant(false);
+    fNbkg->setConstant(false);
+    fResult = fModel->fitTo(*fDataHist, RooFit::SumW2Error(true),
+                            RooFit::Save(), RooFit::PrintLevel(-1));
+  }
+
+  virtual void RemoveLimit() {
+    RooArgSet *params = fModel->getParameters(*fX);
+    for (RooAbsArg *arg : *params) {
+      RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
+      if (var) {
+        var->removeMin(); // 去掉最小值限制
+        var->removeMax(); // 去掉最大值限制
+      }
+    }
   }
 
   StrSignalFit getFitResult() const {
@@ -169,7 +174,6 @@ public:
     auto absReal_chi2 =
         fModel->createChi2(*fDataHist, RooFit::SumW2Error(true));
     double chi2 = absReal_chi2->getVal();
-    cout << "Chi2: " << chi2 << endl;
     int nBins = fDataHist->numEntries();
 
     int ndf = nBins - fModel->getParameters(*fX)->getSize();
@@ -219,6 +223,74 @@ public:
     tex->DrawLatex(0.55, 0.86 - 0.045 * 2,
                    Form("#chi^{2}/NDF = %.2f", fit_result.chi2ToNdf));
     tex->Draw("same");
+  }
+
+  virtual void CopySignal(MSignalFit otherFit) {
+    if (!fWs) {
+      cerr << "MSignalFit::CopySignal: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    RooArgSet *params = otherFit.fPdf_signal->getParameters(*otherFit.fX);
+    for (RooAbsArg *arg : *params) {
+      TString name_arg = arg->GetName();
+      // get the corresponding variable in this fit
+      RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name_arg));
+      if (var) {
+        RooRealVar *other_var = dynamic_cast<RooRealVar *>(arg);
+        if (other_var) {
+          var->setVal(other_var->getVal());
+          var->setError(other_var->getError());
+          if (other_var->hasMin()) {
+            var->setMin(other_var->getMin());
+          } else {
+            var->removeMin();
+          }
+          if (other_var->hasMax()) {
+            var->setMax(other_var->getMax());
+          } else {
+            var->removeMax();
+          }
+        }
+      } else {
+        cerr << "MSignalFit::CopySignal: Variable " << name_arg
+             << " not found in the current fit!" << endl;
+        exit(1);
+      }
+    }
+  }
+
+  virtual void FixSignal(bool doFixBkg = true) {
+    if (!fWs) {
+      cerr << "MSignalFit::FixSignal: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    RooArgSet *params = fPdf_signal->getParameters(*fX);
+    for (RooAbsArg *arg : *params) {
+      RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
+      if (var) {
+        var->setConstant(doFixBkg);
+      } else {
+        cerr << "MSignalFit::FixSignal: Argument is not a RooRealVar!" << endl;
+        exit(1);
+      }
+    }
+  }
+
+  virtual void FixBkg(bool doFixBkg = true) {
+    if (!fWs) {
+      cerr << "MSignalFit::FixBkg: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    RooArgSet *params = fPdf_bkg->getParameters(*fX);
+    for (RooAbsArg *arg : *params) {
+      RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
+      if (var) {
+        var->setConstant(doFixBkg);
+      } else {
+        cerr << "MSignalFit::FixBkg: Argument is not a RooRealVar!" << endl;
+        exit(1);
+      }
+    }
   }
 };
 
