@@ -259,6 +259,40 @@ public:
     }
   }
 
+  virtual void CopyBkg(MSignalFit otherFit) {
+    if (!fWs) {
+      cerr << "MSignalFit::CopyBkg: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    RooArgSet *params = otherFit.fPdf_bkg->getParameters(*otherFit.fX);
+    for (RooAbsArg *arg : *params) {
+      TString name_arg = arg->GetName();
+      // get the corresponding variable in this fit
+      RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name_arg));
+      if (var) {
+        RooRealVar *other_var = dynamic_cast<RooRealVar *>(arg);
+        if (other_var) {
+          var->setVal(other_var->getVal());
+          var->setError(other_var->getError());
+          if (other_var->hasMin()) {
+            var->setMin(other_var->getMin());
+          } else {
+            var->removeMin();
+          }
+          if (other_var->hasMax()) {
+            var->setMax(other_var->getMax());
+          } else {
+            var->removeMax();
+          }
+        }
+      } else {
+        cerr << "MSignalFit::CopyBkg: Variable " << name_arg
+             << " not found in the current fit!" << endl;
+        exit(1);
+      }
+    }
+  }
+
   virtual void FixSignal(bool doFixBkg = true) {
     if (!fWs) {
       cerr << "MSignalFit::FixSignal: Workspace is not initialized!" << endl;
