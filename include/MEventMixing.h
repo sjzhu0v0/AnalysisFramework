@@ -46,17 +46,6 @@ vector<T> MixVec(int id, const T1 &input, T (*formula)(const T1 &, const T1 &),
   return vec_output;
 }
 
-vector<EventData> MixEvent(const int id, const EventData &event_info) {
-  return MixVec<EventData, EventData>(
-      id, event_info, [](const EventData &a, const EventData &b) {
-        EventData event;
-        event.event_info.Copy(a.event_info);
-        event.event_info2.Copy(b.event_info);
-        event.jpsi_info.Copy(a.jpsi_info);
-        event.track_info.Copy(b.track_info);
-        return event;
-      });
-}
 
 //  OBJ: TLeafI    fMultTPC        fMultTPC
 //  OBJ: TLeafI    fMultTracklets  fMultTracklets
