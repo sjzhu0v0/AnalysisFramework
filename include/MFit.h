@@ -326,6 +326,38 @@ public:
       }
     }
   }
+
+  enum TypeParam { kValue = 0, kError = 1, kLimitLow = 2, kLimitHigh = 3 };
+  virtual void SetParam(TString name, double value, TypeParam type = kValue) {
+    if (!fWs) {
+      cerr << "MSignalFit::SetParam: Workspace is not initialized!" << endl;
+      exit(1);
+    }
+    RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name));
+    if (var) {
+      switch (type) {
+      case kValue:
+        var->setVal(value);
+        break;
+      case kError:
+        var->setError(value);
+        break;
+      case kLimitLow:
+        var->setMin(value);
+        break;
+      case kLimitHigh:
+        var->setMax(value);
+        break;
+      default:
+        cerr << "MSignalFit::SetParam: Invalid type!" << endl;
+        exit(1);
+      }
+    } else {
+      cerr << "MSignalFit::SetParam: Variable " << name
+           << " not found in the workspace!" << endl;
+      exit(1);
+    }
+  }
 };
 
 #endif // __MFit_h__
