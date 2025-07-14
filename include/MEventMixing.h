@@ -147,7 +147,8 @@ EventData CreateEventData(Int_t fMultTPC, Int_t fMultTracklets,
 };
 
 template <typename T, typename T1>
-ROOT::VecOps::RVec<T> MixVec(int id, T1 input, T (*formula)(T1 &, T1 &),
+ROOT::VecOps::RVec<T> MixVec(int id, const T1 &input,
+                             T (*formula)(const T1 &, const T1 &),
                              int depth = 20) {
   static vector<tuple<int, vector<T1>>> vec_mix;
   ROOT::VecOps::RVec<T> vec_output;
@@ -184,9 +185,10 @@ ROOT::VecOps::RVec<T> MixVec(int id, T1 input, T (*formula)(T1 &, T1 &),
   return vec_output;
 }
 
-void MixJpsiTrack(EventData &event_info) {
-  auto output_eventMixing = MixVec<EventData, EventData>(
-      0, event_info, [](EventData &a, EventData &b) {
+ROOT::VecOps::RVec<EventData> MixEvent(const int id,
+                                       const EventData &event_info) {
+  return MixVec<EventData, EventData>(
+      id, event_info, [](const EventData &a, const EventData &b) {
         EventData event;
         event.event_info.Copy(a.event_info);
         event.event_info2.Copy(b.event_info);
@@ -194,19 +196,6 @@ void MixJpsiTrack(EventData &event_info) {
         event.track_info.Copy(b.track_info);
         return event;
       });
-}
-
-ROOT::VecOps::RVec<EventData> MixEvent(const int id,
-                                       const EventData &event_info) {
-  return MixVec<EventData, EventData>(id, event_info,
-                                      [](EventData &a, EventData &b) {
-                                        EventData event;
-                                        event.event_info.Copy(a.event_info);
-                                        event.event_info2.Copy(b.event_info);
-                                        event.jpsi_info.Copy(a.jpsi_info);
-                                        event.track_info.Copy(b.track_info);
-                                        return event;
-                                      });
 }
 
 //  OBJ: TLeafI    fMultTPC        fMultTPC
