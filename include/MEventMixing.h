@@ -147,11 +147,10 @@ EventData CreateEventData(Int_t fMultTPC, Int_t fMultTracklets,
 };
 
 template <typename T, typename T1>
-ROOT::VecOps::RVec<T> MixVec(int id, const T1 &input,
-                             T (*formula)(const T1 &, const T1 &),
-                             int depth = 20) {
+vector<T> MixVec(int id, const T1 &input, T (*formula)(const T1 &, const T1 &),
+                 int depth = 20) {
   static vector<tuple<int, vector<T1>>> vec_mix;
-  ROOT::VecOps::RVec<T> vec_output;
+  vector<T> vec_output;
   int index_class = -1;
   for (int i = 0; i < vec_mix.size(); i++) {
     if (get<0>(vec_mix[i]) == id) {
@@ -185,8 +184,7 @@ ROOT::VecOps::RVec<T> MixVec(int id, const T1 &input,
   return vec_output;
 }
 
-ROOT::VecOps::RVec<EventData> MixEvent(const int id,
-                                       const EventData &event_info) {
+vector<EventData> MixEvent(const int id, const EventData &event_info) {
   return MixVec<EventData, EventData>(
       id, event_info, [](const EventData &a, const EventData &b) {
         EventData event;
