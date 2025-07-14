@@ -32,6 +32,7 @@ struct EventInfo {
     fSelection = other.fSelection;
     fHadronicRate = other.fHadronicRate;
   }
+  ClassDefNV(EventInfo, 1); // 添加这一行
 };
 
 struct JpsiInfo {
@@ -62,6 +63,7 @@ struct JpsiInfo {
     fSign_size = other.fSign_size;
     fSign.assign(other.fSign.begin(), other.fSign.end());
   }
+  ClassDefNV(JpsiInfo, 1); // 添加这一行
 };
 
 struct TrackInfo {
@@ -82,6 +84,7 @@ struct TrackInfo {
     fPhiREF_size = other.fPhiREF_size;
     fPhiREF.assign(other.fPhiREF.begin(), other.fPhiREF.end());
   }
+  ClassDefNV(TrackInfo, 1); // 添加这一行
 };
 
 struct EventData {
@@ -89,6 +92,8 @@ struct EventData {
   EventInfo event_info2;
   JpsiInfo jpsi_info;
   TrackInfo track_info;
+
+  ClassDefNV(EventData, 1); // 添加这一行
 };
 
 EventData CreateEventData(Int_t fMultTPC, Int_t fMultTracklets,
