@@ -110,25 +110,25 @@ template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
 
 #endif
 
-#ifdef MultiThread
+// #ifdef MultiThread
 
-#include <mutex>
-#include <thread>
-#include <vector>
+// #include <mutex>
+// #include <thread>
+// #include <vector>
 
-std::mutex mtx;
 
-struct gStrParameter4Thread;
 
-void MultiThread(int nThreads, std::function<void(int)> func) {
-  std::vector<std::thread> threads;
-  for (int i = 0; i < nThreads; i++)
-    threads.push_back(std::thread(func, i));
-  for (int i = 0; i < nThreads; i++)
-    threads[i].join();
-}
+// struct gStrParameter4Thread;
 
-#endif
+// void MultiThread(int nThreads, std::function<void(int)> func) {
+//   std::vector<std::thread> threads;
+//   for (int i = 0; i < nThreads; i++)
+//     threads.push_back(std::thread(func, i));
+//   for (int i = 0; i < nThreads; i++)
+//     threads[i].join();
+// }
+
+// #endif
 
 #ifdef MRDF
 

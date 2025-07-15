@@ -40,7 +40,7 @@ public:
 
   static double GetCaliFactor(double posZ) {
     thread_local TF1 *fFuncCali = nullptr;
-    if (!fFuncCali || fFuncCali != fFuncCali_global) {
+    if (!fFuncCali) {
       fFuncCali =
           (TF1 *)fFuncCali_global->Clone(Form("fFuncCali_%d", GenerateUID()));
     }
