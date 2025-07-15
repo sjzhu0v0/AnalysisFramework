@@ -143,17 +143,14 @@ using namespace ROOT::RDF;
 vector<RResultHandle> gRResultHandles;
 
 struct StrRResult {
-  vector<RResultHandle> vec_RResultHandles;
+  vector<RResultHandle> *vec_RResultHandles;
 
-  StrRResult() = default;
+  StrRResult() : vec_RResultHandles(new vector<RResultHandle>) {};
 
-  StrRResult(vector<RResultHandle> &vec) : vec_RResultHandles(vec) {};
-
-  explicit StrRResult(std::vector<RResultHandle> &&vec)
-      : vec_RResultHandles(std::move(vec)) {}
+  StrRResult(vector<RResultHandle> &vec) : vec_RResultHandles(&vec) {};
 
   template <typename T> StrRResult &push_back(T &&handle) {
-    vec_RResultHandles.push_back(std::forward<T>(handle));
+    vec_RResultHandles->push_back(std::forward<T>(handle));
     return *this;
   }
 };
