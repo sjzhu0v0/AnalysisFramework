@@ -149,6 +149,7 @@ struct StrRResult {
 
   StrRResult(vector<RResultHandle> &vec) : vec_RResultHandles(&vec) {};
 
+
   template <typename T> StrRResult &push_back(T &&handle) {
     vec_RResultHandles->push_back(std::forward<T>(handle));
     return *this;
