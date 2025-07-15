@@ -10,7 +10,7 @@
 class Calib_NumContrib_fPosZ_Run {
   Calib_NumContrib_fPosZ_Run() {};
   ~Calib_NumContrib_fPosZ_Run() {};
-  static TF1 *fFuncCali;
+  static TF1 *fFuncCali_global;
 
 public:
   static int fRunNumber;
@@ -27,7 +27,7 @@ public:
       return;
     }
     try {
-      fFuncCali = dynamic_cast<TF1 *>(
+      fFuncCali_global = dynamic_cast<TF1 *>(
           file->Get(Form("%s%d", path_hist.Data(), fRunNumber)));
     } catch (const std::exception &e) {
       cout << "Error: Calib_NumContrib_fPosZ_Run::GetHistCali: Could not get "
@@ -38,7 +38,14 @@ public:
     file->Close();
   }
 
-  static double GetCaliFactor(double posZ) { return fFuncCali->Eval(posZ); }
+  static double GetCaliFactor(double posZ) {
+    thread_local TF1 *fFuncCali = nullptr;
+    if (!fFuncCali || fFuncCali != fFuncCali_global) {
+      fFuncCali =
+          (TF1 *)fFuncCali_global->Clone(Form("fFuncCali_%d", GenerateUID()));
+    }
+    return fFuncCali->Eval(posZ);
+  }
 
   static double NumContribCalibrated(unsigned short numContrib, float posZ) {
     return numContrib * GetCaliFactor(posZ);
@@ -50,7 +57,7 @@ public:
     return numContrib * GetCaliFactor(posZ);
   }
 };
-TF1 *Calib_NumContrib_fPosZ_Run::fFuncCali = nullptr;
+TF1 *Calib_NumContrib_fPosZ_Run::fFuncCali_global = nullptr;
 int Calib_NumContrib_fPosZ_Run::fRunNumber = 0;
 double Calib_NumContrib_fPosZ_Run::fMeanNumContrib = 0.0;
 
@@ -65,8 +72,8 @@ public:
       delete fFuncCut;
     }
     TString path_file = path_func_calib(0, path_func_calib.First(":"));
-    TString path_func =
-        path_func_calib(path_func_calib.First(":") + 1, path_func_calib.Length());
+    TString path_func = path_func_calib(path_func_calib.First(":") + 1,
+                                        path_func_calib.Length());
     TFile *file = TFile::Open(path_file);
     if (!file || file->IsZombie()) {
       std::cerr << "Error: Could not open file " << path_file << std::endl;
