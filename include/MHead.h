@@ -40,7 +40,7 @@ int GenerateUID() {
 
 double gThresholdBootstrap = 0.5;
 bool IsInBootstrap(unsigned int n) {
-  thread_local TRandom3 rand;
+  thread_local TRandom3 rand(0);
   return rand.Uniform(0, 1) < gThresholdBootstrap;
 }
 
