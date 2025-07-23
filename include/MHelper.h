@@ -219,11 +219,16 @@ public:
   MHnTool *fHnSame;
   MHnTool *fHnMix;
   MHnTool *fHnTrigger;
+  bool doMixMultInt = false;
 
   AssocYeildHelper_v2(MHnTool *hnSame, MHnTool *hnMix, MHnTool *hnTrigger) {
     fHnSame = hnSame;
     fHnMix = hnMix;
     fHnTrigger = hnTrigger;
+  }
+
+  void SetMixMultInt(bool doMixMultInt_ = true) {
+    doMixMultInt = doMixMultInt_;
   }
 
   void Rebin(int dimTarget, int n) {
@@ -254,6 +259,7 @@ public:
       break;
     case kNumContrib:
       fHnSame->Rebin(dimTarget, n);
+      fHnMix->Rebin(dimTarget, n);
       fHnTrigger->Rebin(3, n);
       break;
     default:
@@ -266,8 +272,9 @@ public:
   TH2D *AssociatedYeildVtxZSum(int iVtxZ, int iMass, int iPt, int iMult) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
-    TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                                   {iVtxZ, iMass, iPt});
+    TH2D *h2DMix =
+        fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
+                        {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
     int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
         fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
     vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
@@ -286,8 +293,9 @@ public:
                                int iMult) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
-    TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                                   {iVtxZ, iMass, iPt});
+    TH2D *h2DMix =
+        fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
+                        {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
     DensityHisto2DNoWeight(h2DMix);
     int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
         fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
@@ -323,8 +331,9 @@ public:
   TH2D *AssociatedYeildVtxZ(int iVtxZ, int iMass, int iPt, int iMult) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
-    TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                                   {iVtxZ, iMass, iPt});
+    TH2D *h2DMix =
+        fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
+                        {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
     int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
         fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
     vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};

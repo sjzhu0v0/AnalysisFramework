@@ -447,7 +447,7 @@ public:
 
   TH2D *Project(int dimTarget1, int dimTarget2, vector<int> binsTargets) {
     if (binsTargets.size() + 2 != fNDimensions) {
-      cerr << "Error: MHnTool::Project: binsTargets.size() + 1 != dimTarget"
+      cerr << "Error: MHnTool::Project: binsTargets.size() + 2 != dimTarget"
            << endl;
       exit(1);
     }

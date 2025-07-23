@@ -117,7 +117,7 @@ void StyleCommon(TStyle *style = gStyle) {
   style->SetOptStat(0);
   // style->SetOptTitle(0);
   style->SetPalette(1);
-  style->SetNumberContours(255);
+  // style->SetNumberContours(255);
   style->SetPadTopMargin(0.1);
   style->SetPadBottomMargin(0.15);
   style->SetPadLeftMargin(0.15);
@@ -147,7 +147,6 @@ template <typename T> void StyleHistCommon(T *hist_mb) {
   hist_mb->GetYaxis()->CenterTitle();
   // set the label of yaxis as scientific notation
   // hist_mb->GetYaxis()->SetLabelFormat("%g");
-
 }
 
 void StyleHistCommonHist(TH1 *hist_mb) {
@@ -172,53 +171,6 @@ void StyleHistCommonHist(TH1 *hist_mb) {
   hist_mb->GetXaxis()->CenterTitle();
   hist_mb->GetYaxis()->CenterTitle();
 }
-
-// void StyleHistCommonProfile(TProfile *hist_mb) {
-//   hist_mb->GetXaxis()->SetLabelSize(0.03);
-//   hist_mb->GetXaxis()->SetTitleSize(0.04);
-//   hist_mb->GetXaxis()->SetTitleOffset(1.2);
-//   hist_mb->GetYaxis()->SetLabelSize(0.03);
-//   hist_mb->GetYaxis()->SetTitleSize(0.04);
-//   hist_mb->GetYaxis()->SetTitleOffset(1.2);
-//   hist_mb->GetXaxis()->SetNdivisions(505);
-//   hist_mb->GetXaxis()->SetTickLength(0.02);
-//   hist_mb->GetYaxis()->SetNdivisions(10);
-//   hist_mb->GetYaxis()->SetTickLength(0.02);
-//   hist_mb->GetXaxis()->SetLabelOffset(0.01);
-//   hist_mb->GetYaxis()->SetLabelOffset(0.01);
-//   hist_mb->GetXaxis()->SetLabelFont(42);
-//   hist_mb->GetYaxis()->SetLabelFont(42);
-//   hist_mb->GetXaxis()->SetTitleFont(42);
-//   hist_mb->GetYaxis()->SetTitleFont(42);
-//   hist_mb->GetXaxis()->SetTickLength(0.02);
-//   hist_mb->GetYaxis()->SetTickLength(0.02);
-//   hist_mb->GetXaxis()->CenterTitle();
-//   hist_mb->GetYaxis()->CenterTitle();
-// }
-
-// void StyleHistCommonGraph(TGraph *hist_mb) {
-//   hist_mb->GetXaxis()->SetLabelSize(0.03);
-//   hist_mb->GetXaxis()->SetTitleSize(0.04);
-//   hist_mb->GetXaxis()->SetTitleOffset(1.2);
-//   hist_mb->GetYaxis()->SetLabelSize(0.03);
-//   hist_mb->GetYaxis()->SetTitleSize(0.04);
-//   hist_mb->GetYaxis()->SetTitleOffset(1.2);
-//   hist_mb->GetXaxis()->SetNdivisions(505);
-//   hist_mb->GetXaxis()->SetTickLength(0.02);
-//   hist_mb->GetYaxis()->SetNdivisions(10);
-//   hist_mb->GetYaxis()->SetTickLength(0.02);
-//   hist_mb->GetXaxis()->SetLabelOffset(0.01);
-//   hist_mb->GetYaxis()->SetLabelOffset(0.01);
-//   hist_mb->GetXaxis()->SetLabelFont(42);
-//   hist_mb->GetYaxis()->SetLabelFont(42);
-//   hist_mb->GetXaxis()->SetTitleFont(42);
-//   hist_mb->GetYaxis()->SetTitleFont(42);
-//   hist_mb->GetXaxis()->SetTickLength(0.02);
-//   hist_mb->GetYaxis()->SetTickLength(0.02);
-//   hist_mb->GetXaxis()->CenterTitle();
-//   hist_mb->GetYaxis()->CenterTitle();
-//   hist_mb->SetLineWidth(2);
-// }
 } // namespace MRootGraphic
 
 class MPublisherCanvas {
@@ -362,13 +314,13 @@ public:
     }
   }
 
-  MPublisherCanvas* Draw(TObject *obj) {
+  MPublisherCanvas *Draw(TObject *obj) {
     this->NewPad()->cd();
     obj->Draw();
     return this;
   }
 
-  MPublisherCanvas* DrawSame(TObject *obj) {
+  MPublisherCanvas *DrawSame(TObject *obj) {
     obj->Draw("same");
     return this;
   }

@@ -65,8 +65,8 @@ void control_pr_deltaEta_deltaPhi_integral(
   tex->Draw();
   c1->SaveAs(path_output + "/2d_asso_yeild.pdf");
 
-  TCanvas *c1_improved = new TCanvas("c1_improved", "c1_improved", 1200, 600);
-  c1_improved->Divide(2, 1);
+  TCanvas *c1_improved = new TCanvas("c1_improved", "c1_improved", 1800, 600);
+  c1_improved->Divide(3, 1);
   TPad *pad1_improved = (TPad *)c1_improved->cd(1);
   h2_lowMult->SetTitle("Low multiplicity");
   StyleFlow::DeltaPhi_DeltaEta(pad1_improved, h2_lowMult);
@@ -81,6 +81,14 @@ void control_pr_deltaEta_deltaPhi_integral(
   gPad->SetBottomMargin(0.1);
   gPad->SetLeftMargin(0.15);
   gPad->SetRightMargin(0.05);
+  TPad *pad3_improved = (TPad *)c1_improved->cd(3);
+  h2_highOnLow->SetTitle("High multiplicity - Low multiplicity");
+  StyleFlow::DeltaPhi_DeltaEta(pad3_improved, h2_highOnLow);
+  gPad->SetTopMargin(0.1);
+  gPad->SetBottomMargin(0.1);
+  gPad->SetLeftMargin(0.15);
+  gPad->SetRightMargin(0.05);
+  c1_improved->SaveAs(path_output + "/2d_asso_yeild_improved.pdf");
 
   TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
   auto h1 = h2_highOnLow->ProjectionY("h1");
