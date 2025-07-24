@@ -225,6 +225,7 @@ public:
     fHnSame = hnSame;
     fHnMix = hnMix;
     fHnTrigger = hnTrigger;
+    fHnTrigger->SetRangeUser(1, 1.4, 5.);
   }
 
   void SetMixMultInt(bool doMixMultInt_ = true) {
@@ -269,39 +270,25 @@ public:
     }
   }
 
-  TH2D *AssociatedYeildVtxZSum(int iVtxZ, int iMass, int iPt, int iMult) {
+  TH1D *AssociatedYeildVtxZ(double deltaEta, int iVtxZ, int iMass, int iPt,
+                            int iMult, bool doNTrigScale = true) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
     TH2D *h2DMix =
         fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                         {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
-    double number_triggered =
-        fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
-    TH2D *h_assoYeild = (TH2D *)h2D->Clone(
-        Form("h_assoYeild_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
     DensityHisto2DNoWeight(h2DMix);
-    h_assoYeild->Divide(h2DMix);
-    h2DMix->Delete();
-    h2D->Delete();
-    return h_assoYeild;
-  }
 
-  TH1D *AssociatedYeildVtxZSum(double deltaEta, int iVtxZ, int iMass, int iPt,
-                               int iMult) {
-    TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                                 {iVtxZ, iMass, iPt, iMult});
-    TH2D *h2DMix =
-        fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                        {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
-    DensityHisto2DNoWeight(h2DMix);
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    int iMass_new;
+
+    if (iMass != 0)
+      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    else
+      iMass_new = 0; // default to 1 if iMass is 0
+
     vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
-    double number_triggered =
-        fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
+    double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
 
     int index_bin_deltaEta = h2D->GetXaxis()->FindBin(-1. * deltaEta) - 1;
     TH1D *h1_same = h2D->ProjectionY(Form("h1_same_%d", GenerateUID()), 1,
@@ -319,6 +306,17 @@ public:
     TH1D *h1_results = (TH1D *)h1_same->Clone(
         Form("h1_asso_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
     HistDivide1D(h1_results, h1_same, h1_mix);
+    // h1_results->Scale(1.0 / number_triggered);
+    if (doNTrigScale) {
+      if (number_triggered != 0) {
+        h1_results->Scale(1.0 / number_triggered);
+      } else {
+        cerr << "AssocYeildHelper_v2:AssociatedYeildVtxZ: Error: "
+                "number_triggered is zero, not scaling the histogram"
+             << endl;
+        exit(1);
+      }
+    }
     h2D->Delete();
     h2DMix->Delete();
     h1_same->Delete();
@@ -328,64 +326,104 @@ public:
     return h1_results;
   }
 
-  TH2D *AssociatedYeildVtxZ(int iVtxZ, int iMass, int iPt, int iMult) {
+  TH2D *AssociatedYeildVtxZ(int iVtxZ, int iMass, int iPt, int iMult,
+                            bool doNTrigScale = true) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                  {iVtxZ, iMass, iPt, iMult});
     TH2D *h2DMix =
         fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                         {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    int iMass_new;
+
+    if (iMass != 0)
+      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    else
+      iMass_new = 0; // default to 1 if iMass is 0
+
     vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
-    double number_triggered =
-        fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
+    double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
     TH2D *h_assoYeild = (TH2D *)h2D->Clone(
         Form("h_assoYeild_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
     DensityHisto2DNoWeight(h2DMix);
+
     h_assoYeild->Divide(h2DMix);
-    h_assoYeild->Scale(1.0 / number_triggered);
+    // h_assoYeild->Scale(1.0 / number_triggered);
+    if (doNTrigScale) {
+      if (number_triggered != 0) {
+        h_assoYeild->Scale(1.0 / number_triggered);
+      } else {
+        cerr << "AssocYeildHelper_v2:AssociatedYeildVtxZ: Error: "
+                "number_triggered is zero, not scaling the histogram"
+             << endl;
+        exit(1);
+      }
+    }
+
     h2DMix->Delete();
     h2D->Delete();
     return h_assoYeild;
   }
 
-  TH2D *AssociatedYeild(int iMass, int iPt, int iMult) {
-    int nVtxZ = glib_vars[gtype_vars::kVtxZ].fNbins;
-    TH2D *h2_first = AssociatedYeildVtxZSum(1, iMass, iPt, iMult);
-    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass, iPt, iMult});
+  TH2D *AssociatedYeild(int iMass, int iPt, int iMult,
+                        bool doNTrigScale = true) {
+    int nVtxZ = fHnSame->GetNbins(2);
+    TH2D *h2_first = AssociatedYeildVtxZ(1, iMass, iPt, iMult, false);
+    int iMass_new;
+    if (iMass != 0)
+      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    else
+      iMass_new = 0; // default to 1 if iMass is 0
+
+    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass_new, iPt, iMult});
     h1_trigger->SetName(Form("h1_trigger_%d", GenerateUID()));
     double sum_number_triggered = h1_trigger->GetBinContent(1);
     for (int i = 2; i <= nVtxZ; i++) {
-      double number_triggered = h1_trigger->GetBinContent(
-          h1_trigger->FindBin(h1_trigger->GetXaxis()->GetBinCenter(i)));
+      double number_triggered = h1_trigger->GetBinContent(i);
       sum_number_triggered += number_triggered;
     }
     for (int i = 2; i <= nVtxZ; i++) {
-      TH2D *h2D = AssociatedYeildVtxZSum(i, iMass, iPt, iMult);
+      TH2D *h2D = AssociatedYeildVtxZ(i, iMass, iPt, iMult, false);
       h2_first->Add(h2D);
       h2D->Delete();
     }
     if (sum_number_triggered == 0) {
       return h2_first;
     }
-    ScaleHisto2D(h2_first, 1.0 / sum_number_triggered);
+    // ScaleHisto2D(h2_first, 1.0 / sum_number_triggered);
+    if (doNTrigScale) {
+      if (sum_number_triggered != 0) {
+        h2_first->Scale(1.0 / sum_number_triggered);
+      } else {
+        cerr << "AssocYeildHelper_v2:AssociatedYeild: Error: "
+                "sum_number_triggered is zero, not scaling the histogram"
+             << endl;
+        exit(1);
+      }
+    }
     h1_trigger->Delete();
     return h2_first;
   }
 
   TH1D *AssociatedYeild(double deltaEta, int iMass, int iPt, int iMult) {
     int nVtxZ = glib_vars[gtype_vars::kVtxZ].fNbins;
-    TH1D *h1_first = AssociatedYeildVtxZSum(deltaEta, 1, iMass, iPt, iMult);
-    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass, iPt, iMult});
+    TH1D *h1_first = AssociatedYeildVtxZ(deltaEta, 1, iMass, iPt, iMult, false);
+    int iMass_new;
+    if (iMass != 0)
+      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    else
+      iMass_new = 0; // default to 1 if iMass is 0
+    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass_new, iPt, iMult});
     h1_trigger->SetName(Form("h1_trigger_%d", GenerateUID()));
     double sum_number_triggered = h1_trigger->GetBinContent(1);
     for (int i = 2; i <= nVtxZ; i++) {
-      double number_triggered = h1_trigger->GetBinContent(
-          h1_trigger->FindBin(h1_trigger->GetXaxis()->GetBinCenter(i)));
+      double number_triggered = h1_trigger->GetBinContent(i);
       sum_number_triggered += number_triggered;
     }
     for (int i = 2; i <= nVtxZ; i++) {
-      TH1D *h1D = AssociatedYeildVtxZSum(deltaEta, i, iMass, iPt, iMult);
+      TH1D *h1D = AssociatedYeildVtxZ(deltaEta, i, iMass, iPt, iMult, false);
       h1_first->Add(h1D);
       h1D->Delete();
     }

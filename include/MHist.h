@@ -1,4 +1,5 @@
 #include "MHead.h"
+#include "MMath.h"
 #include "MSystem.h"
 #include "ROOT/RDF/HistoModels.hxx"
 #include "THn.h"
@@ -38,7 +39,7 @@ vector<double> GetLogBin(int n_bins, double low_bin, double high_bin) {
   return bins;
 }
 
-typedef struct StrVar4Hist {
+struct StrVar4Hist {
   TString fName;
   TString fTitle;
   TString fUnit;
@@ -102,7 +103,7 @@ typedef struct StrVar4Hist {
     return TH1DModel(Form("%s_%s", fName.Data(), tag.Data()), title, fNbins,
                      fBins.data());
   }
-} StrVar4Hist;
+};
 
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
   TString name = str1.fName + "_" + str2.fName;
@@ -148,6 +149,18 @@ TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "",
     title = str.CompleteTitle(tag);
   }
   return TH1DModel(name, title, str.fNbins, str.fBins.data());
+}
+
+TH1DModel GetTH1DModelWithTitle2(StrVar4Hist str, TString tag = "",
+                                 TString title = "") {
+  TString name = str.fName + "_" + tag;
+  TString title_hist = title;
+  title_hist += ";" + str.fTitle;
+  if (str.fUnit != "")
+    title_hist += " (" + str.fUnit + ")";
+  else
+    title_hist += ";";
+  return TH1DModel(name, title_hist, str.fNbins, str.fBins.data());
 }
 
 using TupleTHnDModel = tuple<THnDModel, vector<string>>;
@@ -329,16 +342,16 @@ void DensityHisto2DNoWeight(TH2D *h2) {
   if (integral == 0) {
     return;
   }
+  double nBins = h2->GetNbinsX() * h2->GetNbinsY();
   for (int iBinX = 1; iBinX <= h2->GetNbinsX(); iBinX++) {
     for (int iBinY = 1; iBinY <= h2->GetNbinsY(); iBinY++) {
       double binContent = h2->GetBinContent(iBinX, iBinY);
       double binError = h2->GetBinError(iBinX, iBinY);
       double binWidthX = h2->GetXaxis()->GetBinWidth(iBinX);
       double binWidthY = h2->GetYaxis()->GetBinWidth(iBinY);
-      h2->SetBinContent(iBinX, iBinY,
-                        binContent / integral / binWidthX / binWidthY);
+      h2->SetBinContent(iBinX, iBinY, binContent / integral * nBins);
       double error = sqrt(binContent * (integral - binContent) / integral) /
-                     integral / binWidthX / binWidthY;
+                     integral * nBins;
       h2->SetBinError(iBinX, iBinY, error);
     }
   }
@@ -374,6 +387,8 @@ class MHnTool {
 public:
   THnD *hN = nullptr;
   int fNDimensions = 0;
+  using MHToolAxisCut = tuple<int, double, double>;
+  vector<MHToolAxisCut> fAxisCuts;
 
   MHnTool(THnD *h) { SetHn(h); }
   ~MHnTool() {
@@ -391,6 +406,14 @@ public:
            << ", title: " << hN->GetAxis(i)->GetTitle()
            << "  nbins:" << hN->GetAxis(i)->GetNbins() << endl;
     }
+  }
+
+  void SetRangeUser(int dim, double min, double max) {
+    if (dim < 0 || dim >= fNDimensions) {
+      cerr << "Error: MHnTool::SetRangeUser: dim is out of range" << endl;
+      exit(1);
+    }
+    fAxisCuts.push_back(make_tuple(dim, min, max));
   }
 
   void SetHn(THnD *h) {
@@ -417,7 +440,7 @@ public:
         binMore++;
         continue;
       }
-      double min, max;
+      double min_range, max_range;
       int bin2set = i - binMore;
       int index_bins = binsTargets[bin2set];
       if (index_bins != 0 && index_bins > hN->GetAxis(i)->GetNbins()) {
@@ -430,13 +453,19 @@ public:
         exit(1);
       }
       if (index_bins > 0) {
-        min = hN->GetAxis(i)->GetBinLowEdge(index_bins);
-        max = min + hN->GetAxis(i)->GetBinWidth(index_bins);
+        min_range = hN->GetAxis(i)->GetBinLowEdge(index_bins);
+        max_range = min_range + hN->GetAxis(i)->GetBinWidth(index_bins);
       } else {
-        min = hN->GetAxis(i)->GetXmin();
-        max = hN->GetAxis(i)->GetXmax();
+        min_range = hN->GetAxis(i)->GetXmin();
+        max_range = hN->GetAxis(i)->GetXmax();
       }
-      hN->GetAxis(i)->SetRangeUser(min, max);
+      for (auto &cut : fAxisCuts) {
+        if (get<0>(cut) == i) {
+          min_range = max(min_range, get<1>(cut));
+          max_range = min(max_range, get<2>(cut));
+        }
+      }
+      hN->GetAxis(i)->SetRangeUser(min_range, max_range);
     }
 
     TH1D *h1D = hN->Projection(dimTarget);
@@ -459,7 +488,7 @@ public:
       }
       int bin2set = i - binMore;
       int index_bins = binsTargets[bin2set];
-      double min, max;
+      double min_range, max_range;
       if (index_bins != 0 && index_bins > hN->GetAxis(i)->GetNbins()) {
         cerr << "Error: MHnTool::Project: index_bins is out of range" << endl;
         cerr << "index_bins = " << index_bins
@@ -471,13 +500,19 @@ public:
       }
 
       if (index_bins > 0) {
-        min = hN->GetAxis(i)->GetBinLowEdge(index_bins);
-        max = min + hN->GetAxis(i)->GetBinWidth(index_bins);
+        min_range = hN->GetAxis(i)->GetBinLowEdge(index_bins);
+        max_range = min_range + hN->GetAxis(i)->GetBinWidth(index_bins);
       } else {
-        min = hN->GetAxis(i)->GetXmin();
-        max = hN->GetAxis(i)->GetXmax();
+        min_range = hN->GetAxis(i)->GetXmin();
+        max_range = hN->GetAxis(i)->GetXmax();
       }
-      hN->GetAxis(i)->SetRangeUser(min, max);
+      for (auto &cut : fAxisCuts) {
+        if (get<0>(cut) == i) {
+          min_range = max(min_range, get<1>(cut));
+          max_range = min(max_range, get<2>(cut));
+        }
+      }
+      hN->GetAxis(i)->SetRangeUser(min_range, max_range);
     }
 
     TH2D *h2D = hN->Projection(dimTarget1, dimTarget2);
@@ -485,6 +520,54 @@ public:
                       dimTarget1, dimTarget2, GenerateUID()));
 
     return h2D;
+  }
+
+  double GetBinContent(vector<int> vec_targetedBins) {
+    if (vec_targetedBins.size() != fNDimensions) {
+      cerr << "Error: MHnTool::GetBinContent: vec_targetedBins.size() != "
+              "fNDimensions"
+           << endl;
+      exit(1);
+    }
+    for (int i = 0; i < fNDimensions; i++) {
+      if (vec_targetedBins[i] < 0 ||
+          vec_targetedBins[i] > hN->GetAxis(i)->GetNbins()) {
+        cerr << "Error: MHnTool::GetBinContent: vec_targetedBins[" << i
+             << "] is out of range" << endl;
+        exit(1);
+      }
+    }
+
+    vector<int> vec_binNotZero;
+    vector<int> vec_binNotZeroTargeted;
+    for (int i = 0; i < fNDimensions; i++) {
+      if (vec_targetedBins[i] != 0) {
+        vec_binNotZero.push_back(i);
+        vec_binNotZeroTargeted.push_back(vec_targetedBins[i]);
+      }
+    }
+    if (vec_binNotZero.size() == fNDimensions)
+      return hN->GetBinContent(vec_targetedBins.data());
+    for (int i_dim = 0; i_dim < fNDimensions; i_dim++) {
+      double min_range = hN->GetAxis(i_dim)->GetXmin();
+      double max_range = hN->GetAxis(i_dim)->GetXmax();
+      for (auto &cut : fAxisCuts) {
+        if (get<0>(cut) == i_dim) {
+          min_range = max(min_range, get<1>(cut));
+          max_range = min(max_range, get<2>(cut));
+        }
+      }
+      hN->GetAxis(i_dim)->SetRangeUser(min_range, max_range);
+    }
+    if (vec_binNotZero.size() == 0) {
+      return hN->Integral(true);
+    }
+
+    THnD *h_temp =
+        (THnD *)hN->ProjectionND(vec_binNotZero.size(), vec_binNotZero.data());
+    double binContent = h_temp->GetBinContent(vec_binNotZeroTargeted.data());
+    h_temp->Delete();
+    return binContent;
   }
 
   void Rebin(int dimTarget, int n) {
@@ -615,14 +698,12 @@ public:
       cerr << "Error: MHGroupTool::GetNBins: dim is out of range" << endl;
       exit(1);
     }
-    if (dim != 0)
-      return fNbin_Var[dim];
-    else
-      return fHistos[0]->GetNbinsX();
+    return fNbin_Var[dim];
   };
   T *GetHist(int i) {
     if (i < 0 || i >= fHistos.size()) {
       cerr << "Error: MHGroupTool::GetHist: i is out of range" << endl;
+      cerr << "i = " << i << ", fHistos.size() = " << fHistos.size() << endl;
       exit(1);
     }
     return fHistos[i];
@@ -642,25 +723,119 @@ public:
 using MHGroupTool1D = MHGroupTool<TH1D>;
 using MHGroupTool2D = MHGroupTool<TH2D>;
 
-#endif
+class MIndexHist {
+public:
+  StrVar4Hist fStrVar;
+  int fBinIndex = 0;
+  int fIndex = 0;
 
-#ifdef MRDF
-#define RHistDefine1D(df, v, ...)                                              \
-  gRResultHandles.push_back(df.Histo1D({__VA_ARGS__}, v));
+  MIndexHist(StrVar4Hist strVar, int binIndex = 1, int rebin = 1)
+      : fStrVar(strVar), fBinIndex(binIndex), fIndex(binIndex) {
+    if (binIndex < 0 || binIndex >= strVar.fNbins) {
+      cerr << "Error: MVar::MVar: binIndex is out of range" << endl;
+      exit(1);
+    }
+    if (rebin > 1) {
+      fStrVar.rebin(rebin);
+    }
+  }
 
-#define RHistDefine1DWeighted(df, v, w, ...)                                   \
-  gRResultHandles.push_back(df.Histo1D({__VA_ARGS__}, v, w));
+  void restore() { fIndex = fBinIndex; }
 
-#define RHistDefine2D(df, v1, v2, ...)                                         \
-  gRResultHandles.push_back(df.Histo2D({__VA_ARGS__}, v1, v2));
+  operator int() const { return fIndex; }
+  int operator++() {
+    fIndex++;
+    if (fIndex > fStrVar.fNbins) {
+      cerr << "Error: MVar::operator++: index is out of range" << endl;
+      exit(1);
+    }
+    return fIndex;
+  }
 
-#define RHistDefine2DWeighted(df, v1, v2, w, ...)                              \
-  gRResultHandles.push_back(df.Histo2D({__VA_ARGS__}, v1, v2, w));
+  class Iterator {
+  private:
+    MIndexHist *fMVar;
+    int fCurrentIndex;
 
-#define RHistDefine3D(df, v1, v2, v3, ...)                                     \
-  gRResultHandles.push_back(df.Histo3D({__VA_ARGS__}, v1, v2, v3));
+  public:
+    Iterator(MIndexHist *mvar, int index) : fMVar(mvar), fCurrentIndex(index) {
+      // fMVar->restore();
+    }
 
-#define RHistDefine3DWeighted(df, v1, v2, v3, w, ...)                          \
-  gRResultHandles.push_back(df.Histo3D({__VA_ARGS__}, v1, v2, v3, w));
+    Iterator &operator++() {
+      fCurrentIndex++;
+      fMVar->fIndex++;
+      return *this;
+    }
+
+    bool operator!=(const Iterator &other) const {
+      return fCurrentIndex != other.fMVar->fStrVar.fNbins + 1;
+    }
+
+    int operator*() const { return fCurrentIndex; }
+  };
+
+  Iterator begin() {
+    this->restore();
+    return Iterator(this, fBinIndex);
+  }
+  Iterator end() { return Iterator(this, fStrVar.fNbins); }
+};
+
+class MHist1D {
+public:
+  std::shared_ptr<::TH1D> fHisto = nullptr;
+  MIndexHist &fIndexHist;
+
+  MHist1D(TH1DModel model1D, MIndexHist &indexHist) : fIndexHist(indexHist) {
+    fHisto = model1D.GetHistogram();
+  }
+
+  MHist1D(MIndexHist &indexHist, TString tag = "", TString title = "")
+      : fIndexHist(indexHist) {
+    TString name = indexHist.fStrVar.fName + "_" + tag;
+    TString title_hist = title;
+    title_hist += ";" + indexHist.fStrVar.fTitle;
+    if (indexHist.fStrVar.fUnit != "")
+      title_hist += " (" + indexHist.fStrVar.fUnit + ")";
+    else
+      title_hist += ";";
+
+    TH1DModel model(name, title_hist, indexHist.fStrVar.fNbins,
+                    indexHist.fStrVar.fBins.data());
+    fHisto = model.GetHistogram();
+  }
+
+  void SetBinInfo(double content, double error = 0) {
+    if (fIndexHist.fIndex < 1 ||
+        fIndexHist.fIndex > fIndexHist.fStrVar.fNbins) {
+      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
+      exit(1);
+    }
+    fHisto->SetBinContent(fIndexHist.fIndex, content);
+    fHisto->SetBinError(fIndexHist.fIndex, error);
+  }
+
+  void SetBinInfo(const MDouble &content) {
+    if (fIndexHist.fIndex < 1 ||
+        fIndexHist.fIndex > fIndexHist.fStrVar.fNbins) {
+      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
+      exit(1);
+    }
+    fHisto->SetBinContent(fIndexHist.fIndex, content.fValue);
+    fHisto->SetBinError(fIndexHist.fIndex, content.fError);
+  }
+
+  void Write(TDirectory *dir = gDirectory) {
+    if (!fHisto) {
+      cerr << "Error: MHist1D::Write: fHisto is null" << endl;
+      exit(1);
+    }
+    if (dir) {
+      dir->cd();
+    }
+    fHisto->Write();
+  }
+};
 
 #endif

@@ -115,8 +115,8 @@ void SetTextCentral(TLatex *lat, double x_center = 0.5) {
 
 void StyleCommon(TStyle *style = gStyle) {
   style->SetOptStat(0);
+  style->SetPalette(kRainBow);
   // style->SetOptTitle(0);
-  style->SetPalette(1);
   // style->SetNumberContours(255);
   style->SetPadTopMargin(0.1);
   style->SetPadBottomMargin(0.15);
@@ -320,6 +320,12 @@ public:
     return this;
   }
 
+  MPublisherCanvas *DrawClone(TObject *obj, TString option = "") {
+    this->NewPad()->cd();
+    obj->DrawClone(option);
+    return this;
+  }
+
   MPublisherCanvas *DrawSame(TObject *obj) {
     obj->Draw("same");
     return this;
@@ -340,7 +346,9 @@ void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2) {
   pad->SetRightMargin(0.05);
 
   pad->SetTheta(70);
-  pad->SetPhi(40);
+  pad->SetPhi(-50);
+  // pad->SetTheta(70);
+  // pad->SetPhi(40); // view point of wei li's plot
 
   TString title = h2->GetTitle();
   h2->SetTitle("");
@@ -370,6 +378,7 @@ void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2) {
   h2->GetXaxis()->SetNdivisions(505);
   h2->GetYaxis()->SetNdivisions(505);
   h2->GetZaxis()->SetNdivisions(505);
+  h2->GetZaxis()->SetMaxDigits(1);
 }
 } // namespace StyleFlow
 
