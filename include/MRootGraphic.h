@@ -314,9 +314,9 @@ public:
     }
   }
 
-  MPublisherCanvas *Draw(TObject *obj) {
+  MPublisherCanvas *Draw(TObject *obj, TString option = "") {
     this->NewPad()->cd();
-    obj->Draw();
+    obj->Draw(option);
     return this;
   }
 
