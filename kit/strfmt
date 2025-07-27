@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+import sys
+import re
+
+def parse_segmets(fmt):
+    segments = []
+    pos = 0
+    pattern = re.compile(r'%(.*?)%')
+    
+    for m in pattern.finditer(fmt):
+        # print(f"Match found: {m.group(0)} at {m.start()} to {m.end()}")
+        prefix = fmt[pos:m.start()]
+        rule_body = m.group(0)[1:-1]  # 去掉两边的括号
+        pos = m.end()
+        segments.append((prefix, rule_body, ''))  # 后缀暂不定
+        
+    segments[-1] = (segments[-1][0], segments[-1][1], fmt[pos:])  # 最后部分是最后一组的 suffix
+    return segments
+
+def parse_rule(fmt):
+    segments = []
+    pos = 0
+    pattern = re.compile(r'\((.*?)\)')
+
+    for m in pattern.finditer(fmt):
+        prefix = fmt[pos:m.start()]
+        rule_body = m.group(1)
+        pos = m.end()
+
+        rule_parts = re.finditer(r'(.*?)(\d*)', rule_body)
+        rules = []
+        for p in rule_parts:
+            sep = p.group(1)
+            idx = p.group(2)
+            if sep == '' and idx == '':
+                continue
+            idx = int(idx) - 1 if idx else None  # ✅ 索引从 1 开始
+            rules.append((sep, idx))
+
+        segments.append((prefix, rules, ''))  # 后缀暂不定
+    segments[-1] = (segments[-1][0], segments[-1][1], fmt[pos:])  # 最后部分是最后一组的 suffix
+    
+    return segments
+
+def apply_rules(data, rules):
+    if not rules:
+        return [data]
+    
+    sep, idx = rules[0]
+    parts = data.split(sep)
+    
+    if idx is not None:
+        if 0 <= idx < len(parts):
+            return apply_rules(parts[idx], rules[1:])
+        else:
+            return []
+    else:
+        results = []
+        for part in parts:
+            results.extend(apply_rules(part, rules[1:]))
+        return results
+
+def str_fmt(fmt, data):
+    # print(f"Format string: {fmt}")
+    # test parse_segmets
+    segments = parse_segmets(fmt)
+    results = []
+    
+    for prefix, rules, suffix in segments:
+        # print(f"Prefix: {prefix}, Rules: {rules}, Suffix: {suffix}")
+        rules = parse_rule(rules)
+        subresults = []
+        for prefix2, rules2, suffix2 in rules:
+            # print(f"  Inner Prefix: {prefix2}, Rules: {rules2}, Suffix: {suffix2}")
+            # apply_rules(data, rules2) and add prefix2 and suffix2
+            subresults.extend(
+                f"{prefix2}{p}{suffix2}" for p in apply_rules(data, rules2)
+            )
+            # print(f"  Subresults: {subresults}")
+        # results.extend(f"{prefix}") if prefix is not empty
+        if prefix:
+            results.append(prefix)
+        # if subresults: and a " "
+        if subresults:
+            results.extend(f"{p} " for p in subresults[:-1])
+            results.append(subresults[-1])  # 最后一个不加空格
+            
+        if suffix:
+            results.append(suffix)
+        
+    # print(f"Results: {results}")
+    print(''.join(results))
+    
+    
+def main():
+    fmt_str = sys.argv[1]
+
+    if not sys.stdin.isatty():
+        # 管道模式: 第一个参数是格式，输入来自管道
+        if len(sys.argv) != 2:
+            print("Usage with pipe: echo \"input_string\" | ./strfmt \"prefix(rule1)mid(rule2)suffix\"")
+            sys.exit(1)
+        fmt_str = sys.argv[1]
+        for line in sys.stdin:
+            input_str = line.strip()
+            if input_str:  # 忽略空行
+                str_fmt(fmt_str, input_str)
+    else:
+        # 参数模式: 两个参数分别是格式和输入字符串
+        if len(sys.argv) != 3:
+            print("Usage: ./strfmt \"prefix(rule1)mid(rule2)suffix\" \"input_string\"")
+            print("       or")
+            print("       echo \"input_string\" | ./strfmt \"prefix(rule1)mid(rule2)suffix\"")
+            sys.exit(1)
+        input_str = sys.argv[2]
+        str_fmt(fmt_str, input_str)
+        
+if __name__ == "__main__":
+    main()
+    
