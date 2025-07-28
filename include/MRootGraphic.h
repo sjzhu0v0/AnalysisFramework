@@ -335,18 +335,24 @@ public:
 MPublisherCanvas *gPublisherCanvas;
 
 namespace StyleFlow {
-void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2) {
+void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2, bool isSame = false) {
   // set pad as transparent
   pad->SetFillStyle(4000);
   pad->cd();
-  h2->Draw("SURF1");
-  pad->SetTopMargin(0.15);
-  pad->SetBottomMargin(0.05);
+  // h2->Draw("SURF1");
+  if (isSame) {
+    h2->Draw("SURF1 same");
+  } else {
+    h2->Draw("SURF1");
+  }
+  pad->SetTopMargin(0.1);
+  pad->SetBottomMargin(0.15);
   pad->SetLeftMargin(0.15);
   pad->SetRightMargin(0.05);
 
   pad->SetTheta(70);
   pad->SetPhi(-50);
+  h2->SetTitleOffset(1.5, "Y");
   // pad->SetTheta(70);
   // pad->SetPhi(40); // view point of wei li's plot
 

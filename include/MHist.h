@@ -912,7 +912,8 @@ public:
   MHist2D(MIndexHist &indexHistX, MIndexHist &indexHistY, TString tag = "",
           TString title = "", TDirectory *dir = gDirectory)
       : fIndexHistX(indexHistX), fIndexHistY(indexHistY) {
-    TString name = indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName;
+    TString name =
+        indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName + tag;
     TString title_hist = title;
     title_hist += ";" + indexHistX.fStrVar.fTitle;
     if (indexHistX.fStrVar.fUnit != "")
