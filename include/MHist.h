@@ -801,8 +801,15 @@ public:
 
   MHist1D(MHist1D const *hist)
       : fIndexHist(hist->fIndexHist) { // Copy constructor
-    TH1D *h1 = new TH1D(*hist->fHisto);
-    fHisto = std::shared_ptr<TH1D>(h1, [](TH1D *) {});
+    TString name = hist->fHisto->GetName();
+    TString title = hist->fHisto->GetTitle();
+    TString xaxis_title = hist->fHisto->GetXaxis()->GetTitle();
+    TString yaxis_title = hist->fHisto->GetYaxis()->GetTitle();
+    TH1DModel model(name, title, hist->fHisto->GetNbinsX(),
+                    hist->fHisto->GetXaxis()->GetXbins()->GetArray());
+    fHisto = model.GetHistogram();
+    fHisto->GetXaxis()->SetTitle(xaxis_title);
+    fHisto->GetYaxis()->SetTitle(yaxis_title);
   }
 
   MHist1D(MIndexHist &indexHist, TString tag = "", TString title = "",
@@ -912,8 +919,10 @@ public:
   MHist2D(MIndexHist &indexHistX, MIndexHist &indexHistY, TString tag = "",
           TString title = "", TDirectory *dir = gDirectory)
       : fIndexHistX(indexHistX), fIndexHistY(indexHistY) {
-    TString name =
-        indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName + tag;
+    TString name = indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName;
+    if (tag != "") {
+      name += "_" + tag;
+    }
     TString title_hist = title;
     title_hist += ";" + indexHistX.fStrVar.fTitle;
     if (indexHistX.fStrVar.fUnit != "")
@@ -1042,6 +1051,9 @@ public:
         fIndexHistZ(indexHistZ) {
     TString name = indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName +
                    "_" + indexHistZ.fStrVar.fName;
+    if (tag != "") {
+      name += "_" + tag;
+    }
     TString title_hist = title;
     title_hist += ";" + indexHistX.fStrVar.fTitle;
     if (indexHistX.fStrVar.fUnit != "")
@@ -1183,6 +1195,12 @@ public:
   }
 
   MVec(MVec<T> *vec) : fIndexHist(vec->fIndexHist) {
+    for (const auto &v : vec->fVec) {
+      fVec.push_back(T(&v)); // Copy constructor
+    }
+  }
+
+  MVec(MVec<T> const *vec) : fIndexHist(vec->fIndexHist) {
     for (const auto &v : vec->fVec) {
       fVec.push_back(T(&v)); // Copy constructor
     }
