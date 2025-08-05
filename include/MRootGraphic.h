@@ -335,15 +335,17 @@ public:
 MPublisherCanvas *gPublisherCanvas;
 
 namespace StyleFlow {
-void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2, bool isSame = false) {
+
+template <typename T>
+void DeltaPhi_DeltaEta(TPad *pad, T *h2, bool isSame = false) {
   // set pad as transparent
   pad->SetFillStyle(4000);
   pad->cd();
   // h2->Draw("SURF1");
   if (isSame) {
-    h2->Draw("SURF1 same");
+    h2->Draw("SURF2 same");
   } else {
-    h2->Draw("SURF1");
+    h2->Draw("SURF2");
   }
   pad->SetTopMargin(0.1);
   pad->SetBottomMargin(0.15);
@@ -352,7 +354,7 @@ void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2, bool isSame = false) {
 
   pad->SetTheta(70);
   pad->SetPhi(-50);
-  h2->SetTitleOffset(1.5, "Y");
+  // h2->SetTitleOffset(1.5, "Y");
   // pad->SetTheta(70);
   // pad->SetPhi(40); // view point of wei li's plot
 
@@ -367,7 +369,7 @@ void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2, bool isSame = false) {
   tex->SetTextSize(0.055);
   tex->Draw();
 
-  h2->SetTitleSize(0.05);
+  // h2->SetTitleSize(0.05);
 
   h2->GetXaxis()->SetLabelSize(0.04);
   h2->GetYaxis()->SetLabelSize(0.04);
@@ -381,6 +383,7 @@ void DeltaPhi_DeltaEta(TPad *pad, TH2D *h2, bool isSame = false) {
 
   h2->GetXaxis()->CenterTitle(true);
   h2->GetYaxis()->CenterTitle(true);
+  h2->GetZaxis()->CenterTitle(true);
   h2->GetXaxis()->SetNdivisions(505);
   h2->GetYaxis()->SetNdivisions(505);
   h2->GetZaxis()->SetNdivisions(505);

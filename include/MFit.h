@@ -358,6 +358,88 @@ public:
       exit(1);
     }
   }
+
+  virtual TGraph *GetSignalToBackgroundCurve(int nPoints = 100) {
+    TGraph *graph = new TGraph(nPoints);
+    double xMin = fX->getMin();
+    double xMax = fX->getMax();
+    double step = (xMax - xMin) / (nPoints - 1);
+
+    // 🔧 持久化的 RooArgSet
+    RooArgSet normSet(*fX);
+
+    for (int i = 0; i < nPoints; ++i) {
+      double x = xMin + i * step;
+      fX->setVal(x);
+
+      double s = fPdf_signal->getVal(normSet);
+      double b = fPdf_bkg->getVal(normSet);
+
+      double S = fNsig->getVal() * s;
+      double B = fNbkg->getVal() * b;
+
+      double ratio = (B > 0) ? S / B : 0;
+      graph->SetPoint(i, x, ratio);
+    }
+
+    graph->SetTitle("Signal to Background Ratio;Mass;S/B");
+    graph->SetLineColor(kRed);
+    return graph;
+  }
+
+  virtual TGraph *GetSignalFractionCurve(int nPoints = 100) {
+    TGraph *graph = new TGraph(nPoints);
+    double xMin = fX->getMin();
+    double xMax = fX->getMax();
+    double step = (xMax - xMin) / (nPoints - 1);
+
+    RooArgSet normSet(*fX);
+
+    for (int i = 0; i < nPoints; ++i) {
+      double x = xMin + i * step;
+      fX->setVal(x);
+
+      double s = fPdf_signal->getVal(normSet);
+      double b = fPdf_bkg->getVal(normSet);
+
+      double S = fNsig->getVal() * s;
+      double B = fNbkg->getVal() * b;
+
+      double frac = (S + B > 0) ? S / (S + B) : 0;
+      graph->SetPoint(i, x, frac);
+    }
+
+    graph->SetTitle("Signal Fraction S / (S + B);Mass;S/(S+B)");
+    graph->SetLineColor(kBlue);
+    return graph;
+  }
+
+  virtual TGraph *GetBkgFractionCurve(int nPoints = 100) {
+    TGraph *graph = new TGraph(nPoints);
+    double xMin = fX->getMin();
+    double xMax = fX->getMax();
+    double step = (xMax - xMin) / (nPoints - 1);
+
+    RooArgSet normSet(*fX);
+
+    for (int i = 0; i < nPoints; ++i) {
+      double x = xMin + i * step;
+      fX->setVal(x);
+
+      double s = fPdf_signal->getVal(normSet);
+      double b = fPdf_bkg->getVal(normSet);
+
+      double S = fNsig->getVal() * s;
+      double B = fNbkg->getVal() * b;
+
+      double frac = (S + B > 0) ? B / (S + B) : 0;
+      graph->SetPoint(i, x, frac);
+    }
+
+    graph->SetTitle("Background Fraction B / (S + B);Mass;B/(S+B)");
+    graph->SetLineColor(kGreen);
+    return graph;
+  }
 };
 
 #endif // __MFit_h__

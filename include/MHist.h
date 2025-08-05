@@ -111,6 +111,14 @@ struct StrVar4Hist {
     }
     return fBins[bin + 1];
   }
+
+  double GetBinCenter(int bin) {
+    if (bin < 0 || bin >= fNbins) {
+      cout << "Error: GetBinCenter: bin index out of range" << endl;
+      exit(1);
+    }
+    return (fBins[bin] + fBins[bin + 1]) / 2.0;
+  }
 };
 
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
@@ -403,6 +411,16 @@ public:
     if (hN)
       hN->Delete();
   }
+
+  MHnTool(const MHnTool *other) {
+    hN = other->hN;
+    fNDimensions = other->fNDimensions;
+    fAxisCuts = other->fAxisCuts;
+  }
+
+  auto &currentObject() { return *this; }
+
+  void ChangeName(TString) {}
 
   // information print
   void PrintAllAxis() {
@@ -731,29 +749,27 @@ public:
 using MHGroupTool1D = MHGroupTool<TH1D>;
 using MHGroupTool2D = MHGroupTool<TH2D>;
 
-class MIndexHist {
+template <typename T, typename T2> class MIndex {
 public:
-  StrVar4Hist fStrVar;
+  T fVar;
   int fBinIndex = 0;
   int fIndex = 0;
 
-  MIndexHist(StrVar4Hist strVar, int binIndex = 1, int rebin = 1)
-      : fStrVar(strVar), fBinIndex(binIndex), fIndex(binIndex) {
-    if (binIndex < 0 || binIndex >= strVar.fNbins) {
+  MIndex(T var, int binIndex = 1)
+      : fVar(var), fBinIndex(binIndex), fIndex(binIndex) {
+    if (binIndex < 0 || binIndex >= var.fNbins) {
       cerr << "Error: MVar::MVar: binIndex is out of range" << endl;
       exit(1);
-    }
-    if (rebin > 1) {
-      fStrVar.rebin(rebin);
     }
   }
 
   void restore() { fIndex = fBinIndex; }
-  double GetBinUpperEdge() { return fStrVar.GetBinUpperEdge(fIndex - 1); }
-  operator int() const { return fIndex; }
+
+  operator T2 &() const { return static_cast<T2 &>(*this); }
+
   int operator++() {
     fIndex++;
-    if (fIndex > fStrVar.fNbins) {
+    if (fIndex > fVar.fNbins) {
       cerr << "Error: MVar::operator++: index is out of range" << endl;
       exit(1);
     }
@@ -762,95 +778,84 @@ public:
 
   class Iterator {
   private:
-    MIndexHist *fMVar;
+    MIndex *fMVar;
     int fCurrentIndex;
 
   public:
-    Iterator(MIndexHist *mvar, int index) : fMVar(mvar), fCurrentIndex(index) {
-      // fMVar->restore();
-    }
-
+    Iterator(MIndex *mvar, int index) : fMVar(mvar), fCurrentIndex(index) {}
     Iterator &operator++() {
       fCurrentIndex++;
       fMVar->fIndex++;
       return *this;
     }
-
     bool operator!=(const Iterator &other) const {
-      return fCurrentIndex != other.fMVar->fStrVar.fNbins + 1;
+      return fCurrentIndex != other.fCurrentIndex;
+      ;
     }
-
     int operator*() const { return fCurrentIndex; }
   };
-
   Iterator begin() {
     this->restore();
     return Iterator(this, fBinIndex);
   }
-  Iterator end() { return Iterator(this, fStrVar.fNbins); }
+  Iterator end() { return Iterator(this, fVar.fNbins + this->fBinIndex); }
 };
 
-class MHist1D {
+#define DefineMIndexAny(tag, type_var)                                         \
+  class MIndex##tag : public MIndex<type_var, MIndex##tag> {                   \
+  public:                                                                      \
+    MIndex##tag(type_var strVar, int binIndex = 1)                             \
+        : MIndex<type_var, MIndex##tag>(strVar, binIndex) {}                   \
+                                                                               \
+    operator int() const { return fIndex; }                                    \
+  };
+
+template <typename T> class MIndexAny : public MIndex<T, MIndexAny<T>> {
 public:
-  std::shared_ptr<::TH1D> fHisto = nullptr;
-  MIndexHist &fIndexHist;
+  MIndexAny(T strVar, int binIndex = 1)
+      : MIndex<T, MIndexAny<T>>(strVar, binIndex) {}
 
-  MHist1D(TH1DModel model1D, MIndexHist &indexHist) : fIndexHist(indexHist) {
-    fHisto = model1D.GetHistogram();
+  operator int() const { return this->fIndex; }
+};
+
+struct str_cond {
+  vector<array<string, 2>> fConds;
+  int fNbins;
+
+  str_cond(vector<array<string, 2>> cond_init) : fConds(cond_init) {
+    fNbins = fConds.size();
   }
 
-  MHist1D(MHist1D const *hist)
-      : fIndexHist(hist->fIndexHist) { // Copy constructor
-    TString name = hist->fHisto->GetName();
-    TString title = hist->fHisto->GetTitle();
-    TString xaxis_title = hist->fHisto->GetXaxis()->GetTitle();
-    TString yaxis_title = hist->fHisto->GetYaxis()->GetTitle();
-    TH1DModel model(name, title, hist->fHisto->GetNbinsX(),
-                    hist->fHisto->GetXaxis()->GetXbins()->GetArray());
-    fHisto = model.GetHistogram();
-    fHisto->GetXaxis()->SetTitle(xaxis_title);
-    fHisto->GetYaxis()->SetTitle(yaxis_title);
-  }
+  operator vector<array<string, 2>> &() { return fConds; }
+};
 
-  MHist1D(MIndexHist &indexHist, TString tag = "", TString title = "",
-          TDirectory *dir = gDirectory)
-      : fIndexHist(indexHist) {
-    TString name = indexHist.fStrVar.fName;
-    if (tag != "") {
-      name += "_" + tag;
+// DefineMIndexAny(Cond, str_cond);
+
+class MIndexHist : public MIndex<StrVar4Hist, MIndexHist> {
+public:
+  MIndexHist(StrVar4Hist strVar, int binIndex = 1, int rebin = 1)
+      : MIndex<StrVar4Hist, MIndexHist>(strVar, binIndex) {
+    if (rebin > 1) {
+      fVar.rebin(rebin);
     }
-    TString title_hist = title;
-    title_hist += ";" + indexHist.fStrVar.fTitle;
-    if (indexHist.fStrVar.fUnit != "")
-      title_hist += " (" + indexHist.fStrVar.fUnit + ")";
-    else
-      title_hist += ";";
-
-    TH1DModel model(name, title_hist, indexHist.fStrVar.fNbins,
-                    indexHist.fStrVar.fBins.data());
-    fHisto = model.GetHistogram();
-    fHisto->SetDirectory(dir);
   }
 
-  void SetBinInfo(double content, double error = 0) {
-    if (fIndexHist.fIndex < 1 ||
-        fIndexHist.fIndex > fIndexHist.fStrVar.fNbins) {
-      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
-      exit(1);
-    }
-    fHisto->SetBinContent(fIndexHist.fIndex, content);
-    fHisto->SetBinError(fIndexHist.fIndex, error);
-  }
+  operator int() const { return fIndex; }
 
-  void SetBinInfo(const MDouble &content) {
-    if (fIndexHist.fIndex < 1 ||
-        fIndexHist.fIndex > fIndexHist.fStrVar.fNbins) {
-      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
-      exit(1);
-    }
-    fHisto->SetBinContent(fIndexHist.fIndex, content.fValue);
-    fHisto->SetBinError(fIndexHist.fIndex, content.fError);
+  double GetBinUpperEdge() { return fVar.GetBinUpperEdge(fIndex - 1); }
+
+  double GetBinCenter() {
+    return fVar.GetBinCenter(fIndex - 1);
   }
+};
+
+template <typename T, typename T2> class MHist {
+public:
+  std::shared_ptr<T> fHisto;
+
+  MHist() {}
+
+  auto &currentObject() { return static_cast<T2 &>(*this); }
 
   void Write(TDirectory *dir = gDirectory) {
     if (!fHisto) {
@@ -871,7 +876,7 @@ public:
     fHisto->SetName(name);
   }
 
-  TString GetName(TString &name) const {
+  TString GetName() const {
     if (!fHisto) {
       cerr << "Error: MHist1D::GetName: fHisto is null" << endl;
       exit(1);
@@ -887,7 +892,7 @@ public:
     fHisto->SetName(Form("%s_%s", fHisto->GetName(), name.Data()));
   }
 
-  operator TH1D *() {
+  operator T *() {
     if (!fHisto) {
       cerr << "Error: MHist1D::operator TH1D*: fHisto is null" << endl;
       exit(1);
@@ -905,56 +910,152 @@ public:
   }
 };
 
-class MHist2D {
+class MHist1D : public MHist<TH1D, MHist1D> {
 public:
-  std::shared_ptr<::TH2D> fHisto = nullptr;
+  MIndexHist &fIndexHist;
+
+  MHist1D(TH1DModel model1D, MIndexHist &indexHist)
+      : MHist<TH1D, MHist1D>(), fIndexHist(indexHist) {
+    fHisto = model1D.GetHistogram();
+  }
+
+  MHist1D(MHist1D const *hist)
+      : MHist<TH1D, MHist1D>(),
+        fIndexHist(hist->fIndexHist) { // Copy constructor
+    TString name = hist->fHisto->GetName();
+    TString title = hist->fHisto->GetTitle();
+    TString xaxis_title = hist->fHisto->GetXaxis()->GetTitle();
+    TString yaxis_title = hist->fHisto->GetYaxis()->GetTitle();
+    TH1DModel model(name, title, hist->fHisto->GetNbinsX(),
+                    hist->fHisto->GetXaxis()->GetXbins()->GetArray());
+    fHisto = model.GetHistogram();
+    fHisto->GetXaxis()->SetTitle(xaxis_title);
+    fHisto->GetYaxis()->SetTitle(yaxis_title);
+  }
+
+  MHist1D(MIndexHist &indexHist, TString tag = "", TString title = "",
+          TDirectory *dir = gDirectory)
+      : MHist<TH1D, MHist1D>(), fIndexHist(indexHist) {
+    TString name = indexHist.fVar.fName;
+    if (tag != "") {
+      name += "_" + tag;
+    }
+    TString title_hist = title;
+    title_hist += ";" + indexHist.fVar.fTitle;
+    if (indexHist.fVar.fUnit != "")
+      title_hist += " (" + indexHist.fVar.fUnit + ")";
+    else
+      title_hist += ";";
+
+    TH1DModel model(name, title_hist, indexHist.fVar.fNbins,
+                    indexHist.fVar.fBins.data());
+    fHisto = model.GetHistogram();
+    fHisto->SetDirectory(dir);
+  }
+
+  MHist1D(MIndexHist &indexHist, TH1D *h1)
+      : MHist<TH1D, MHist1D>(), fIndexHist(indexHist) {
+    if (!h1) {
+      cerr << "Error: MHist1D::MHist1D: h1 is null" << endl;
+      exit(1);
+    }
+    // check bininfo
+    if (h1->GetNbinsX() < 1 || h1->GetNbinsX() != fIndexHist.fVar.fNbins) {
+      cerr << "Error: MHist1D::MHist1D: h1 has wrong number of bins" << endl;
+      exit(1);
+    }
+    TString name(h1->GetName());
+    h1->SetName(Form("%d", GenerateUID()));
+
+    fHisto = std::shared_ptr<TH1D>(new TH1D(*h1), [](TH1D *h) {
+      h->SetDirectory(nullptr); // Prevent TH1D from deleting the directory
+      delete h;
+    });
+    fHisto->SetName(name);
+    h1->Delete();
+  }
+
+  void SetBinInfo(double content, double error = 0) {
+    if (fIndexHist.fIndex < 1 || fIndexHist.fIndex > fIndexHist.fVar.fNbins) {
+      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
+      exit(1);
+    }
+    fHisto->SetBinContent(fIndexHist.fIndex, content);
+    fHisto->SetBinError(fIndexHist.fIndex, error);
+  }
+
+  void SetBinInfo(const MDouble &content) {
+    if (fIndexHist.fIndex < 1 || fIndexHist.fIndex > fIndexHist.fVar.fNbins) {
+      cerr << "Error: MHist1D::SetBinInfo: index is out of range" << endl;
+      exit(1);
+    }
+    fHisto->SetBinContent(fIndexHist.fIndex, content.fValue);
+    fHisto->SetBinError(fIndexHist.fIndex, content.fError);
+  }
+
+  MDouble GetBinInfo() const {
+    if (fIndexHist.fIndex < 1 || fIndexHist.fIndex > fIndexHist.fVar.fNbins) {
+      cerr << "Error: MHist1D::GetBinInfo: index is out of range" << endl;
+      exit(1);
+    }
+    double content = fHisto->GetBinContent(fIndexHist.fIndex);
+    double error = fHisto->GetBinError(fIndexHist.fIndex);
+    return MDouble(content, error);
+  }
+};
+
+class MHist2D : public MHist<TH2D, MHist2D> {
+public:
   MIndexHist &fIndexHistX;
   MIndexHist &fIndexHistY;
 
   MHist2D(TH2DModel model2D, MIndexHist &indexHistX, MIndexHist &indexHistY)
-      : fIndexHistX(indexHistX), fIndexHistY(indexHistY) {
+      : MHist<TH2D, MHist2D>(), fIndexHistX(indexHistX),
+        fIndexHistY(indexHistY) {
     fHisto = model2D.GetHistogram();
   }
 
   MHist2D(MIndexHist &indexHistX, MIndexHist &indexHistY, TString tag = "",
           TString title = "", TDirectory *dir = gDirectory)
-      : fIndexHistX(indexHistX), fIndexHistY(indexHistY) {
-    TString name = indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName;
+      : MHist<TH2D, MHist2D>(), fIndexHistX(indexHistX),
+        fIndexHistY(indexHistY) {
+    TString name = indexHistX.fVar.fName + "_" + indexHistY.fVar.fName;
     if (tag != "") {
       name += "_" + tag;
     }
     TString title_hist = title;
-    title_hist += ";" + indexHistX.fStrVar.fTitle;
-    if (indexHistX.fStrVar.fUnit != "")
-      title_hist += " (" + indexHistX.fStrVar.fUnit + ");";
+    title_hist += ";" + indexHistX.fVar.fTitle;
+    if (indexHistX.fVar.fUnit != "")
+      title_hist += " (" + indexHistX.fVar.fUnit + ");";
     else
       title_hist += ";";
 
-    title_hist += indexHistY.fStrVar.fTitle;
-    if (indexHistY.fStrVar.fUnit != "")
-      title_hist += " (" + indexHistY.fStrVar.fUnit + ")";
+    title_hist += indexHistY.fVar.fTitle;
+    if (indexHistY.fVar.fUnit != "")
+      title_hist += " (" + indexHistY.fVar.fUnit + ")";
 
-    TH2DModel model(name, title_hist, indexHistX.fStrVar.fNbins,
-                    indexHistX.fStrVar.fBins.data(), indexHistY.fStrVar.fNbins,
-                    indexHistY.fStrVar.fBins.data());
+    TH2DModel model(name, title_hist, indexHistX.fVar.fNbins,
+                    indexHistX.fVar.fBins.data(), indexHistY.fVar.fNbins,
+                    indexHistY.fVar.fBins.data());
     fHisto = model.GetHistogram();
     fHisto->SetDirectory(dir);
   }
 
   MHist2D(MHist2D const *hist)
-      : fIndexHistX(hist->fIndexHistX), fIndexHistY(hist->fIndexHistY) {
+      : MHist<TH2D, MHist2D>(), fIndexHistX(hist->fIndexHistX),
+        fIndexHistY(hist->fIndexHistY) {
     TH2D *h2 = new TH2D(*hist->fHisto);
     fHisto = std::shared_ptr<TH2D>(h2, [](TH2D *) {});
   }
 
   void SetBinInfo(double content, double error = 0) {
     if (fIndexHistX.fIndex < 1 ||
-        fIndexHistX.fIndex > fIndexHistX.fStrVar.fNbins) {
+        fIndexHistX.fIndex > fIndexHistX.fVar.fNbins) {
       cerr << "Error: MHist2D::SetBinInfo: x index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistY.fIndex < 1 ||
-        fIndexHistY.fIndex > fIndexHistY.fStrVar.fNbins) {
+        fIndexHistY.fIndex > fIndexHistY.fVar.fNbins) {
       cerr << "Error: MHist2D::SetBinInfo: y index is out of range" << endl;
       exit(1);
     }
@@ -964,12 +1065,12 @@ public:
 
   void SetBinInfo(const MDouble &content) {
     if (fIndexHistX.fIndex < 1 ||
-        fIndexHistX.fIndex > fIndexHistX.fStrVar.fNbins) {
+        fIndexHistX.fIndex > fIndexHistX.fVar.fNbins) {
       cerr << "Error: MHist2D::SetBinInfo: x index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistY.fIndex < 1 ||
-        fIndexHistY.fIndex > fIndexHistY.fStrVar.fNbins) {
+        fIndexHistY.fIndex > fIndexHistY.fVar.fNbins) {
       cerr << "Error: MHist2D::SetBinInfo: y index is out of range" << endl;
       exit(1);
     }
@@ -977,128 +1078,76 @@ public:
                           content.fValue);
     fHisto->SetBinError(fIndexHistX.fIndex, fIndexHistY.fIndex, content.fError);
   }
-
-  void Write(TDirectory *dir = gDirectory) {
-    if (!fHisto) {
-      cerr << "Error: MHist2D::Write: fHisto is null" << endl;
-      exit(1);
-    }
-    if (dir) {
-      dir->cd();
-    }
-    fHisto->Write();
-  }
-  operator TH2D *() {
-    if (!fHisto) {
-      cerr << "Error: MHist2D::operator TH2D*: fHisto is null" << endl;
-      exit(1);
-    }
-    return fHisto.get();
-  }
-
-  void SetName(TString name) {
-    if (!fHisto) {
-      cerr << "Error: MHist2D::SetName: fHisto is null" << endl;
-      exit(1);
-    }
-    fHisto->SetName(name);
-  }
-
-  void ChangeName(TString name) {
-    if (!fHisto) {
-      cerr << "Error: MHist2D::ChangeName: fHisto is null" << endl;
-      exit(1);
-    }
-    fHisto->SetName(Form("%s_%s", fHisto->GetName(), name.Data()));
-  }
-
-  TString GetName(TString &name) const {
-    if (!fHisto) {
-      cerr << "Error: MHist1D::GetName: fHisto is null" << endl;
-      exit(1);
-    }
-    return fHisto->GetName();
-  }
-
-  void Delete() {
-    if (!fHisto) {
-      cerr << "Error: MHist2D::Delete: fHisto is null" << endl;
-      exit(1);
-    }
-    fHisto.reset();
-    fHisto->Delete();
-  }
 };
 
-class MHist3D {
+class MHist3D : public MHist<TH3D, MHist3D> {
 public:
-  std::shared_ptr<::TH3D> fHisto = nullptr;
   MIndexHist &fIndexHistX;
   MIndexHist &fIndexHistY;
   MIndexHist &fIndexHistZ;
 
   MHist3D(TH3DModel model3D, MIndexHist &indexHistX, MIndexHist &indexHistY,
           MIndexHist &indexHistZ)
-      : fIndexHistX(indexHistX), fIndexHistY(indexHistY),
-        fIndexHistZ(indexHistZ) {
+      : MHist<TH3D, MHist3D>(), fIndexHistX(indexHistX),
+        fIndexHistY(indexHistY), fIndexHistZ(indexHistZ) {
     fHisto = model3D.GetHistogram();
   }
 
   MHist3D(MIndexHist &indexHistX, MIndexHist &indexHistY,
           MIndexHist &indexHistZ, TString tag = "", TString title = "",
           TDirectory *dir = gDirectory)
-      : fIndexHistX(indexHistX), fIndexHistY(indexHistY),
-        fIndexHistZ(indexHistZ) {
-    TString name = indexHistX.fStrVar.fName + "_" + indexHistY.fStrVar.fName +
-                   "_" + indexHistZ.fStrVar.fName;
+      : MHist<TH3D, MHist3D>(), fIndexHistX(indexHistX),
+        fIndexHistY(indexHistY), fIndexHistZ(indexHistZ) {
+    TString name = indexHistX.fVar.fName + "_" + indexHistY.fVar.fName + "_" +
+                   indexHistZ.fVar.fName;
     if (tag != "") {
       name += "_" + tag;
     }
     TString title_hist = title;
-    title_hist += ";" + indexHistX.fStrVar.fTitle;
-    if (indexHistX.fStrVar.fUnit != "")
-      title_hist += " (" + indexHistX.fStrVar.fUnit + ");";
+    title_hist += ";" + indexHistX.fVar.fTitle;
+    if (indexHistX.fVar.fUnit != "")
+      title_hist += " (" + indexHistX.fVar.fUnit + ");";
     else
       title_hist += ";";
 
-    title_hist += indexHistY.fStrVar.fTitle;
-    if (indexHistY.fStrVar.fUnit != "")
-      title_hist += " (" + indexHistY.fStrVar.fUnit + ");";
+    title_hist += indexHistY.fVar.fTitle;
+    if (indexHistY.fVar.fUnit != "")
+      title_hist += " (" + indexHistY.fVar.fUnit + ");";
     else
       title_hist += ";";
 
-    title_hist += indexHistZ.fStrVar.fTitle;
-    if (indexHistZ.fStrVar.fUnit != "")
-      title_hist += " (" + indexHistZ.fStrVar.fUnit + ")";
+    title_hist += indexHistZ.fVar.fTitle;
+    if (indexHistZ.fVar.fUnit != "")
+      title_hist += " (" + indexHistZ.fVar.fUnit + ")";
 
-    TH3DModel model(name, title_hist, indexHistX.fStrVar.fNbins,
-                    indexHistX.fStrVar.fBins.data(), indexHistY.fStrVar.fNbins,
-                    indexHistY.fStrVar.fBins.data(), indexHistZ.fStrVar.fNbins,
-                    indexHistZ.fStrVar.fBins.data());
+    TH3DModel model(name, title_hist, indexHistX.fVar.fNbins,
+                    indexHistX.fVar.fBins.data(), indexHistY.fVar.fNbins,
+                    indexHistY.fVar.fBins.data(), indexHistZ.fVar.fNbins,
+                    indexHistZ.fVar.fBins.data());
     fHisto = model.GetHistogram();
     fHisto->SetDirectory(dir);
   }
 
   MHist3D(MHist3D const *hist)
-      : fIndexHistX(hist->fIndexHistX), fIndexHistY(hist->fIndexHistY),
-        fIndexHistZ(hist->fIndexHistZ) {
+      : MHist<TH3D, MHist3D>(), fIndexHistX(hist->fIndexHistX),
+        fIndexHistY(hist->fIndexHistY), fIndexHistZ(hist->fIndexHistZ) {
     TH3D *h3 = new TH3D(*hist->fHisto);
     fHisto = std::shared_ptr<TH3D>(h3, [](TH3D *) {});
   }
 
   void SetBinInfo(double content, double error = 0) {
     if (fIndexHistX.fIndex < 1 ||
-        fIndexHistX.fIndex > fIndexHistX.fStrVar.fNbins) {
+        fIndexHistX.fIndex > fIndexHistX.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: x index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistY.fIndex < 1 ||
-        fIndexHistY.fIndex > fIndexHistY.fStrVar.fNbins) {
+        fIndexHistY.fIndex > fIndexHistY.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: y index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistZ.fIndex < 1 ||
-        fIndexHistZ.fIndex > fIndexHistZ.fStrVar.fNbins) {
+        fIndexHistZ.fIndex > fIndexHistZ.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: z index is out of range" << endl;
       exit(1);
     }
@@ -1110,17 +1159,17 @@ public:
 
   void SetBinInfo(const MDouble &content) {
     if (fIndexHistX.fIndex < 1 ||
-        fIndexHistX.fIndex > fIndexHistX.fStrVar.fNbins) {
+        fIndexHistX.fIndex > fIndexHistX.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: x index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistY.fIndex < 1 ||
-        fIndexHistY.fIndex > fIndexHistY.fStrVar.fNbins) {
+        fIndexHistY.fIndex > fIndexHistY.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: y index is out of range" << endl;
       exit(1);
     }
     if (fIndexHistZ.fIndex < 1 ||
-        fIndexHistZ.fIndex > fIndexHistZ.fStrVar.fNbins) {
+        fIndexHistZ.fIndex > fIndexHistZ.fVar.fNbins) {
       cerr << "Error: MHist3D::SetBinInfo: z index is out of range" << endl;
       exit(1);
     }
@@ -1165,7 +1214,7 @@ public:
     fHisto->SetName(Form("%s_%s", fHisto->GetName(), name.Data()));
   }
 
-  TString GetName(TString &name) const {
+  TString GetName() const {
     if (!fHisto) {
       cerr << "Error: MHist3D::GetName: fHisto is null" << endl;
       exit(1);
@@ -1183,14 +1232,14 @@ public:
   }
 };
 
-template <typename T> class MVec {
+template <typename T, typename T2 = MIndexHist> class MVec {
 public:
-  MIndexHist &fIndexHist;
+  T2 &fIndexHist;
   vector<T> fVec;
 
-  MVec(MIndexHist &indexHist) : fIndexHist(indexHist) {}
-  MVec(MIndexHist &indexHist, T t, TString naming = "")
-      : fIndexHist(indexHist) {
+  MVec(T2 &indexHist) : fIndexHist(indexHist) {}
+
+  MVec(T2 &indexHist, T t, TString naming = "") : fIndexHist(indexHist) {
     Preparing(t, naming);
   }
 
@@ -1207,7 +1256,7 @@ public:
   }
 
   T &operator[](int index) {
-    if (index < 0 || index >= fIndexHist.fStrVar.fNbins) {
+    if (index < 0 || index >= fIndexHist.fVar.fNbins) {
       cerr << "Error: MVec::operator[]: index is out of range" << endl;
       exit(1);
     }
@@ -1215,42 +1264,52 @@ public:
   }
 
   T &current() {
-    if (fIndexHist.fIndex < 1 ||
-        fIndexHist.fIndex > fIndexHist.fStrVar.fNbins) {
+    if (fIndexHist.fIndex < 1 || fIndexHist.fIndex > fIndexHist.fVar.fNbins) {
       cerr << "Error: MVec::current: index is out of range" << endl;
       exit(1);
     }
     return fVec[fIndexHist.fIndex - 1];
   }
 
-  int size() const {
-    if (fVec.size() != fIndexHist.fStrVar.fNbins) {
-      cerr << "Error: MVec::size: fVec size is not equal to "
-              "fIndexHist.fStrVar.fNbins"
-           << endl;
+  auto &currentObject() {
+    if (fIndexHist.fIndex < 1 || fIndexHist.fIndex > fIndexHist.fVar.fNbins) {
+      cerr << "Error: MVec::current: index is out of range" << endl;
       exit(1);
     }
-    return fVec.size();
+
+    if constexpr (std::is_pointer<T>::value) {
+      return current()->currentObject();
+    } else
+      return current().currentObject();
   }
 
-  void Preparing(T &value, TString nameing = "") {
-    if (nameing == "") {
-      nameing = fIndexHist.fStrVar.fName + "_%d";
-    }
-    for (int i = 0; i < fIndexHist.fStrVar.fNbins; i++) {
+  int size() const { return fVec.size(); }
+
+  void Preparing(
+      T &value, std::function<TString(const T2 &, int)> func_str =
+                    [](const T2 &index, int i) {
+                      return index.fVar.fName + "_" + TString(i);
+                    }) {
+    for (int i = 0; i < fIndexHist.fVar.fNbins; i++) {
       T t(&value);
-      t.ChangeName(Form(nameing.Data(), i));
+      if constexpr (std::is_pointer<T>::value) {
+        t->ChangeName(func_str(fIndexHist, i));
+      } else
+        t.ChangeName(func_str(fIndexHist, i));
       fVec.push_back(t);
     }
   }
 
   void ChangeName(TString nameing = "") {
     if (nameing == "") {
-      nameing = fIndexHist.fStrVar.fName + "_%d";
+      nameing = fIndexHist.fVar.fName + "_%d";
     }
 
-    for (int i = 0; i < fIndexHist.fStrVar.fNbins; i++) {
-      fVec[i].ChangeName(Form(nameing.Data(), i));
+    for (int i = 0; i < fIndexHist.fVar.fNbins; i++) {
+      if constexpr (std::is_pointer<T>::value) {
+        fVec[i]->ChangeName(Form(nameing.Data(), i));
+      } else
+        fVec[i].ChangeName(Form(nameing.Data(), i));
     }
   }
 
@@ -1259,13 +1318,19 @@ public:
       dir->cd();
     }
     for (auto v : fVec) {
-      v.Write(dir);
+      if constexpr (std::is_pointer<T>::value) {
+        v->Write(dir);
+      } else
+        v.Write(dir);
     }
   }
 
   void Delete() {
     for (auto &v : fVec) {
-      v.Delete();
+      if constexpr (std::is_pointer<T>::value) {
+        v->Delete();
+      } else
+        v.Delete();
     }
     fVec.clear();
   }
