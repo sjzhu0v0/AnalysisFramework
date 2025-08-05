@@ -138,8 +138,15 @@ TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
     title2 = str2.fTitle;
   }
 
-  TString title =
-      str1.fTitle + "_" + str2.fTitle + "_" + tag + ";" + title1 + ";" + title2;
+  // TString title =
+  //     str1.fTitle + "_" + str2.fTitle + "_" + tag + ";" + title1 + ";" +
+  //     title2;
+  TString title = str1.fTitle + "_" + str2.fTitle;
+  if (tag != "") {
+    title += "_" + tag;
+  }
+  title += ";" + title1 + ";" + title2;
+
   return TH2DModel(name, title, str1.fNbins, str1.fBins.data(), str2.fNbins,
                    str2.fBins.data());
 }
@@ -847,9 +854,7 @@ public:
 
   double GetBinUpperEdge() { return fVar.GetBinUpperEdge(fIndex - 1); }
 
-  double GetBinCenter() {
-    return fVar.GetBinCenter(fIndex - 1);
-  }
+  double GetBinCenter() { return fVar.GetBinCenter(fIndex - 1); }
 };
 
 template <typename T, typename T2> class MHist {
