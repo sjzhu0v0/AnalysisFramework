@@ -119,6 +119,22 @@ struct StrVar4Hist {
     }
     return (fBins[bin] + fBins[bin + 1]) / 2.0;
   }
+
+  double GetMin() {
+    if (fNbins == 0) {
+      cout << "Error: GetMin: no bins defined" << endl;
+      exit(1);
+    }
+    return fBins[0];
+  }
+
+  double GetMax() {
+    if (fNbins == 0) {
+      cout << "Error: GetMax: no bins defined" << endl;
+      exit(1);
+    }
+    return fBins[fNbins];
+  }
 };
 
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
