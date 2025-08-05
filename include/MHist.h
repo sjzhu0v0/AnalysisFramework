@@ -169,7 +169,10 @@ TH1DModel GetTH1DModelWithTitle(StrVar4Hist str, TString title = "",
 
 TH1DModel GetTH1DModelWithTitle2(StrVar4Hist str, TString tag = "",
                                  TString title = "") {
-  TString name = str.fName + "_" + tag;
+  TString name = str.fName;
+  if (tag != "") {
+    name += "_" + tag;
+  }
   TString title_hist = title;
   title_hist += ";" + str.fTitle;
   if (str.fUnit != "")

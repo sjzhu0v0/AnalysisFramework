@@ -25,6 +25,13 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
   TString name_file = f->GetName();
 
+  // in the root directory, search for name_tree and if there's one, add it
+  TTree* tree = (TTree *)f->Get(name_tree);
+  if (tree) {
+    chain->Add(name_file + TString("/") + TString(name_tree));
+    return chain;
+  }
+
   TList *list = f->GetListOfKeys();
   for (int i = 0; i < list->GetSize(); i++) {
     TKey *key = (TKey *)list->At(i);
@@ -335,7 +342,7 @@ template <typename T> T *GetObjectDiectly(TFile *file, TString path) {
     file->Close();
     exit(1);
   }
-  
+
   // obj->SetDirectory(0);
   return obj;
 }
