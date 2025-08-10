@@ -26,7 +26,7 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
   TString name_file = f->GetName();
 
   // in the root directory, search for name_tree and if there's one, add it
-  TTree* tree = (TTree *)f->Get(name_tree);
+  TTree *tree = (TTree *)f->Get(name_tree);
   if (tree) {
     chain->Add(name_file + TString("/") + TString(name_tree));
     return chain;
@@ -42,6 +42,51 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
     }
   }
   return chain;
+}
+
+TObject *GetObjectSingle(TObject *folder, TString path_obj) {
+  TObject *obj_targetted;
+
+  // check if path_obj contains "/"
+  bool isObject = false;
+  TString path_obj_next;
+  if (!path_obj.Contains("/")) {
+    isObject = true;
+    // path_obj = path_obj;
+  } else {
+    path_obj_next = path_obj(path_obj.First("/") + 1, path_obj.Length());
+    path_obj = path_obj(0, path_obj.First("/"));
+  }
+
+  // TCollection TDirecotry
+  if (folder->IsA()->InheritsFrom(TDirectory::Class())) {
+    TDirectory *dir = static_cast<TDirectory *>(folder);
+    TObject *obj_next = (TObject *)dir->Get(path_obj);
+    if (!obj_next) {
+      cout << "Object not found: " << path_obj << endl;
+      return nullptr;
+    }
+    if (isObject) {
+      obj_targetted = obj_next;
+    } else {
+      obj_targetted = MRootIO::GetObjectSingle(obj_next, path_obj_next);
+    }
+  } else if (folder->IsA()->InheritsFrom(TList::Class())) {
+    TList *list = static_cast<TList *>(folder);
+    TObject *obj_next = list->FindObject(path_obj);
+    if (!obj_next) {
+      cout << "Object not found: " << path_obj << endl;
+      return nullptr;
+    }
+    if (isObject) {
+      obj_targetted = obj_next;
+    } else {
+      obj_targetted = MRootIO::GetObjectSingle(obj_next, path_obj_next);
+    }
+  } else {
+    cout << "Unknown class: " << folder->ClassName() << endl;
+  }
+  return obj_targetted;
 }
 
 vector<TObject *> GetObjectRecursive(TObject *folder,
