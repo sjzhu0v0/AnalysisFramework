@@ -8,6 +8,7 @@ all: \
 	kit/hadd_center.exe \
 	kit/RMerge.exe \
 	kit/BSMerge.exe \
+	kit/HistExtract.exe \
 	macro/SE_PR.exe \
 	macro/ME_PR.exe \
 	macro/SE_PR_thn.exe \
@@ -27,6 +28,9 @@ kit/RMerge.exe: kit/RMerge.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
 kit/BSMerge.exe: kit/BSMerge.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
+
+kit/HistExtract.exe: kit/HistExtract.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
 macro/NumContribCalibrationTest.exe: macro/NumContribCalibrationTest.cpp
