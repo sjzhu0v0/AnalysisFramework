@@ -45,6 +45,9 @@ struct StrVar4Hist {
   TString fUnit;
   int fNbins;
   vector<double> fBins;
+
+  operator std::string_view() const { return fName.Data(); }
+
   StrVar4Hist(TString name, TString title, TString unit, int nbins,
               vector<double> bins)
       : fName(name), fTitle(title), fUnit(unit), fNbins(nbins) {
@@ -203,6 +206,26 @@ TH1DModel GetTH1DModelWithTitle2(StrVar4Hist str, TString tag = "",
   else
     title_hist += ";";
   return TH1DModel(name, title_hist, str.fNbins, str.fBins.data());
+}
+
+TH2DModel GetTH2DModelWithTitle2(StrVar4Hist str1, StrVar4Hist str2,
+                                 TString tag = "", TString title = "") {
+  TString name = str1.fName + "_" + str2.fName;
+  if (tag != "") {
+    name += "_" + tag;
+  }
+  TString title_hist = title;
+  title_hist += ";" + str1.fTitle;
+  if (str1.fUnit != "")
+    title_hist += " (" + str1.fUnit + ")";
+  else
+    title_hist += ";";
+  title_hist += ";" + str2.fTitle;
+  if (str2.fUnit != "")
+    title_hist += " (" + str2.fUnit + ")";
+
+  return TH2DModel(name, title_hist, str1.fNbins, str1.fBins.data(),
+                   str2.fNbins, str2.fBins.data());
 }
 
 using TupleTHnDModel = tuple<THnDModel, vector<string>>;
