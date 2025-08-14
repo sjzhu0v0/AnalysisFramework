@@ -9,6 +9,7 @@ all: \
 	kit/RMerge.exe \
 	kit/BSMerge.exe \
 	kit/HistExtract.exe \
+	kit/CheckRootFile.exe \
 	macro/SE_PR.exe \
 	macro/ME_PR.exe \
 	macro/SE_PR_thn.exe \
