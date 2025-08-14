@@ -33,6 +33,9 @@ kit/BSMerge.exe: kit/BSMerge.cpp
 kit/HistExtract.exe: kit/HistExtract.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
 
+kit/CheckRootFile.exe: kit/CheckRootFile.cpp
+	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT)
+
 macro/NumContribCalibrationTest.exe: macro/NumContribCalibrationTest.cpp
 	g++ -o $@ $^ $(FLAGS_INCLUDE) $(FLAGS_ROOT) $(FLAGS_MINUIT)
 
