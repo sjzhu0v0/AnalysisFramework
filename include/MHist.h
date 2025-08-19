@@ -872,7 +872,7 @@ public:
       : MIndex<T, MIndexAny<T>>(strVar, binIndex) {}
 
   operator int() const { return this->fIndex; }
-  // operator T &() const { return static_cast<T &>(this->fVar); }
+  auto operator[](int index) { return this->fVar[index]; }
 };
 
 // struct str_cond {
