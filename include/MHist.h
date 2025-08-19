@@ -1307,7 +1307,7 @@ public:
       T2 &indexHist, T t,
       std::function<TString(const T2 &, int)> func_str =
           [](const T2 &index, int i) {
-            return index.fVar.fName + "_" + std::to_string(i);
+            return index.fVar.fName + "_" + TString(std::to_string(i));
           })
       : fIndexHist(indexHist) {
     Preparing(t, func_str);
@@ -1356,10 +1356,11 @@ public:
   int size() const { return fVec.size(); }
 
   void Preparing(
-      T &value, std::function<TString(const T2 &, int)> func_str =
-                    [](const T2 &index, int i) {
-                      return index.fVar.fName + "_" + std::to_string(i);
-                    }) {
+      T &value,
+      std::function<TString(const T2 &, int)> func_str = [](const T2 &index,
+                                                            int i) {
+        return index.fVar.fName + "_" + TString(std::to_string(i));
+      }) {
     for (int i = 0; i < fIndexHist.fVar.fNbins; i++) {
       T t(&value);
       if constexpr (std::is_pointer<T>::value) {
