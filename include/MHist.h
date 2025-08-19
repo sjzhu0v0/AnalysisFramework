@@ -459,6 +459,7 @@ void HistSubstraction2D(TH2D *result, TH2D *h1, TH2D *h2) {
 class MHnTool {
 public:
   THnD *hN = nullptr;
+
   int fNDimensions = 0;
   using MHToolAxisCut = tuple<int, double, double>;
   vector<MHToolAxisCut> fAxisCuts;
