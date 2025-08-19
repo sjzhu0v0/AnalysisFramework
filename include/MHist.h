@@ -1298,7 +1298,7 @@ public:
       T2 &indexHist, T t,
       std::function<TString(const T2 &, int)> func_str =
           [](const T2 &index, int i) {
-            return index.fVar.fName + "_" + TString(i);
+            return index.fVar.fName + "_" + std::to_string(i);
           })
       : fIndexHist(indexHist) {
     Preparing(t, func_str);
@@ -1349,7 +1349,7 @@ public:
   void Preparing(
       T &value, std::function<TString(const T2 &, int)> func_str =
                     [](const T2 &index, int i) {
-                      return index.fVar.fName + "_" + TString(i);
+                      return index.fVar.fName + "_" + std::to_string(i);
                     }) {
     for (int i = 0; i < fIndexHist.fVar.fNbins; i++) {
       T t(&value);
