@@ -115,6 +115,14 @@ struct StrVar4Hist {
     return fBins[bin + 1];
   }
 
+  double GetBinLowerEdge(int bin) {
+    if (bin < 0 || bin >= fNbins) {
+      cout << "Error: GetBinLowerEdge: bin index out of range" << endl;
+      exit(1);
+    }
+    return fBins[bin];
+  }
+
   double GetBinCenter(int bin) {
     if (bin < 0 || bin >= fNbins) {
       cout << "Error: GetBinCenter: bin index out of range" << endl;
@@ -839,7 +847,6 @@ public:
     }
     bool operator!=(const Iterator &other) const {
       return fCurrentIndex != other.fCurrentIndex;
-      ;
     }
     int operator*() const { return fCurrentIndex; }
   };
@@ -850,14 +857,14 @@ public:
   Iterator end() { return Iterator(this, fVar.fNbins + this->fBinIndex); }
 };
 
-#define DefineMIndexAny(tag, type_var)                                         \
-  class MIndex##tag : public MIndex<type_var, MIndex##tag> {                   \
-  public:                                                                      \
-    MIndex##tag(type_var strVar, int binIndex = 1)                             \
-        : MIndex<type_var, MIndex##tag>(strVar, binIndex) {}                   \
-                                                                               \
-    operator int() const { return fIndex; }                                    \
-  };
+// #define DefineMIndexAny(tag, type_var)                                         \
+//   class MIndex##tag : public MIndex<type_var, MIndex##tag> {                   \
+//   public:                                                                      \
+//     MIndex##tag(type_var strVar, int binIndex = 1)                             \
+//         : MIndex<type_var, MIndex##tag>(strVar, binIndex) {}                   \
+//                                                                                \
+//     operator int() const { return fIndex; }                                    \
+//   };
 
 template <typename T> class MIndexAny : public MIndex<T, MIndexAny<T>> {
 public:
@@ -865,18 +872,19 @@ public:
       : MIndex<T, MIndexAny<T>>(strVar, binIndex) {}
 
   operator int() const { return this->fIndex; }
+  // operator T &() const { return static_cast<T &>(this->fVar); }
 };
 
-struct str_cond {
-  vector<array<string, 2>> fConds;
-  int fNbins;
+// struct str_cond {
+//   vector<array<string, 2>> fConds;
+//   int fNbins;
 
-  str_cond(vector<array<string, 2>> cond_init) : fConds(cond_init) {
-    fNbins = fConds.size();
-  }
+//   str_cond(vector<array<string, 2>> cond_init) : fConds(cond_init) {
+//     fNbins = fConds.size();
+//   }
 
-  operator vector<array<string, 2>> &() { return fConds; }
-};
+//   operator vector<array<string, 2>> &() { return fConds; }
+// };
 
 // DefineMIndexAny(Cond, str_cond);
 
@@ -1286,8 +1294,14 @@ public:
 
   MVec(T2 &indexHist) : fIndexHist(indexHist) {}
 
-  MVec(T2 &indexHist, T t, TString naming = "") : fIndexHist(indexHist) {
-    Preparing(t, naming);
+  MVec(
+      T2 &indexHist, T t,
+      std::function<TString(const T2 &, int)> func_str =
+          [](const T2 &index, int i) {
+            return index.fVar.fName + "_" + TString(i);
+          })
+      : fIndexHist(indexHist) {
+    Preparing(t, func_str);
   }
 
   MVec(MVec<T> *vec) : fIndexHist(vec->fIndexHist) {
