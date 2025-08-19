@@ -277,32 +277,32 @@ public:
     }
     switch (dim) {
     case kDeltaEta:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
       break;
     case kDeltaPhi:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
       break;
     case kVtxZ:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnTrigger->hN->GetAxis(0)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
+      fHnTrigger->SetRangeUser(0, min, max);
       break;
     case kMass:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnTrigger->hN->GetAxis(1)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
+      fHnTrigger->SetRangeUser(1, min, max);
       break;
     case kPt:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnTrigger->hN->GetAxis(2)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
+      fHnTrigger->SetRangeUser(2, min, max);
       break;
     case kNumContrib:
-      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
-      fHnTrigger->hN->GetAxis(3)->SetRangeUser(min, max);
+      fHnSame->SetRangeUser(dim, min, max);
+      fHnMix->SetRangeUser(dim, min, max);
+      fHnTrigger->SetRangeUser(3, min, max);
       break;
     default:
       cerr << "Error: AssocYeildHelper_v2::SetRangeUser: dim is out of range"

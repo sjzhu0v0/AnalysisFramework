@@ -496,6 +496,15 @@ public:
       cerr << "Error: MHnTool::SetRangeUser: dim is out of range" << endl;
       exit(1);
     }
+    // fAxisCuts.push_back(make_tuple(dim, min, max));
+    // remove the existing cut for this axis
+    for (auto it = fAxisCuts.begin(); it != fAxisCuts.end();) {
+      if (get<0>(*it) == dim) {
+        it = fAxisCuts.erase(it);
+      } else {
+        ++it;
+      }
+    }
     fAxisCuts.push_back(make_tuple(dim, min, max));
   }
 
