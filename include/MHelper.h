@@ -269,6 +269,48 @@ public:
     }
   }
 
+  void SetRangeUser(int dim, double min, double max) {
+    if (dim < 0 || dim >= fHnSame->hN->GetNdimensions()) {
+      cerr << "Error: AssocYeildHelper_v2::SetRangeUser: dim is out of range"
+           << endl;
+      exit(1);
+    }
+    switch (dim) {
+    case kDeltaEta:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      break;
+    case kDeltaPhi:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      break;
+    case kVtxZ:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnTrigger->hN->GetAxis(0)->SetRangeUser(min, max);
+      break;
+    case kMass:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnTrigger->hN->GetAxis(1)->SetRangeUser(min, max);
+      break;
+    case kPt:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnTrigger->hN->GetAxis(2)->SetRangeUser(min, max);
+      break;
+    case kNumContrib:
+      fHnSame->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnMix->hN->GetAxis(dim)->SetRangeUser(min, max);
+      fHnTrigger->hN->GetAxis(3)->SetRangeUser(min, max);
+      break;
+    default:
+      cerr << "Error: AssocYeildHelper_v2::SetRangeUser: dim is out of range"
+           << endl;
+      exit(1);
+    }
+  }
+
   TH1D *AssociatedYeildVtxZ(double deltaEta, int iVtxZ, int iMass, int iPt,
                             int iMult, bool doNTrigScale = true) {
     TH2D *h2D = fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
