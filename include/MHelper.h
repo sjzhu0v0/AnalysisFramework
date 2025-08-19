@@ -92,9 +92,9 @@ public:
                                  {iVtxZ, iMass, iPt, iMult});
     TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                    {iVtxZ, iMass, iPt});
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
+    // int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //     fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    vector<int> vec_idTrigger_new = {iVtxZ, iMass, iPt, iMult};
     double number_triggered =
         fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
     TH2D *h_assoYeild = (TH2D *)h2D->Clone(
@@ -113,9 +113,9 @@ public:
     TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                    {iVtxZ, iMass, iPt});
     DensityHisto2DNoWeight(h2DMix);
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
+    // int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //     fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    vector<int> vec_idTrigger_new = {iVtxZ, iMass, iPt, iMult};
     double number_triggered =
         fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
 
@@ -149,9 +149,9 @@ public:
                                  {iVtxZ, iMass, iPt, iMult});
     TH2D *h2DMix = fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                                    {iVtxZ, iMass, iPt});
-    int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-        fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
+    // int iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //     fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    vector<int> vec_idTrigger_new = {iVtxZ, iMass, iPt, iMult};
     double number_triggered =
         fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
     TH2D *h_assoYeild = (TH2D *)h2D->Clone(
@@ -279,15 +279,15 @@ public:
                         {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
     DensityHisto2DNoWeight(h2DMix);
 
-    int iMass_new;
+    // int iMass_new;
 
-    if (iMass != 0)
-      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    else
-      iMass_new = 0; // default to 1 if iMass is 0
+    // if (iMass != 0)
+    //   iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //       fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    // else
+    //   iMass_new = 0; // default to 1 if iMass is 0
 
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
+    vector<int> vec_idTrigger_new = {iVtxZ, iMass, iPt, iMult};
     double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
 
     int index_bin_deltaEta = h2D->GetXaxis()->FindBin(-1. * deltaEta) - 1;
@@ -333,15 +333,15 @@ public:
     TH2D *h2DMix =
         fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
                         {iVtxZ, iMass, iPt, doMixMultInt ? iMult : 0});
-    int iMass_new;
+    // int iMass_new;
 
-    if (iMass != 0)
-      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    else
-      iMass_new = 0; // default to 1 if iMass is 0
+    // if (iMass != 0)
+    //   iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //       fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    // else
+    //   iMass_new = 0; // default to 1 if iMass is 0
 
-    vector<int> vec_idTrigger_new = {iVtxZ, iMass_new, iPt, iMult};
+    vector<int> vec_idTrigger_new = {iVtxZ, iMass, iPt, iMult};
     double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
     TH2D *h_assoYeild = (TH2D *)h2D->Clone(
         Form("h_assoYeild_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
@@ -369,14 +369,14 @@ public:
                         bool doNTrigScale = true) {
     int nVtxZ = fHnSame->GetNbins(2);
     TH2D *h2_first = AssociatedYeildVtxZ(1, iMass, iPt, iMult, false);
-    int iMass_new;
-    if (iMass != 0)
-      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    else
-      iMass_new = 0; // default to 1 if iMass is 0
+    // int iMass_new;
+    // if (iMass != 0)
+    //   iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //       fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    // else
+    //   iMass_new = 0; // default to 1 if iMass is 0
 
-    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass_new, iPt, iMult});
+    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass, iPt, iMult});
     h1_trigger->SetName(Form("h1_trigger_%d", GenerateUID()));
     double sum_number_triggered = h1_trigger->GetBinContent(1);
     for (int i = 2; i <= nVtxZ; i++) {
@@ -409,13 +409,13 @@ public:
   TH1D *AssociatedYeild(double deltaEta, int iMass, int iPt, int iMult) {
     int nVtxZ = glib_vars[gtype_vars::kVtxZ].fNbins;
     TH1D *h1_first = AssociatedYeildVtxZ(deltaEta, 1, iMass, iPt, iMult, false);
-    int iMass_new;
-    if (iMass != 0)
-      iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
-          fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
-    else
-      iMass_new = 0; // default to 1 if iMass is 0
-    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass_new, iPt, iMult});
+    // int iMass_new;
+    // if (iMass != 0)
+    //   iMass_new = fHnTrigger->hN->GetAxis(1)->FindBin(
+    //       fHnMix->hN->GetAxis(3)->GetBinCenter(iMass));
+    // else
+    //   iMass_new = 0; // default to 1 if iMass is 0
+    TH1D *h1_trigger = fHnTrigger->Project(0, {iMass, iPt, iMult});
     h1_trigger->SetName(Form("h1_trigger_%d", GenerateUID()));
     double sum_number_triggered = h1_trigger->GetBinContent(1);
     for (int i = 2; i <= nVtxZ; i++) {
