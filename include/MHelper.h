@@ -225,7 +225,6 @@ public:
     fHnSame = hnSame;
     fHnMix = hnMix;
     fHnTrigger = hnTrigger;
-    fHnTrigger->SetRangeUser(1, 1.4, 5.);
   }
 
   void SetMixMultInt(bool doMixMultInt_ = true) {
@@ -378,8 +377,8 @@ public:
 
     TH1D *h1_trigger = fHnTrigger->Project(0, {iMass, iPt, iMult});
     h1_trigger->SetName(Form("h1_trigger_%d", GenerateUID()));
-    double sum_number_triggered = h1_trigger->GetBinContent(1);
-    for (int i = 2; i <= nVtxZ; i++) {
+    double sum_number_triggered = 0;
+    for (int i = 1; i <= nVtxZ; i++) {
       double number_triggered = h1_trigger->GetBinContent(i);
       sum_number_triggered += number_triggered;
     }
