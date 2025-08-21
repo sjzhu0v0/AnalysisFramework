@@ -12,7 +12,7 @@ while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   echo "$OUTPUT"
   JOBID=$(echo "$OUTPUT" | grep -oP 'Submitted batch job \K[0-9]+')
   if [[ -z "$JOBID" ]]; then
-    echo "Fatal: no jobs found!!!!"
+    echo "Fatal: no job found!!!!"
     exit 1
   fi
   PREV_JOBID=$JOBID
