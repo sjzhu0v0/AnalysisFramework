@@ -279,6 +279,11 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
   return {model, column_var};
 }
 
+// using GetTH1DM = GetTH1DModelWithTitle2;
+auto GetTH1DM = GetTH1DModelWithTitle2;
+auto GetTH2DM = GetTH2DModelWithTitle2;
+auto GetTHnDM = GetTHnDModelWithTitle;
+
 #include "MDefinition.h"
 
 #define HistDefine(histType, histName, histTitle, ...)                         \
