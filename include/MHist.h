@@ -146,6 +146,12 @@ struct StrVar4Hist {
     }
     return fBins[fNbins];
   }
+
+  StrVar4Hist CloneTag(TString tag) const {
+    StrVar4Hist clone = *this;
+    clone.fName += tag;
+    return clone;
+  }
 };
 
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
