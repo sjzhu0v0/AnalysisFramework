@@ -896,19 +896,6 @@ public:
   auto operator[](int index) { return this->fVar[index]; }
 };
 
-// struct str_cond {
-//   vector<array<string, 2>> fConds;
-//   int fNbins;
-
-//   str_cond(vector<array<string, 2>> cond_init) : fConds(cond_init) {
-//     fNbins = fConds.size();
-//   }
-
-//   operator vector<array<string, 2>> &() { return fConds; }
-// };
-
-// DefineMIndexAny(Cond, str_cond);
-
 class MIndexHist : public MIndex<StrVar4Hist, MIndexHist> {
 public:
   MIndexHist(StrVar4Hist strVar, int binIndex = 1, int rebin = 1)
