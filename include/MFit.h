@@ -443,31 +443,23 @@ public:
   }
 };
 
-MDouble GetMean1D(TH1D *h, Double_t (*fcn)(Double_t)) {
+MDouble GetSumWithError1D(TH1D *h, Double_t (*fcn)(Double_t)) {
   double value, error;
-  double error2_total = 0.0;
-  double total = 0.0;
   for (int i = 1; i <= h->GetNbinsX(); ++i) {
     value += h->GetBinContent(i) * fcn(h->GetBinCenter(i));
-    error2_total += h->GetBinError(i) * h->GetBinError(i);
-    total += h->GetBinContent(i);
   }
-  value /= h->Integral();
+  value /= h->GetNbinsX();
 
   double error2 = 0.0;
   for (int i = 1; i <= h->GetNbinsX(); ++i) {
     double content_bin = h->GetBinContent(i);
     double error_bin = h->GetBinError(i);
     double value_bin = fcn(h->GetBinCenter(i));
-    double err2_1 =
-        h->GetBinError(i) * (1. / total - content_bin / total / total);
-    err2_1 = err2_1 * err2_1;
-    double err2_2 = (error2_total - error_bin * error_bin) *
-                    (content_bin / total / total) *
-                    (content_bin / total / total);
-    error2 += (err2_1 + err2_2)* value_bin * value_bin;
+    error2 += content_bin * content_bin * value_bin * value_bin * error_bin *
+              error_bin;
   }
   error = sqrt(error2);
+  error /= h->GetNbinsX();
 
   return MDouble(value, error);
 }
