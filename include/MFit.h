@@ -444,9 +444,10 @@ public:
 };
 
 MDouble GetSumWithError1D(TH1D *h, Double_t (*fcn)(Double_t)) {
-  double value, error;
+  double value = 0.0;
+  double error = 0.0;
   for (int i = 1; i <= h->GetNbinsX(); ++i) {
-    value += h->GetBinContent(i) * fcn(h->GetBinCenter(i));
+    value += h->GetBinContent(i) * fcn(h->GetXaxis()->GetBinCenter(i));
   }
   value /= (double)h->GetNbinsX();
 
@@ -454,7 +455,7 @@ MDouble GetSumWithError1D(TH1D *h, Double_t (*fcn)(Double_t)) {
   for (int i = 1; i <= h->GetNbinsX(); ++i) {
     double content_bin = h->GetBinContent(i);
     double error_bin = h->GetBinError(i);
-    double value_bin = fcn(h->GetBinCenter(i));
+    double value_bin = fcn(h->GetXaxis()->GetBinCenter(i));
     error2 += content_bin * content_bin * value_bin * value_bin * error_bin *
               error_bin;
   }
