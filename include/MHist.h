@@ -1306,7 +1306,7 @@ public:
       T2 &indexHist, T t,
       std::function<TString(const T2 &, int)> func_str =
           [](const T2 &index, int i) {
-            return index.fVar.fName + "_" + TString(std::to_string(i));
+            return index.fVar.fName + "_" + TString(std::to_string(i + 1));
           })
       : fIndexHist(indexHist) {
     Preparing(t, func_str);
