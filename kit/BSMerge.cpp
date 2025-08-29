@@ -200,7 +200,9 @@ int main(int argc, char **argv) {
   }
 
   double fraction = std::stod(argv[1]);
-  gScaleBS = fraction / sqrt(1 - fraction);
+  // gScaleBS = fraction / sqrt(1 - fraction);
+  // sqrt(fraction * (1. - fraction)) / fraction;
+  gScaleBS = fraction / sqrt(fraction * (1. - fraction));
 
   TString name_output = argv[2];
   std::vector<const char *> inputFiles;
