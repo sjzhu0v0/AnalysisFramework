@@ -48,7 +48,7 @@ T GetJsonData(std::string nameNode1, std::string nameNode2,
   using Configurable = Configurable##name<T>;                                  \
   type name
 
-void SetUpJson(string config) {
+void SetUpJson(string config = "config.json") {
   // if json is empty, read from file
   if (gJson.empty()) {
     std::ifstream i(config);
@@ -116,8 +116,6 @@ template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
 // #include <thread>
 // #include <vector>
 
-
-
 // struct gStrParameter4Thread;
 
 // void MultiThread(int nThreads, std::function<void(int)> func) {
@@ -148,7 +146,6 @@ struct StrRResult {
   StrRResult() : vec_RResultHandles(new vector<RResultHandle>) {};
 
   StrRResult(vector<RResultHandle> &vec) : vec_RResultHandles(&vec) {};
-
 
   template <typename T> StrRResult &push_back(T &&handle) {
     vec_RResultHandles->push_back(std::forward<T>(handle));
