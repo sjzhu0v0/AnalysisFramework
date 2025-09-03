@@ -756,14 +756,18 @@ public:
     for (int i = 0; i < nbins_total; i++) {
       vector<int> vec_index = GetBinIndex(i);
       TString name = name_tag;
-      for (int j = 0; j < fNbin_Var.size(); j++)
-        name.Replace(name.First("%d"), 2, Form("%d", vec_index[j]));
+      cout << name_tag.Data() << endl;
+      for (int j = 0; j < fNbin_Var.size(); j++) {
+        size_t pos = name.Index("%d");
+        name.Replace(pos, 2, Form("%d", vec_index[j]));
+      }
       T *histo = (T *)file->Get(name);
-      histo->SetDirectory(0);
       if (!histo) {
         cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
+        cerr << "hist name: " << name << endl;
         exit(1);
       }
+      histo->SetDirectory(0);
       fHistos.push_back(histo);
     }
   };
@@ -826,6 +830,7 @@ public:
 
 using MHGroupTool1D = MHGroupTool<TH1D>;
 using MHGroupTool2D = MHGroupTool<TH2D>;
+using MHGroupTool3D = MHGroupTool<TH3D>;
 
 template <typename T, typename T2> class MIndex {
 public:
