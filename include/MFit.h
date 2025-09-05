@@ -7,14 +7,24 @@
 #include "MRootIO.h"
 #include "RooAddPdf.h"
 #include "RooArgList.h"
+#include "RooCBShape.h" // Crystal Ball function
+#include "RooCategory.h"
 #include "RooCrystalBall.h"
 #include "RooDataHist.h"
 #include "RooDataSet.h"
+#include "RooExponential.h"
 #include "RooFitResult.h"
+#include "RooFormulaVar.h"
+#include "RooGaussian.h"
 #include "RooGenericPdf.h"
+#include "RooHistPdf.h"
 #include "RooPlot.h"
+#include "RooPolynomial.h"
 #include "RooRealVar.h"
+#include "RooSimultaneous.h"
 #include "RooWorkspace.h"
+#include "TAxis.h"
+#include "TCanvas.h"
 #include "TF1.h"
 #include "TLegend.h"
 #include "TString.h"
@@ -82,7 +92,6 @@ typedef struct StrSignalFit {
 } StrSignalFit;
 
 class MSignalFit {
-
 public:
   RooWorkspace *fWs = nullptr;
   RooAddPdf *fModel = nullptr;
@@ -93,6 +102,7 @@ public:
   RooRealVar *fX;
   RooFitResult *fResult;
   RooDataHist *fDataHist = nullptr;
+  // RooSimultaneous *fSimPdf = nullptr;
 
   MSignalFit(TString name, TF1 *signal, TF1 *bkg) {
     fWs = new RooWorkspace(name);
@@ -120,6 +130,20 @@ public:
         new RooAddPdf("model", "Total PDF", RooArgList(*fPdf_signal, *fPdf_bkg),
                       RooArgList(*fNsig, *fNbkg));
     fWs->import(*fModel);
+  }
+
+  virtual void clean() {
+    // fWs->clearStudies();
+    delete fNsig;
+    delete fNbkg;
+    delete fX;
+    // delete fPdf_signal;
+    delete fPdf_bkg;
+    delete fPdf_signal;
+    delete fDataHist;
+    delete fWs;
+    delete fResult;
+    // fResult->Delete();
   }
 
   virtual void InputData(TH1D *data) {
@@ -160,8 +184,8 @@ public:
     for (RooAbsArg *arg : *params) {
       RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
       if (var) {
-        var->removeMin(); // 去掉最小值限制
-        var->removeMax(); // 去掉最大值限制
+        var->removeMin();
+        var->removeMax();
       }
     }
   }
@@ -232,12 +256,19 @@ public:
       exit(1);
     }
     RooArgSet *params = otherFit.fPdf_signal->getParameters(*otherFit.fX);
+    RooFitResult *fResult = otherFit.fResult;
+
     for (RooAbsArg *arg : *params) {
       TString name_arg = arg->GetName();
       // get the corresponding variable in this fit
-      RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name_arg));
+      // RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name_arg));
+      RooRealVar *var = fModel->getParameters(*fX)->find(name_arg)
+                            ? dynamic_cast<RooRealVar *>(
+                                  fModel->getParameters(*fX)->find(name_arg))
+                            : nullptr;
+      auto other_var =
+          dynamic_cast<RooRealVar *>(fResult->floatParsFinal().find(name_arg));
       if (var) {
-        RooRealVar *other_var = dynamic_cast<RooRealVar *>(arg);
         if (other_var) {
           var->setVal(other_var->getVal());
           var->setError(other_var->getError());
@@ -266,12 +297,19 @@ public:
       exit(1);
     }
     RooArgSet *params = otherFit.fPdf_bkg->getParameters(*otherFit.fX);
+    RooFitResult *fResult = otherFit.fResult;
+
     for (RooAbsArg *arg : *params) {
       TString name_arg = arg->GetName();
       // get the corresponding variable in this fit
-      RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name_arg));
+      RooRealVar *var = fModel->getParameters(*fX)->find(name_arg)
+                            ? dynamic_cast<RooRealVar *>(
+                                  fModel->getParameters(*fX)->find(name_arg))
+                            : nullptr;
+      auto other_var =
+          dynamic_cast<RooRealVar *>(fResult->floatParsFinal().find(name_arg));
       if (var) {
-        RooRealVar *other_var = dynamic_cast<RooRealVar *>(arg);
+        // RooRealVar *other_var = dynamic_cast<RooRealVar *>(arg);
         if (other_var) {
           var->setVal(other_var->getVal());
           var->setError(other_var->getError());
@@ -366,7 +404,6 @@ public:
     double xMax = fX->getMax();
     double step = (xMax - xMin) / (nPoints - 1);
 
-    // 🔧 持久化的 RooArgSet
     RooArgSet normSet(*fX);
 
     for (int i = 0; i < nPoints; ++i) {
@@ -443,6 +480,104 @@ public:
   }
 };
 
+class MAssoYeildFit : public MSignalFit {
+public:
+  TString fName_AssoYeild;
+  RooGenericPdf *fPdf_bkgAssoYeild;
+  RooAddPdf *fModel_AssoYeild;
+  RooSimultaneous *fSimPdf_AssoYeild = nullptr;
+
+  RooRealVar *fNSig_AssoYeild;
+  RooRealVar *fNBkg_AssoYeild;
+  RooDataHist *fDataHist_AssoYeild = nullptr;
+  RooDataSet *fDataSet_Simultaneout = nullptr;
+  RooFitResult *fResult_AssoYeild = nullptr;
+
+  MAssoYeildFit(TString name, TF1 *bkg_assoYeild, MSignalFit signalFit)
+      : MSignalFit(signalFit) {
+    fWs->cd();
+    fName_AssoYeild = name;
+    fPdf_bkgAssoYeild = MFit::GetGenericPdf(
+        bkg_assoYeild, *fX, Form("bkg_assoYeild_%s", name.Data()));
+    fNSig_AssoYeild = new RooRealVar(
+        Form("nsig_assoYeild_%s", name.Data()),
+        "Number of signal events for associated yield", 3.7184e+04);
+    fNBkg_AssoYeild = new RooRealVar(
+        Form("nbkg_assoYeild_%s", name.Data()),
+        "Number of background events for associated yield", 1.4669e+04);
+    fModel_AssoYeild =
+        new RooAddPdf(Form("model_assoYeild_%s", name.Data()),
+                      "Total PDF for associated yield",
+                      RooArgList(*fPdf_signal, *fPdf_bkgAssoYeild),
+                      RooArgList(*fNSig_AssoYeild, *fNBkg_AssoYeild));
+  }
+
+  void InputData_AssoYeild(TH1D *data) {
+    if (!fWs) {
+      cerr
+          << "MAssoYeildFit::InputData_AssoYeild: Workspace is not initialized!"
+          << endl;
+      exit(1);
+    }
+    fWs->cd();
+    RooCategory sample("sample", "sample");
+    sample.defineType("mass");
+    sample.defineType("assoYeild");
+
+    //  RooDataSet("dataTotal", "combined data", RooArgSet(mass), Index(sample),
+    //  Import("massFit", *dataMass), Import("v2Fit", dataV2));
+    fDataHist_AssoYeild =
+        new RooDataHist(Form("Data_%s", fName_AssoYeild.Data()),
+                        "Associated yield of J/psi candidate", *fX, data);
+    fDataSet_Simultaneout =
+        new RooDataSet(Form("dataTotal_%s", fName_AssoYeild.Data()),
+                       "combined data", RooArgSet(*fX), RooFit::Index(sample),
+                       RooFit::Import("mass", *fDataHist),
+                       RooFit::Import("assoYeild", *fDataHist_AssoYeild));
+
+    fSimPdf_AssoYeild = new RooSimultaneous(
+        Form("simPdf_assoYeild_%s", fName_AssoYeild.Data()),
+        "simultaneous PDF for associated yield",
+        {{"mass", fModel}, {"assoYeild", fModel_AssoYeild}}, sample);
+
+    fWs->import(*fDataSet_Simultaneout);
+  }
+
+  void fit_AssoYeild() {
+    if (!fWs) {
+      cerr << "MAssoYeildFit::Chi2Fit_AssoYeild: Workspace is not initialized!"
+           << endl;
+      exit(1);
+    }
+    fWs->cd();
+    RooDataHist *binnedDataSet = fDataSet_Simultaneout->binnedClone(
+        Form("binnedData_%s", fName_AssoYeild.Data()), "binned data");
+    fResult_AssoYeild = fSimPdf_AssoYeild->chi2FitTo(
+        *binnedDataSet, /* RooFit::Extended(kTRUE), */ RooFit::Save(),
+        RooFit::PrintLevel(-1), RooFit::SumW2Error(true));
+  }
+
+  void chi2Fit_AssoYeild() {
+    if (!fWs) {
+      cerr << "MAssoYeildFit::Chi2Fit_AssoYeild: Workspace is not initialized!"
+           << endl;
+      exit(1);
+    }
+    fWs->cd();
+    // fX->setBins(fDataHist->arraySize());
+    const RooAbsBinning &binning = fX->getBinning();
+
+    RooDataHist *binnedDataSet = fDataSet_Simultaneout
+                                     ->binnedClone(Form("binnedData_%s",
+                                                        fName_AssoYeild.Data()),
+                                                   "binned data" /* ,
+     RooFit::Binning(binning) */);
+    fResult_AssoYeild = fSimPdf_AssoYeild->chi2FitTo(
+        *binnedDataSet, /* RooFit::Extended(kTRUE), */ RooFit::Save(),
+        RooFit::PrintLevel(-1), RooFit::SumW2Error(true));
+  }
+};
+
 MDouble GetSumWithError1D(TH1D *h, Double_t (*fcn)(Double_t)) {
   double value_temp = 0.0;
   double error_temp = 0.0;
@@ -464,4 +599,16 @@ MDouble GetSumWithError1D(TH1D *h, Double_t (*fcn)(Double_t)) {
 
   return MDouble(value_temp, error_temp);
 }
+
+template <typename T> void PrintParams(T *pdf) {
+  RooArgSet *params = pdf->getParameters(RooArgSet());
+  for (RooAbsArg *arg : *params) {
+    RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
+    if (var) {
+      std::cout << var->GetName() << ": " << var->getVal() << " ± "
+                << var->getError() << std::endl;
+    }
+  }
+}
+
 #endif // __MFit_h__

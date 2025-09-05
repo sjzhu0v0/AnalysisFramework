@@ -756,7 +756,6 @@ public:
     for (int i = 0; i < nbins_total; i++) {
       vector<int> vec_index = GetBinIndex(i);
       TString name = name_tag;
-      cout << name_tag.Data() << endl;
       for (int j = 0; j < fNbin_Var.size(); j++) {
         size_t pos = name.Index("%d");
         name.Replace(pos, 2, Form("%d", vec_index[j]));

@@ -224,6 +224,14 @@ public:
       gCanvas->SetCanvasSize(fW_Width * fNWidth, fW_Height * fNHeight / 0.95);
       gCanvas->Update();
 
+      TList *list = gCanvas->GetListOfPrimitives();
+      TIter next(list);
+      for (TObject *obj; (obj = next());) {
+        if (obj->InheritsFrom("TPad")) {
+          obj->Delete();
+        }
+      }
+
       delete tex;
     }
     fIndexPadCurrent++;
