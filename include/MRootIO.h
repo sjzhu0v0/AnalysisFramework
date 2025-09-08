@@ -7,20 +7,49 @@
 
 namespace MRootIO {
 TChain *OpenChain(const char *name_file, const char *name_tree) {
-  TFile *f = new TFile(name_file);
   TChain *chain = new TChain(name_tree);
 
-  TList *list = f->GetListOfKeys();
-  for (int i = 0; i < list->GetSize(); i++) {
-    TKey *key = (TKey *)list->At(i);
-    if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
-      if (string(key->GetName()).find("DF_") != string::npos)
-        chain->Add(TString(name_file) + "/" + TString(key->GetName()) +
-                   TString("/") + TString(name_tree));
+  // check if name_file end with .root
+  if (string(name_file).find(".root") != string::npos) {
+    TFile *f = new TFile(name_file);
+    TList *list = f->GetListOfKeys();
+    for (int i = 0; i < list->GetSize(); i++) {
+      TKey *key = (TKey *)list->At(i);
+      if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
+        if (string(key->GetName()).find("DF_") != string::npos)
+          chain->Add(TString(name_file) + "/" + TString(key->GetName()) +
+                     TString("/") + TString(name_tree));
+      }
     }
+  } // else check if name_file is a txt file
+  else if (string(name_file).find(".txt") != string::npos) {
+    ifstream infile(name_file);
+    string line;
+    while (getline(infile, line)) {
+      TFile *f = new TFile(line.c_str());
+      if (f->IsZombie()) {
+        cerr << "Error: Could not open file " << line << endl;
+        continue;
+      }
+      TList *list = f->GetListOfKeys();
+      for (int i = 0; i < list->GetSize(); i++) {
+        TKey *key = (TKey *)list->At(i);
+        if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
+          if (string(key->GetName()).find("DF_") != string::npos)
+            chain->Add(TString(line.c_str()) + "/" + TString(key->GetName()) +
+                       TString("/") + TString(name_tree));
+        }
+      }
+    }
+    infile.close();
+  } else {
+    cerr << "Error: Unknown file type " << name_file << endl;
+    return nullptr;
   }
+
   return chain;
 }
+
 TChain *OpenChain(TFile *f, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
   TString name_file = f->GetName();
