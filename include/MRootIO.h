@@ -37,7 +37,7 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
       }
       TTree *tree = (TTree *)f->Get(name_tree);
       if (tree) {
-        chain->Add(name_file + TString("/") + TString(name_tree));
+        chain->Add(line + TString("/") + TString(name_tree));
       }
       TList *list = f->GetListOfKeys();
       for (int i = 0; i < list->GetSize(); i++) {
