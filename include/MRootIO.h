@@ -12,6 +12,10 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
   // check if name_file end with .root
   if (string(name_file).find(".root") != string::npos) {
     TFile *f = new TFile(name_file);
+    TTree *tree = (TTree *)f->Get(name_tree);
+    if (tree) {
+      chain->Add(name_file + TString("/") + TString(name_tree));
+    }
     TList *list = f->GetListOfKeys();
     for (int i = 0; i < list->GetSize(); i++) {
       TKey *key = (TKey *)list->At(i);
@@ -30,6 +34,10 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
       if (f->IsZombie()) {
         cerr << "Error: Could not open file " << line << endl;
         continue;
+      }
+      TTree *tree = (TTree *)f->Get(name_tree);
+      if (tree) {
+        chain->Add(name_file + TString("/") + TString(name_tree));
       }
       TList *list = f->GetListOfKeys();
       for (int i = 0; i < list->GetSize(); i++) {
@@ -58,7 +66,6 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
   TTree *tree = (TTree *)f->Get(name_tree);
   if (tree) {
     chain->Add(name_file + TString("/") + TString(name_tree));
-    return chain;
   }
 
   TList *list = f->GetListOfKeys();
@@ -400,6 +407,12 @@ template <typename T> T *GetObjectDiectly(TString path) {
   }
 
   // obj->SetDirectory(0);
+  // check if obj has SetDirectory function
+  if constexpr (std::is_member_function_pointer<
+                    decltype(&T::SetDirectory)>::value) {
+    obj->SetDirectory(0);
+  }
+
   file->Close();
   return obj;
 }
