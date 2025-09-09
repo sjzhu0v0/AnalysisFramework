@@ -37,7 +37,7 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
       }
       TTree *tree = (TTree *)f->Get(name_tree);
       if (tree) {
-        chain->Add(line + TString("/") + TString(name_tree));
+        chain->Add(line.c_str() + TString("/") + TString(name_tree));
       }
       TList *list = f->GetListOfKeys();
       for (int i = 0; i < list->GetSize(); i++) {
@@ -389,6 +389,12 @@ TProfile *GetTProfile(TString path) {
   return hist;
 }
 
+template <typename, typename = void>
+struct has_SetDirectory : std::false_type {};
+
+template <typename T>
+struct has_SetDirectory<T, std::void_t<decltype(&T::SetDirectory)>> : std::true_type {};
+
 template <typename T> T *GetObjectDiectly(TString path) {
   TString path_file = path(0, path.First(":"));
   TString path_hist = path(path.First(":") + 1, path.Length());
@@ -408,9 +414,8 @@ template <typename T> T *GetObjectDiectly(TString path) {
 
   // obj->SetDirectory(0);
   // check if obj has SetDirectory function
-  if constexpr (std::is_member_function_pointer<
-                    decltype(&T::SetDirectory)>::value) {
-    obj->SetDirectory(0);
+  if constexpr (has_SetDirectory<T>::value) {
+    obj.SetDirectory(nullptr);
   }
 
   file->Close();
