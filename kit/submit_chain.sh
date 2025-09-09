@@ -104,7 +104,7 @@ submit() {
 while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   [[ -z "$CMD" ]] && continue
   if [[ -n "$PREV_JOBID" ]]; then
-    CMD="$CMD --dependency=afterok:$PREV_JOBID"
+    CMD="$CMD --dependency afterok:$PREV_JOBID"
   fi
   echo "Running: $CMD"
   OUTPUT=$($CMD)
