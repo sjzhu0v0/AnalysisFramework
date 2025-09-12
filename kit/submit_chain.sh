@@ -7,10 +7,10 @@ submit() {
     date >> history_submission
     echo $@ >> history_submission
 
-    local partition="main"       # 默认分区
-    local job_name="my_job"      # 默认任务名称
-    local time_limit="2:00:00"   # 默认运行时间限制
-    local dependency=""          # 新增：默认无依赖
+    local partition="main"
+    local job_name="my_job"
+    local time_limit="2:00:00"
+    local dependency=""
     local path_env path_command ncommands_onefile
 
     local args=("$@")
@@ -30,7 +30,7 @@ submit() {
                 time_limit="${args[i+1]}"
                 i=$((i + 2))
                 ;;
-            --dependency)  # 新增：处理依赖选项
+            --dependency)
                 dependency="${args[i+1]}"
                 i=$((i + 2))
                 ;;
@@ -52,9 +52,6 @@ submit() {
 
     if [[ -z ${path_env} || -z ${path_command} ]]; then
         echo "Usage: submit [-p partition] [-n job_name] [-t time_limit] [--dependency <dependency_spec>] <path_env> <path_command> [ncommands_onefile]"
-        echo "Dependency examples:"
-        echo "  --dependency afterany:123456   # 在作业ID 123456结束后运行"
-        echo "  --dependency afterok:123456    # 在作业ID 123456成功完成后运行"
         return 1
     fi
 
@@ -101,12 +98,21 @@ submit() {
     cd ${base}
 }
 
+declare -A LAST_JOBID_AT_LEVEL
+
 while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   [[ -z "$CMD" ]] && continue
-  if [[ -n "$PREV_JOBID" ]]; then
-    CMD="$CMD --dependency afterok:$PREV_JOBID"
+  LEVEL=$(echo -n "$CMD" | grep -oP '^\t*' | wc -m)
+  [ $LEVEL -gt 0 ] && LEVEL=$((LEVEL - 1))
+  echo "Level: $LEVEL"
+  CMD=$(echo "$CMD" | sed 's/^[\t]*//')
+  if [[ $LEVEL -gt 0 ]]; then
+    PARENT_JOBID=${LAST_JOBID_AT_LEVEL[$((LEVEL-1))]}
+    if [[ -n "$PARENT_JOBID" ]]; then
+      CMD="$CMD --dependency afterok:$PARENT_JOBID"
+    fi
   fi
-  echo "Running: $CMD"
+  echo "Running (level=$LEVEL): $CMD"
   OUTPUT=$($CMD)
   echo "$OUTPUT"
   JOBID=$(echo "$OUTPUT" | grep -oP 'Submitted batch job \K[0-9]+')
@@ -114,5 +120,5 @@ while IFS= read -r CMD || [[ -n "$CMD" ]]; do
     echo "Fatal: no job found!!!!"
     exit 1
   fi
-  PREV_JOBID=$JOBID
-done < ${1}
+  LAST_JOBID_AT_LEVEL[$LEVEL]=$JOBID
+done < "$1"

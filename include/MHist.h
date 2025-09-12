@@ -1,5 +1,6 @@
 #include "MHead.h"
 #include "MMath.h"
+#include "MRootIO.h"
 #include "MSystem.h"
 #include "ROOT/RDF/HistoModels.hxx"
 #include "THn.h"
@@ -697,6 +698,8 @@ public:
   int GetNbins(int i) { return hN->GetAxis(i)->GetNbins(); }
 };
 
+template <typename T> T *GetObjectSingle(TString path_obj);
+
 template <typename T> class MHGroupTool {
 protected:
   vector<T *> fHistos;
@@ -770,6 +773,52 @@ public:
       fHistos.push_back(histo);
     }
   };
+
+  MHGroupTool(TString name_tag, vector<StrVar4Hist> vec_strVar4Hist,
+              vector<int> vec_rebin = {}) {
+    fStrsVar4Hist = vec_strVar4Hist;
+    if (vec_rebin.size() != 0) {
+      if (vec_rebin.size() != fStrsVar4Hist.size()) {
+        cout << "Error: vec_rebin size is not equal to vec_strVar4Hist size"
+             << endl;
+        exit(1);
+      }
+      for (int i = 0; i < vec_rebin.size(); i++) {
+        fStrsVar4Hist[i].rebin(vec_rebin[i]);
+      }
+    }
+
+    for (const auto &str : fStrsVar4Hist) {
+      fNbin_Var.emplace_back(str.fNbins);
+    }
+
+    int nbins_total = 1;
+    for (const auto &str : fStrsVar4Hist) {
+      nbins_total *= str.fNbins;
+    }
+    int nbins_total_temp = nbins_total;
+    for (int i = 0; i < fNbin_Var.size(); i++) {
+      fN4process.push_back(nbins_total_temp / fNbin_Var[i]);
+      nbins_total_temp /= fNbin_Var[i];
+    }
+    for (int i = 0; i < nbins_total; i++) {
+      vector<int> vec_index = GetBinIndex(i);
+      TString name = name_tag;
+      for (int j = 0; j < fNbin_Var.size(); j++) {
+        size_t pos = name.Index("%d");
+        name.Replace(pos, 2, Form("%d", vec_index[j]));
+      }
+      T *histo = GetObjectSingle<T>(name);
+      if (!histo) {
+        cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
+        cerr << "hist name: " << name << endl;
+        exit(1);
+      }
+      histo->SetDirectory(0);
+      fHistos.push_back(histo);
+    }
+  };
+
   MHGroupTool(MHGroupTool *hgroupTool) {
     fStrsVar4Hist = hgroupTool->fStrsVar4Hist;
     fNbin_Var = hgroupTool->fNbin_Var;

@@ -6,6 +6,12 @@
 #include "TObjString.h"
 
 namespace MRootIO {
+template <typename, typename = void>
+struct has_SetDirectory : std::false_type {};
+
+template <typename T>
+struct has_SetDirectory<T, std::void_t<decltype(&T::SetDirectory)>>
+    : std::true_type {};
 TChain *OpenChain(const char *name_file, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
 
@@ -81,7 +87,7 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
 }
 
 TObject *GetObjectSingle(TObject *folder, TString path_obj) {
-  TObject *obj_targetted;
+  TObject *obj_targetted = nullptr;
 
   // check if path_obj contains "/"
   bool isObject = false;
@@ -123,6 +129,52 @@ TObject *GetObjectSingle(TObject *folder, TString path_obj) {
     cout << "Unknown class: " << folder->ClassName() << endl;
   }
   return obj_targetted;
+}
+
+template <typename T> T *GetObjectSingle(TString path_obj) {
+  if (!path_obj.Contains(".root:")) {
+    cerr << "Error: No .root: in path " << path_obj << endl;
+    return nullptr;
+  } else {
+    TString path_file = path_obj(0, path_obj.First(".root:") + 5);
+    thread_local TString path_file_last = "";
+    TString path_obj_in_file =
+        path_obj(path_obj.First(".root:") + 6, path_obj.Length());
+    thread_local TFile *f = nullptr;
+    if (path_file != path_file_last) {
+      cout << "Opening file: " << path_file << endl;
+      path_file_last = path_file;
+      if (f) {
+        f->Close();
+        delete f;
+        f = nullptr;
+      }
+      f = new TFile(path_file);
+      if (f->IsZombie()) {
+        cerr << "Error: Could not open file " << path_file << endl;
+        exit(1);
+      }
+    }
+    if (f->IsZombie()) {
+      cerr << "Error: Could not open file " << path_file << endl;
+      return nullptr;
+    }
+    TObject *obj = MRootIO::GetObjectSingle(f, path_obj_in_file);
+    if (!obj) {
+      cerr << "Error: Object not found in file " << path_file << " with path "
+           << path_obj_in_file << endl;
+      return nullptr;
+    }
+    if (!obj->InheritsFrom(T::Class())) {
+      cerr << "Error: Object is not of type " << T::ClassName() << endl;
+      return nullptr;
+    }
+    T *t2return = static_cast<T *>(obj);
+    if constexpr (has_SetDirectory<T>::value) {
+      t2return->SetDirectory(0);
+    }
+    return t2return;
+  }
 }
 
 vector<TObject *> GetObjectRecursive(TObject *folder,
@@ -388,12 +440,6 @@ TProfile *GetTProfile(TString path) {
   file->Close();
   return hist;
 }
-
-template <typename, typename = void>
-struct has_SetDirectory : std::false_type {};
-
-template <typename T>
-struct has_SetDirectory<T, std::void_t<decltype(&T::SetDirectory)>> : std::true_type {};
 
 template <typename T> T *GetObjectDiectly(TString path) {
   TString path_file = path(0, path.First(":"));
