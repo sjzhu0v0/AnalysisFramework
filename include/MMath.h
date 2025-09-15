@@ -288,6 +288,188 @@ private:
   double im_err;
 };
 
+class MDiscreteFunc {
+private:
+  int fNbins;
+  std::vector<double> fPars;
+
+  double LengthCoor(int nth_bin) {
+    double sum = 0;
+    for (int i = 1; i <= fNbins; i++)
+      sum += pow(i, nth_bin);
+    return sum / fNbins;
+  }
+
+public:
+  MDiscreteFunc() {
+    fNbins = 0;
+    fPars.clear();
+  }
+
+  MDiscreteFunc(int nbins, std::vector<double> pars) {
+    fNbins = nbins;
+    fPars = pars;
+  }
+
+  MDiscreteFunc(int nbins, int order) {
+    fNbins = nbins;
+    fPars.resize(order + 1, 0);
+    // change the order-th parameter to 1
+    fPars[order] = 1;
+  }
+
+  MDiscreteFunc(const MDiscreteFunc &other) {
+    fNbins = other.fNbins;
+    fPars = other.fPars;
+  }
+
+  ~MDiscreteFunc() { fPars.clear(); }
+
+  double Eval(int bin) {
+    double value = 0;
+    for (int i = 0; i < fPars.size(); i++) {
+      value += fPars[i] * pow(bin, i);
+    }
+    return value;
+  }
+
+  void Print() {
+    cout << "MDiscreteFunc: " << endl;
+    cout << "  Nbins: " << fNbins << endl;
+    cout << "  Pars: ";
+    for (int i = 0; i < fPars.size(); i++) {
+      cout << fPars[i] << " ";
+    }
+    cout << endl;
+  }
+
+  double operator*(MDiscreteFunc rhs) {
+    double sum = 0;
+    for (int i = 1; i <= fNbins; i++) {
+      sum += this->Eval(i) * rhs.Eval(i);
+    }
+    return sum / fNbins;
+  }
+
+  double operator*(vector<double> rhs) {
+    if (fNbins != rhs.size()) {
+      std::cerr << "Error: MDiscreteFunc::operator*: Nbins mismatch!"
+                << std::endl;
+      return 0;
+    }
+    double sum = 0;
+    for (int i = 0; i < fNbins; i++) {
+      sum += this->Eval(i + 1) * rhs[i];
+    }
+    return sum / fNbins;
+  }
+
+  MDiscreteFunc operator*(double rhs) {
+    std::vector<double> new_pars;
+    for (int i = 0; i < fPars.size(); i++) {
+      new_pars.push_back(fPars[i] * rhs);
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc operator+(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator+: Nbins mismatch!"
+                << std::endl;
+      return MDiscreteFunc();
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    std::vector<double> new_pars(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double lhs_par = (i < fPars.size()) ? fPars[i] : 0;
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      new_pars[i] = lhs_par + rhs_par;
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc operator-(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator-: Nbins mismatch!"
+                << std::endl;
+      return MDiscreteFunc();
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    std::vector<double> new_pars(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double lhs_par = (i < fPars.size()) ? fPars[i] : 0;
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      new_pars[i] = lhs_par - rhs_par;
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc &operator*=(double rhs) {
+    for (int i = 0; i < fPars.size(); i++) {
+      fPars[i] *= rhs;
+    }
+    return *this;
+  }
+
+  MDiscreteFunc &operator+=(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator+=: Nbins mismatch!"
+                << std::endl;
+      return *this;
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    fPars.resize(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      fPars[i] += rhs_par;
+    }
+    return *this;
+  }
+
+  MDiscreteFunc &operator-=(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator-=: Nbins mismatch!"
+                << std::endl;
+      return *this;
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    fPars.resize(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      fPars[i] -= rhs_par;
+    }
+    return *this;
+  }
+};
+
+extern vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
+
+void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
+  if (gOrthogonalDiscreteFuncs.size() > 0) {
+    cerr << "Error: gOrthogonalDiscreteFuncs is already initialized!" << endl;
+    exit(1);
+  }
+
+  if (max_order < 0) {
+    cerr << "Error: max_order must be non-negative!" << endl;
+    exit(1);
+  }
+
+  gOrthogonalDiscreteFuncs.push_back(MDiscreteFunc(nbins, 1));
+
+  for (int order = 1; order <= max_order; order++) {
+    MDiscreteFunc func_order(nbins, order);
+    for (int prev_order = 0; prev_order < order; prev_order++) {
+      MDiscreteFunc func_prev = gOrthogonalDiscreteFuncs[prev_order];
+      double coeff = func_order * func_prev / (func_prev * func_prev);
+      func_order = func_order - func_prev * coeff;
+    }
+    double norm = sqrt(func_order * func_order);
+    func_order *= (1.0 / norm);
+    gOrthogonalDiscreteFuncs.push_back(func_order);
+  }
+}
+
 MComplex GetMComplexFromHist(TH1 *hist_re, TH1 *hist_im, int i_bin) {
   double re = hist_re->GetBinContent(i_bin);
   double im = hist_im->GetBinContent(i_bin);
