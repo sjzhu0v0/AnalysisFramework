@@ -311,6 +311,8 @@ public:
     fPars = pars;
   }
 
+  MDiscreteFunc(int nbins) { fNbins = nbins; }
+
   MDiscreteFunc(int nbins, int order) {
     fNbins = nbins;
     fPars.resize(order + 1, 0);
@@ -324,6 +326,30 @@ public:
   }
 
   ~MDiscreteFunc() { fPars.clear(); }
+
+  vector<double> GetPars() { return fPars; }
+
+  vector<double> GetPars(double x_min, double width_bin) {
+    vector<double> scaled_pars;
+    for (int i = 0; i < fPars.size(); i++) {
+      scaled_pars.push_back(fPars[i] / pow(width_bin, i));
+    }
+
+    double distance_shift = -x_min + width_bin / 2.0;
+
+    vector<double> pars4return;
+
+    for (int i = 0; i < scaled_pars.size(); i++) {
+      double par4return = 0;
+      for (int j = i; j < scaled_pars.size(); j++) {
+        par4return +=
+            scaled_pars[j] * TMath::Binomial(j, i) * pow(distance_shift, j - i);
+      }
+      pars4return.push_back(par4return);
+    }
+
+    return pars4return;
+  }
 
   double Eval(int bin) {
     double value = 0;
@@ -442,7 +468,7 @@ public:
   }
 };
 
-extern vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
+vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
 
 void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
   if (gOrthogonalDiscreteFuncs.size() > 0) {
@@ -455,7 +481,7 @@ void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
     exit(1);
   }
 
-  gOrthogonalDiscreteFuncs.push_back(MDiscreteFunc(nbins, 1));
+  gOrthogonalDiscreteFuncs.push_back(MDiscreteFunc(nbins, 0));
 
   for (int order = 1; order <= max_order; order++) {
     MDiscreteFunc func_order(nbins, order);
@@ -467,6 +493,10 @@ void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
     double norm = sqrt(func_order * func_order);
     func_order *= (1.0 / norm);
     gOrthogonalDiscreteFuncs.push_back(func_order);
+    cout << "=========================" << endl
+         << "Initialized order " << order << " orthogonal discrete function."
+         << endl;
+    func_order.Print();
   }
 }
 

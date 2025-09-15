@@ -136,10 +136,10 @@ template <typename T> T *GetObjectSingle(TString path_obj) {
     cerr << "Error: No .root: in path " << path_obj << endl;
     return nullptr;
   } else {
-    TString path_file = path_obj(0, path_obj.First(".root:") + 5);
+    TString path_file = path_obj(0, path_obj.Index(".root:") + 5);
     thread_local TString path_file_last = "";
     TString path_obj_in_file =
-        path_obj(path_obj.First(".root:") + 6, path_obj.Length());
+        path_obj(path_obj.Index(".root:") + 6, path_obj.Length());
     thread_local TFile *f = nullptr;
     if (path_file != path_file_last) {
       cout << "Opening file: " << path_file << endl;
@@ -166,7 +166,8 @@ template <typename T> T *GetObjectSingle(TString path_obj) {
       return nullptr;
     }
     if (!obj->InheritsFrom(T::Class())) {
-      cerr << "Error: Object is not of type " << T::ClassName() << endl;
+      cerr << "Error: Object is not of type " << endl;
+      exit(1);
       return nullptr;
     }
     T *t2return = static_cast<T *>(obj);

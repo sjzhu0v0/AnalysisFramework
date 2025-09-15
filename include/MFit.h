@@ -76,7 +76,7 @@ RooGenericPdf *GetGenericPdf(TF1 *f1, RooRealVar &x,
   return obj;
 }
 
-RooChebychev* MFit::GetChebyshevPdf(int order, RooRealVar& x, TString name) {
+RooChebychev* GetChebyshevPdf(int order, RooRealVar& x, TString name) {
     RooArgList coefList;
     for (int i = 0; i <= order; ++i) {
         coefList.add(*new RooRealVar(Form("c%d", i), Form("c%d", i), 0.1, -1, 1));
