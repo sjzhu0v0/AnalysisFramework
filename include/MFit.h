@@ -9,6 +9,7 @@
 #include "RooArgList.h"
 #include "RooCBShape.h" // Crystal Ball function
 #include "RooCategory.h"
+#include "RooChebychev.h"
 #include "RooCrystalBall.h"
 #include "RooDataHist.h"
 #include "RooDataSet.h"
@@ -17,7 +18,6 @@
 #include "RooFormulaVar.h"
 #include "RooGaussian.h"
 #include "RooGenericPdf.h"
-#include "RooChebychev.h"
 #include "RooHistPdf.h"
 #include "RooPlot.h"
 #include "RooPolynomial.h"
@@ -28,6 +28,7 @@
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TLegend.h"
+#include "TRandom3.h"
 #include "TString.h"
 #include "tuple"
 #include <iostream>
@@ -76,16 +77,16 @@ RooGenericPdf *GetGenericPdf(TF1 *f1, RooRealVar &x,
   return obj;
 }
 
-RooChebychev* GetChebyshevPdf(int order, RooRealVar& x, TString name) {
-    RooArgList coefList;
-    for (int i = 0; i <= order; ++i) {
-        coefList.add(*new RooRealVar(Form("c%d", i), Form("c%d", i), 0.1, -1, 1));
-    }
-    return new RooChebychev(name, "Chebyshev PDF", x, coefList);
+RooChebychev *GetChebyshevPdf(int order, RooRealVar &x, TString name) {
+  RooArgList coefList;
+  for (int i = 0; i <= order; ++i) {
+    coefList.add(*new RooRealVar(Form("c%d", i), Form("c%d", i), 0.1, -1, 1));
+  }
+  return new RooChebychev(name, "Chebyshev PDF", x, coefList);
 }
 
 } // namespace MFit
-typedef struct StrSignalFit {
+struct StrSignalFit {
   using ParamView = std::array<double, 2>;
   ParamView fNsig;
   ParamView fNbkg;
@@ -97,8 +98,7 @@ typedef struct StrSignalFit {
     std::cout << "  Nbkg: " << fNbkg[0] << " ± " << fNbkg[1] << std::endl;
     std::cout << "  Chi2/NDF: " << chi2ToNdf << std::endl;
   }
-
-} StrSignalFit;
+};
 
 class MSignalFit {
 public:
@@ -111,6 +111,7 @@ public:
   RooRealVar *fX;
   RooFitResult *fResult;
   RooDataHist *fDataHist = nullptr;
+  TF1 *fSignalFunction = nullptr;
   // RooSimultaneous *fSimPdf = nullptr;
 
   MSignalFit(TString name, TF1 *signal, TF1 *bkg) {
@@ -487,6 +488,27 @@ public:
     graph->SetLineColor(kGreen);
     return graph;
   }
+
+  virtual ~MSignalFit() { clean(); }
+
+  virtual double *GetParamsSignal() {
+    if (!fWs) {
+      cerr << "MSignalFit::GetParamsSignal: Workspace is not initialized!"
+           << endl;
+      exit(1);
+    }
+    RooArgSet *params = fPdf_signal->getParameters(*fX);
+    int nParams = params->getSize();
+    double *values = new double[nParams];
+    int index = 0;
+    for (RooAbsArg *arg : *params) {
+      RooRealVar *var = dynamic_cast<RooRealVar *>(arg);
+      if (var) {
+        values[index++] = var->getVal();
+      }
+    }
+    return values;
+  }
 };
 
 class MAssoYeildFit : public MSignalFit {
@@ -613,7 +635,8 @@ public:
     fWs->import(*fModel);
   }
 
-  MSignalFitCheby(TString name, TF1 *signal, int order, double minX, double maxX) {
+  MSignalFitCheby(TString name, TF1 *signal, int order, double minX,
+                  double maxX) {
     fWs = new RooWorkspace(name);
     fX = new RooRealVar("x", "M_{ee} [GeV/c^{2}]", minX, maxX);
     fWs->import(*fX);
@@ -640,7 +663,8 @@ public:
 
   virtual void InputData(TH1D *data) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::operator<<: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::operator<<: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     fDataHist = new RooDataHist("Data", "J/#psi ee decay", *fX, data);
@@ -649,7 +673,8 @@ public:
 
   virtual void chi2Fit() {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::chi2FitTo: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::chi2FitTo: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     fNsig->setConstant(false);
@@ -660,7 +685,8 @@ public:
 
   virtual void Fit() {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::FitTo: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::FitTo: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     fNsig->setConstant(false);
@@ -683,7 +709,8 @@ public:
   StrSignalFit getFitResult() const {
     StrSignalFit str_signal_fit;
     if (!fResult) {
-      std::cerr << "MSignalFitCheby::getFitResult: Fit result is not available!" << std::endl;
+      std::cerr << "MSignalFitCheby::getFitResult: Fit result is not available!"
+                << std::endl;
       exit(1);
     }
     auto absReal_chi2 =
@@ -741,7 +768,8 @@ public:
 
   virtual void CopySignal(MSignalFitCheby otherFit) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::CopySignal: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::CopySignal: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     RooArgSet *params = otherFit.fPdf_signal->getParameters(*otherFit.fX);
@@ -772,7 +800,7 @@ public:
         }
       } else {
         std::cerr << "MSignalFitCheby::CopySignal: Variable " << name_arg
-             << " not found in the current fit!" << std::endl;
+                  << " not found in the current fit!" << std::endl;
         exit(1);
       }
     }
@@ -780,7 +808,8 @@ public:
 
   virtual void CopyBkg(MSignalFitCheby otherFit) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::CopyBkg: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::CopyBkg: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     RooArgSet *params = otherFit.fPdf_bkg->getParameters(*otherFit.fX);
@@ -811,7 +840,7 @@ public:
         }
       } else {
         std::cerr << "MSignalFitCheby::CopyBkg: Variable " << name_arg
-             << " not found in the current fit!" << std::endl;
+                  << " not found in the current fit!" << std::endl;
         exit(1);
       }
     }
@@ -819,7 +848,8 @@ public:
 
   virtual void FixSignal(bool doFixBkg = true) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::FixSignal: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::FixSignal: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     RooArgSet *params = fPdf_signal->getParameters(*fX);
@@ -828,7 +858,8 @@ public:
       if (var) {
         var->setConstant(doFixBkg);
       } else {
-        std::cerr << "MSignalFitCheby::FixSignal: Argument is not a RooRealVar!" << std::endl;
+        std::cerr << "MSignalFitCheby::FixSignal: Argument is not a RooRealVar!"
+                  << std::endl;
         exit(1);
       }
     }
@@ -836,7 +867,8 @@ public:
 
   virtual void FixBkg(bool doFixBkg = true) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::FixBkg: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::FixBkg: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     RooArgSet *params = fPdf_bkg->getParameters(*fX);
@@ -845,7 +877,8 @@ public:
       if (var) {
         var->setConstant(doFixBkg);
       } else {
-        std::cerr << "MSignalFitCheby::FixBkg: Argument is not a RooRealVar!" << std::endl;
+        std::cerr << "MSignalFitCheby::FixBkg: Argument is not a RooRealVar!"
+                  << std::endl;
         exit(1);
       }
     }
@@ -854,7 +887,8 @@ public:
   enum TypeParam { kValue = 0, kError = 1, kLimitLow = 2, kLimitHigh = 3 };
   virtual void SetParam(TString name, double value, TypeParam type = kValue) {
     if (!fWs) {
-      std::cerr << "MSignalFitCheby::SetParam: Workspace is not initialized!" << std::endl;
+      std::cerr << "MSignalFitCheby::SetParam: Workspace is not initialized!"
+                << std::endl;
       exit(1);
     }
     RooRealVar *var = dynamic_cast<RooRealVar *>(fWs->arg(name));
@@ -878,10 +912,10 @@ public:
       }
     } else {
       std::cerr << "MSignalFitCheby::SetParam: Variable " << name
-           << " not found in the workspace!" << std::endl;
+                << " not found in the workspace!" << std::endl;
       exit(1);
-      }
     }
+  }
 
   virtual TGraph *GetSignalToBackgroundCurve(int nPoints = 100) {
     TGraph *graph = new TGraph(nPoints);
@@ -997,5 +1031,310 @@ template <typename T> void PrintParams(T *pdf) {
     }
   }
 }
+
+class MFitterPoly {
+private:
+  // predeclare MFitterVec
+  struct MFitterVec {
+    vector<double> fVec;
+    // vector<double> fVec_substructed;
+    MFitterVec() {}
+    MFitterVec(int size) { fVec.resize(size, 0.0); }
+    MFitterVec(vector<double> vec) { fVec = vec; }
+
+    MFitterVec throwBasicVec(vector<MDiscreteFunc> vecFunc) {
+      vector<double> coeffs;
+      for (auto func : vecFunc) {
+        double coeff = func * fVec;
+        coeffs.push_back(coeff);
+      }
+
+      MDiscreteFunc func_reconstructed = MDiscreteFunc(fVec.size());
+      for (size_t i = 0; i < vecFunc.size(); ++i) {
+        func_reconstructed += vecFunc[i] * coeffs[i];
+      }
+
+      vector<double> vec_substructed(fVec.size(), 0.0);
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        vec_substructed[i] = fVec[i] - func_reconstructed.Eval(i + 1);
+      }
+      return MFitterVec(vec_substructed);
+    }
+
+    void resize(int size) { fVec.resize(size, 0.0); }
+
+    void clear() { fVec.clear(); }
+
+    double &operator[](int index) { return fVec[index]; }
+
+    operator const vector<double> &() const { return fVec; }
+
+    MFitterVec operator+(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator+: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      MFitterVec result(fVec.size());
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        result.fVec[i] = fVec[i] + other.fVec[i];
+      }
+      return result;
+    }
+
+    MFitterVec operator-(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator-: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      MFitterVec result(fVec.size());
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        result.fVec[i] = fVec[i] - other.fVec[i];
+      }
+      return result;
+    }
+
+    MFitterVec operator*(double scalar) {
+      MFitterVec result(fVec.size());
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        result.fVec[i] = fVec[i] * scalar;
+      }
+      return result;
+    }
+
+    double operator*(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator*: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      double result = 0.0;
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        result += fVec[i] * other.fVec[i];
+      }
+      return result / (double)fVec.size();
+    }
+
+    MFitterVec &operator=(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator=: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        fVec[i] = other.fVec[i];
+      }
+      return *this;
+    }
+
+    MFitterVec &operator+=(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator+=: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        fVec[i] += other.fVec[i];
+      }
+      return *this;
+    }
+
+    MFitterVec &operator-=(const MFitterVec &other) {
+      if (fVec.size() != other.fVec.size()) {
+        std::cerr << "MFitterVec::operator-=: Vector size does not match!"
+                  << std::endl;
+        exit(1);
+      }
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        fVec[i] -= other.fVec[i];
+      }
+      return *this;
+    }
+
+    MFitterVec &operator*=(double scalar) {
+      for (size_t i = 0; i < fVec.size(); ++i) {
+        fVec[i] *= scalar;
+      }
+      return *this;
+    }
+  };
+
+  double fx_min;
+  double fx_max;
+  double fw_bins;
+  double fn_bins;
+  vector<MDiscreteFunc> fBasisVecs;
+
+  MFitterVec fYraws;
+  MFitterVec fYsignal;
+  int fnOrderPoly = 2;
+
+  MFitterVec Project(const vector<double> &y_vals) {
+    if (y_vals.size() != fn_bins) {
+      std::cerr << "MFitterPoly::fit: y_vals size does not match fn_bins!"
+                << std::endl;
+      exit(1);
+    }
+    vector<double> coeffs;
+    for (int n = 0; n <= fnOrderPoly; ++n) {
+      double coeff = fBasisVecs[n] * y_vals;
+      coeffs.push_back(coeff);
+    }
+    return MFitterVec(coeffs);
+  }
+
+public:
+  TH1D *fHisto = nullptr;
+  TH1D *fHisto_signal = nullptr;
+  double fNSignal = 0.0;
+  vector<double> fResults_fit;
+
+  MFitterPoly(TH1D *h1, double x_min, double x_max) {
+    fHisto = (TH1D *)h1->Clone(Form("histo_%d", GenerateUID()));
+    fx_min = x_min;
+    fx_max = x_max;
+    fw_bins = h1->GetXaxis()->GetBinWidth(1);
+
+    int bin_min = h1->GetXaxis()->FindBin(fx_min);
+    fx_min = h1->GetXaxis()->GetBinLowEdge(bin_min);
+    int bin_max = h1->GetXaxis()->FindBin(fx_max);
+    fx_max = h1->GetXaxis()->GetBinUpEdge(bin_max);
+
+    if (fx_min != x_min) {
+      std::cout << "MFitterPoly: x_min is adjusted to " << fx_min << std::endl;
+    }
+    if (fx_max != x_max) {
+      std::cout << "MFitterPoly: x_max is adjusted to " << fx_max << std::endl;
+    }
+    fn_bins = bin_max - bin_min + 1;
+    fYraws.resize(fn_bins);
+    for (int i = 0; i < fn_bins; ++i) {
+      fYraws[i] = h1->GetBinContent(bin_min + i);
+    }
+  }
+
+  ~MFitterPoly() {
+    fBasisVecs.clear();
+    fYraws.clear();
+    if (fHisto)
+      delete fHisto;
+  }
+
+  void initializeBasis(int order = 4) {
+    fnOrderPoly = order;
+    fBasisVecs = InitOrthogonalDiscreteFuncs(fn_bins, order);
+  }
+
+  void setHisto(TH1D *h1) {
+    // bin alignment check
+    double bin_width = h1->GetXaxis()->GetBinWidth(1);
+    if (bin_width != fw_bins) {
+      std::cerr << "MFitterPoly::setHisto: bin width does not match!"
+                << std::endl;
+      exit(1);
+    }
+    int bin_min = h1->GetXaxis()->FindBin(fx_min);
+    double new_x_min = h1->GetXaxis()->GetBinLowEdge(bin_min);
+    if (new_x_min != fx_min) {
+      std::cerr << "MFitterPoly::setHisto: x_min does not match!" << std::endl;
+      exit(1);
+    }
+
+    fHisto->Delete();
+    fHisto = h1;
+
+    vector<double> new_y_vals;
+    new_y_vals.resize(fn_bins);
+    for (int i = 0; i < fn_bins; ++i) {
+      new_y_vals[i] = h1->GetBinContent(bin_min + i);
+    }
+  }
+
+  void inputSignal(TH1D *h_signal, int n_sampling = 5000) {
+    fHisto_signal =
+        new TH1D(Form("template_signal_%d", GenerateUID()), "Signal Template",
+                 fn_bins, fx_min, fx_min + fn_bins * fw_bins);
+    for (int i = 0; i < n_sampling; ++i) {
+      double x = h_signal->GetRandom();
+      fHisto_signal->Fill(x);
+    }
+    fHisto_signal->Scale(1. / (double)n_sampling);
+
+    fYsignal.resize(fn_bins);
+    for (int i = 0; i < fn_bins; ++i) {
+      fYsignal[i] = fHisto_signal->GetBinContent(i + 1);
+    }
+  };
+
+  void inputSignal(TF1 *f_signal, int n_sampling = 5000) {
+    if (fHisto_signal)
+      delete fHisto_signal;
+
+    fHisto_signal =
+        new TH1D(Form("template_signal_%d", GenerateUID()), "Signal Template",
+                 fn_bins, fx_min, fx_min + fn_bins * fw_bins);
+    for (int i = 0; i < n_sampling; ++i) {
+      double x = f_signal->GetRandom();
+      fHisto_signal->Fill(x);
+    }
+    fHisto_signal->Scale(1. / (double)n_sampling);
+
+    fYsignal.resize(fn_bins);
+    for (int i = 0; i < fn_bins; ++i) {
+      fYsignal[i] = fHisto_signal->GetBinContent(i + 1);
+    }
+  }
+
+  void fit() {
+    vector<double> coeffs = Project(fYraws);
+
+    MDiscreteFunc fitted_func(fn_bins);
+    for (int n = 0; n <= fnOrderPoly; ++n) {
+      fitted_func += fBasisVecs[n] * coeffs[n];
+    }
+    fResults_fit = fitted_func.GetPars(fx_min, fw_bins);
+  }
+
+  void fitWithSignal() {
+    MFitterVec raw_substracted = fYraws.throwBasicVec(fBasisVecs);
+    MFitterVec signal_substracted = fYsignal.throwBasicVec(fBasisVecs);
+
+    double norm_raw = sqrt(raw_substracted * raw_substracted);
+    double norm_signal = sqrt(signal_substracted * signal_substracted);
+
+    // cout << "MFitterPoly::fitWithSignal: norm_raw = " << norm_raw
+    //      << ", norm_signal = " << norm_signal << endl;
+
+    double cosTheta =
+        (raw_substracted * signal_substracted) / (norm_raw * norm_signal);
+
+    // cout << "MFitterPoly::fitWithSignal: cosTheta = " << cosTheta << endl;
+
+    if (cosTheta < 0) {
+      cerr << "MFitterPoly::fitWithSignal: cosTheta < 0, set nsignal = 0"
+           << endl;
+      fNSignal = 0.0;
+    } else {
+      fNSignal = cosTheta * norm_raw / norm_signal;
+    }
+
+    // cout << "MFitterPoly::fitWithSignal: fNSignal = " << fNSignal << endl;
+
+    MFitterVec raw_minus_signal = fYraws - fYsignal * fNSignal;
+
+    vector<double> coeffs = Project(raw_minus_signal);
+    MDiscreteFunc fitted_func(fn_bins);
+    for (int n = 0; n <= fnOrderPoly; ++n) {
+      fitted_func += fBasisVecs[n] * coeffs[n];
+    }
+    fResults_fit = fitted_func.GetPars(fx_min, fw_bins);
+  }
+
+  int GetNbins() const { return fn_bins; }
+  double GetXmin() const { return fx_min; }
+  double GetXmax() const { return fx_max; }
+  double GetBinWidth() const { return fw_bins; }
+};
 
 #endif // __MFit_h__

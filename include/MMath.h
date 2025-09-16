@@ -466,20 +466,29 @@ public:
     }
     return *this;
   }
+
+  double cos(MDiscreteFunc rhs) {
+    double dot_product = (*this) * rhs;
+    double norm1 = sqrt((*this) * (*this));
+    double norm2 = sqrt(rhs * rhs);
+    return dot_product / (norm1 * norm2);
+  }
+
+  double cos(vector<double> rhs) {
+    double dot_product = (*this) * rhs;
+    double norm1 = sqrt((*this) * (*this));
+    double norm2 = 0;
+    for (int i = 0; i < rhs.size(); i++) {
+      norm2 += rhs[i] * rhs[i];
+    }
+    norm2 /= rhs.size();
+    norm2 = sqrt(norm2);
+    return dot_product / (norm1 * norm2);
+  }
 };
 
-vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
-
-void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
-  if (gOrthogonalDiscreteFuncs.size() > 0) {
-    cerr << "Error: gOrthogonalDiscreteFuncs is already initialized!" << endl;
-    exit(1);
-  }
-
-  if (max_order < 0) {
-    cerr << "Error: max_order must be non-negative!" << endl;
-    exit(1);
-  }
+vector<MDiscreteFunc> InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
+  vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
 
   gOrthogonalDiscreteFuncs.push_back(MDiscreteFunc(nbins, 0));
 
@@ -493,11 +502,12 @@ void InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
     double norm = sqrt(func_order * func_order);
     func_order *= (1.0 / norm);
     gOrthogonalDiscreteFuncs.push_back(func_order);
-    cout << "=========================" << endl
-         << "Initialized order " << order << " orthogonal discrete function."
-         << endl;
-    func_order.Print();
+    // cout << "=========================" << endl
+    //      << "Initialized order " << order << " orthogonal discrete function."
+    //      << endl;
+    // func_order.Print();
   }
+  return gOrthogonalDiscreteFuncs;
 }
 
 MComplex GetMComplexFromHist(TH1 *hist_re, TH1 *hist_im, int i_bin) {
