@@ -293,13 +293,6 @@ private:
   int fNbins;
   std::vector<double> fPars;
 
-  double LengthCoor(int nth_bin) {
-    double sum = 0;
-    for (int i = 1; i <= fNbins; i++)
-      sum += pow(i, nth_bin);
-    return sum / fNbins;
-  }
-
 public:
   MDiscreteFunc() {
     fNbins = 0;
@@ -374,7 +367,7 @@ public:
     for (int i = 1; i <= fNbins; i++) {
       sum += this->Eval(i) * rhs.Eval(i);
     }
-    return sum / fNbins;
+    return sum;
   }
 
   double operator*(vector<double> rhs) {
@@ -387,7 +380,7 @@ public:
     for (int i = 0; i < fNbins; i++) {
       sum += this->Eval(i + 1) * rhs[i];
     }
-    return sum / fNbins;
+    return sum;
   }
 
   MDiscreteFunc operator*(double rhs) {
@@ -481,7 +474,6 @@ public:
     for (int i = 0; i < rhs.size(); i++) {
       norm2 += rhs[i] * rhs[i];
     }
-    norm2 /= rhs.size();
     norm2 = sqrt(norm2);
     return dot_product / (norm1 * norm2);
   }
@@ -490,7 +482,10 @@ public:
 vector<MDiscreteFunc> InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
   vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
 
-  gOrthogonalDiscreteFuncs.push_back(MDiscreteFunc(nbins, 0));
+  MDiscreteFunc e_0(nbins, 0);
+  e_0 *= 1. / sqrt(e_0 * e_0);
+
+  gOrthogonalDiscreteFuncs.push_back(e_0);
 
   for (int order = 1; order <= max_order; order++) {
     MDiscreteFunc func_order(nbins, order);

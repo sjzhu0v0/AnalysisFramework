@@ -1123,7 +1123,7 @@ private:
       for (size_t i = 0; i < fVec.size(); ++i) {
         result += fVec[i] * other.fVec[i];
       }
-      return result / (double)fVec.size();
+      return result;
     }
 
     MFitterVec &operator=(const MFitterVec &other) {
@@ -1172,6 +1172,8 @@ private:
 
   double fx_min;
   double fx_max;
+  double fx_min_plot;
+  double fx_max_plot;
   double fw_bins;
   double fn_bins;
   vector<MDiscreteFunc> fBasisVecs;
@@ -1217,6 +1219,9 @@ public:
     if (fx_max != x_max) {
       std::cout << "MFitterPoly: x_max is adjusted to " << fx_max << std::endl;
     }
+    fx_min_plot = fx_min + fw_bins / 2.;
+    fx_max_plot = fx_max - fw_bins / 2.;
+
     fn_bins = bin_max - bin_min + 1;
     fYraws.resize(fn_bins);
     for (int i = 0; i < fn_bins; ++i) {
@@ -1349,6 +1354,11 @@ public:
   double GetXmax() const { return fx_max; }
   double GetBinWidth() const { return fw_bins; }
 
+  void SetRangePlot(double x_min, double x_max) {
+    fx_min_plot = x_min;
+    fx_max_plot = x_max;
+  }
+
   void Draw() {
     gStyle->SetEndErrorSize(2.);
     auto raw = (TH1D *)fHisto->Clone(Form("histo_raw_%d", GenerateUID()));
@@ -1376,6 +1386,7 @@ public:
     raw->GetYaxis()->SetTitle(Form("Entries / (%.2f GeV^{2}/c^{4})", fw_bins));
     double max_raw = raw->GetMaximum();
     raw->GetYaxis()->SetRangeUser(0, max_raw * 1.2);
+    raw->GetXaxis()->SetRangeUser(fx_min_plot, fx_max_plot);
     raw->SetMarkerColor(kBlack);
     raw->SetMarkerColor(kBlack);
     raw->SetMarkerStyle(20);
