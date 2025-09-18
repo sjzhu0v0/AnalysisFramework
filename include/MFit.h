@@ -27,7 +27,9 @@
 #include "TAxis.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TGraphErrors.h"
 #include "TLegend.h"
+#include "TPad.h"
 #include "TRandom3.h"
 #include "TString.h"
 #include "tuple"
@@ -491,11 +493,17 @@ public:
 
   virtual ~MSignalFit() { clean(); }
 
-  virtual double *GetParamsSignal() {
+  virtual unique_ptr<TF1> GetSignalFunc(unique_ptr<TF1> f_signal = nullptr) {
     if (!fWs) {
       cerr << "MSignalFit::GetParamsSignal: Workspace is not initialized!"
            << endl;
       exit(1);
+    }
+    if (!f_signal) {
+      f_signal = make_unique<TF1>(
+          "f_signal",
+          "ROOT::Math::crystalball_function(x,[Alpha],[N],[Sigma],[Mean])", 0,
+          fX->getMax());
     }
     RooArgSet *params = fPdf_signal->getParameters(*fX);
     int nParams = params->getSize();
@@ -507,7 +515,9 @@ public:
         values[index++] = var->getVal();
       }
     }
-    return values;
+    f_signal->SetParameters(values);
+    delete[] values;
+    return f_signal;
   }
 };
 
@@ -1232,6 +1242,8 @@ public:
     if (bin_width != fw_bins) {
       std::cerr << "MFitterPoly::setHisto: bin width does not match!"
                 << std::endl;
+      std::cerr << "  fw_bins = " << fw_bins << ", bin_width = " << bin_width
+                << std::endl;
       exit(1);
     }
     int bin_min = h1->GetXaxis()->FindBin(fx_min);
@@ -1241,17 +1253,18 @@ public:
       exit(1);
     }
 
-    fHisto->Delete();
+    // fHisto->Delete();
     fHisto = h1;
 
     vector<double> new_y_vals;
     new_y_vals.resize(fn_bins);
     for (int i = 0; i < fn_bins; ++i) {
-      new_y_vals[i] = h1->GetBinContent(bin_min + i);
+      new_y_vals[i] = fHisto->GetBinContent(bin_min + i);
     }
+    fYraws = MFitterVec(new_y_vals);
   }
 
-  void inputSignal(TH1D *h_signal, int n_sampling = 5000) {
+  void inputSignal(TH1D *h_signal, int n_sampling = 10000000) {
     fHisto_signal =
         new TH1D(Form("template_signal_%d", GenerateUID()), "Signal Template",
                  fn_bins, fx_min, fx_min + fn_bins * fw_bins);
@@ -1267,7 +1280,7 @@ public:
     }
   };
 
-  void inputSignal(TF1 *f_signal, int n_sampling = 5000) {
+  void inputSignal(TF1 *f_signal, int n_sampling = 10000000) {
     if (fHisto_signal)
       delete fHisto_signal;
 
@@ -1335,6 +1348,82 @@ public:
   double GetXmin() const { return fx_min; }
   double GetXmax() const { return fx_max; }
   double GetBinWidth() const { return fw_bins; }
+
+  void Draw() {
+    gStyle->SetEndErrorSize(2.);
+    auto raw = (TH1D *)fHisto->Clone(Form("histo_raw_%d", GenerateUID()));
+    raw->GetXaxis()->SetRangeUser(fx_min, fx_max);
+    TF1 *bg = new TF1(Form("bg_fit_%d", GenerateUID()),
+                      Form("pol%d", fnOrderPoly), fx_min, fx_max);
+    bg->SetParameters(fResults_fit.data());
+    auto signal =
+        (TH1D *)fHisto_signal->Clone(Form("histo_signal_%d", GenerateUID()));
+    signal->Scale(fNSignal);
+    auto fit_total =
+        (TH1D *)signal->Clone(Form("histo_fit_total_%d", GenerateUID()));
+    for (int i = 1; i <= fit_total->GetNbinsX(); ++i) {
+      double x = fit_total->GetXaxis()->GetBinCenter(i);
+      double y_bg = bg->Eval(x);
+      double y_signal = signal->GetBinContent(i);
+      fit_total->SetBinContent(i, y_bg + y_signal);
+    }
+    TGraph *gr_signal = new TGraph(signal);
+    TGraph *gr_fitTotal = new TGraph(fit_total);
+
+    MRootGraphic::StyleHistCommon(raw);
+    // ============================================
+    raw->SetTitle("");
+    raw->GetYaxis()->SetTitle(Form("Entries / (%.2f GeV^{2}/c^{4})", fw_bins));
+    double max_raw = raw->GetMaximum();
+    raw->GetYaxis()->SetRangeUser(0, max_raw * 1.2);
+    raw->SetMarkerColor(kBlack);
+    raw->SetMarkerColor(kBlack);
+    raw->SetMarkerStyle(20);
+
+    // ============================================
+    gr_fitTotal->SetLineColor(kBlue);
+    gr_fitTotal->SetLineWidth(2);
+
+    // ============================================
+    bg->SetLineColor(kGreen + 1);
+    bg->SetLineStyle(kDashed);
+    bg->SetLineWidth(3);
+
+    // =====================================
+    gr_signal->SetLineColor(kRed);
+    gr_signal->SetMarkerStyle(0);
+    gr_signal->SetLineStyle(kDashed);
+    gr_signal->SetLineWidth(3);
+
+    raw->Draw("E1");
+    bg->Draw("same");
+    gr_fitTotal->Draw("same C");
+    gr_signal->Draw("same C");
+
+    TLegend *legend = new TLegend(0.175, 0.75, 0.375, 0.89);
+    legend->SetFillColor(0);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.035);
+    legend->SetLineColor(0);
+    legend->AddEntry(raw, "Data", "lep");
+    legend->AddEntry(gr_signal, "Signal", "l");
+    legend->AddEntry(bg, "Background", "l");
+    legend->Draw("same");
+
+    TLatex *tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextSize(0.04);
+    // tex->DrawLatex(0.55, 0.86, Form("N_{sig} = %.2f", fNSignal));
+    // Draw fNsignal in scientific notation with 2 decimal places
+    tex->DrawLatex(0.65, 0.8, Form("N_{sig} = %.2e", fNSignal));
+
+    // tex->DrawLatex(0.55, 0.86 - 0.045,
+    //                Form("N_{bkg} = %.2f", fit_result.fNbkg[0],
+    //                     fit_result.fNbkg[1]));
+    // tex->DrawLatex(0.55, 0.86 - 0.045 * 2,
+    //                Form("#chi^{2}/NDF = %.2f", fit_result.chi2ToNdf));
+    tex->Draw("same");
+  }
 };
 
 #endif // __MFit_h__
