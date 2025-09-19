@@ -158,6 +158,8 @@ public:
     // fResult->Delete();
   }
 
+  virtual ~MSignalFit() { clean(); }
+  
   virtual void InputData(TH1D *data) {
     if (!fWs) {
       cerr << "MSignalFit::operator<<: Workspace is not initialized!" << endl;
@@ -490,8 +492,6 @@ public:
     graph->SetLineColor(kGreen);
     return graph;
   }
-
-  virtual ~MSignalFit() { clean(); }
 
   virtual unique_ptr<TF1> GetSignalFunc(unique_ptr<TF1> f_signal = nullptr) {
     if (!fWs) {

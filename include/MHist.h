@@ -931,15 +931,6 @@ public:
   Iterator end() { return Iterator(this, fVar.fNbins + this->fBinIndex); }
 };
 
-// #define DefineMIndexAny(tag, type_var)                                         \
-//   class MIndex##tag : public MIndex<type_var, MIndex##tag> {                   \
-//   public:                                                                      \
-//     MIndex##tag(type_var strVar, int binIndex = 1)                             \
-//         : MIndex<type_var, MIndex##tag>(strVar, binIndex) {}                   \
-//                                                                                \
-//     operator int() const { return fIndex; }                                    \
-//   };
-
 template <typename T> class MIndexAny : public MIndex<T, MIndexAny<T>> {
 public:
   MIndexAny(T strVar, int binIndex = 1)
