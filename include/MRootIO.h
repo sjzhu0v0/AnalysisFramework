@@ -12,6 +12,7 @@ struct has_SetDirectory : std::false_type {};
 template <typename T>
 struct has_SetDirectory<T, std::void_t<decltype(&T::SetDirectory)>>
     : std::true_type {};
+
 TChain *OpenChain(const char *name_file, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
 
