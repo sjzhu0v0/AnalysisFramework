@@ -11,6 +11,7 @@ submit() {
     local job_name="my_job"
     local time_limit="2:00:00"
     local dependency=""
+    local array_spec=""
     local path_env path_command ncommands_onefile
 
     local args=("$@")
@@ -34,6 +35,10 @@ submit() {
                 dependency="${args[i+1]}"
                 i=$((i + 2))
                 ;;
+            -a)
+                array_spec="${args[i+1]}"
+                i=$((i + 2))
+                ;;
             *)
                 if [[ -z ${path_env} ]]; then
                     path_env="${args[i]}"
@@ -51,7 +56,7 @@ submit() {
     done
 
     if [[ -z ${path_env} || -z ${path_command} ]]; then
-        echo "Usage: submit [-p partition] [-n job_name] [-t time_limit] [--dependency <dependency_spec>] <path_env> <path_command> [ncommands_onefile]"
+        echo "Usage: submit [-p partition] [-n job_name] [-t time_limit] [-a array_spec] [--dependency <dependency_spec>] <path_env> <path_command> [ncommands_onefile]"
         return 1
     fi
 
@@ -79,12 +84,16 @@ submit() {
 
     local n_commands=$(wc -l < ${path_command})
 
+    if [[ -z ${array_spec} ]]; then
+        array_spec="1-${n_commands}"
+    fi
+
     local sbatch_cmd=(
         sbatch
         --job-name=${job_name}
         --partition=${partition}
         --time=${time_limit}
-        --array=1-${n_commands}
+        --array=${array_spec}
     )
 
     [[ -n ${dependency} ]] && sbatch_cmd+=(--dependency=${dependency})
@@ -93,10 +102,11 @@ submit() {
 
     "${sbatch_cmd[@]}"
 
-    echo "Submitted job array with ${n_commands} tasks (partition: ${partition}, job name: ${job_name}, time limit: ${time_limit})."
+    echo "Submitted job array with spec '${array_spec}' (partition: ${partition}, job name: ${job_name}, time limit: ${time_limit})."
     [[ -n ${dependency} ]] && echo "Dependency: ${dependency}"
     cd ${base}
 }
+
 
 declare -A LAST_JOBID_AT_LEVEL
 
@@ -116,6 +126,7 @@ while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   OUTPUT=$($CMD)
   echo "$OUTPUT"
   JOBID=$(echo "$OUTPUT" | grep -oP 'Submitted batch job \K[0-9]+')
+  echo "Job ID: $JOBID, Parent Job ID: $PARENT_JOBID, Command: $CMD" > ${1}.log
   if [[ -z "$JOBID" ]]; then
     echo "Fatal: no job found!!!!"
     exit 1
