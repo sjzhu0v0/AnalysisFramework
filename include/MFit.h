@@ -159,7 +159,7 @@ public:
   }
 
   virtual ~MSignalFit() { clean(); }
-  
+
   virtual void InputData(TH1D *data) {
     if (!fWs) {
       cerr << "MSignalFit::operator<<: Workspace is not initialized!" << endl;
@@ -1042,29 +1042,30 @@ template <typename T> void PrintParams(T *pdf) {
   }
 }
 
+#include "MMath.h"
+
 class MFitterPoly {
 private:
-  // predeclare MFitterVec
   struct MFitterVec {
-    vector<double> fVec;
-    // vector<double> fVec_substructed;
-    MFitterVec() {}
-    MFitterVec(int size) { fVec.resize(size, 0.0); }
-    MFitterVec(vector<double> vec) { fVec = vec; }
+    std::vector<double> fVec;
 
-    MFitterVec throwBasicVec(vector<MDiscreteFunc> vecFunc) {
-      vector<double> coeffs;
+    MFitterVec() = default;
+    MFitterVec(int size) { fVec.resize(size, 0.0); }
+    MFitterVec(const std::vector<double> &vec) : fVec(vec) {}
+
+    MFitterVec throwBasicVec(std::vector<MDiscreteFunc> vecFunc) const {
+      std::vector<double> coeffs;
       for (auto func : vecFunc) {
         double coeff = func * fVec;
         coeffs.push_back(coeff);
       }
 
-      MDiscreteFunc func_reconstructed = MDiscreteFunc(fVec.size());
+      MDiscreteFunc func_reconstructed(fVec.size());
       for (size_t i = 0; i < vecFunc.size(); ++i) {
         func_reconstructed += vecFunc[i] * coeffs[i];
       }
 
-      vector<double> vec_substructed(fVec.size(), 0.0);
+      std::vector<double> vec_substructed(fVec.size(), 0.0);
       for (size_t i = 0; i < fVec.size(); ++i) {
         vec_substructed[i] = fVec[i] - func_reconstructed.Eval(i + 1);
       }
@@ -1072,100 +1073,86 @@ private:
     }
 
     void resize(int size) { fVec.resize(size, 0.0); }
-
     void clear() { fVec.clear(); }
+    size_t size() const { return fVec.size(); }
 
     double &operator[](int index) { return fVec[index]; }
+    const double &operator[](int index) const { return fVec[index]; }
 
-    operator const vector<double> &() const { return fVec; }
+    operator const std::vector<double> &() const { return fVec; }
 
-    MFitterVec operator+(const MFitterVec &other) {
+    // Arithmetic operators
+    MFitterVec operator+(const MFitterVec &other) const {
       if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator+: Vector size does not match!"
-                  << std::endl;
-        exit(1);
+        std::cerr << "MFitterVec::operator+: size mismatch!" << std::endl;
+        std::exit(1);
       }
       MFitterVec result(fVec.size());
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         result.fVec[i] = fVec[i] + other.fVec[i];
-      }
       return result;
     }
 
-    MFitterVec operator-(const MFitterVec &other) {
+    MFitterVec operator-(const MFitterVec &other) const {
       if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator-: Vector size does not match!"
-                  << std::endl;
-        exit(1);
+        std::cerr << "MFitterVec::operator-: size mismatch!" << std::endl;
+        std::exit(1);
       }
       MFitterVec result(fVec.size());
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         result.fVec[i] = fVec[i] - other.fVec[i];
-      }
       return result;
     }
 
-    MFitterVec operator*(double scalar) {
+    MFitterVec operator*(double scalar) const {
       MFitterVec result(fVec.size());
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         result.fVec[i] = fVec[i] * scalar;
-      }
       return result;
     }
 
-    double operator*(const MFitterVec &other) {
+    double operator*(const MFitterVec &other) const {
       if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator*: Vector size does not match!"
-                  << std::endl;
-        exit(1);
+        std::cerr << "MFitterVec::operator*: size mismatch!" << std::endl;
+        std::exit(1);
       }
       double result = 0.0;
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         result += fVec[i] * other.fVec[i];
-      }
       return result;
     }
 
+    // Assignment operator — safe and idiomatic
     MFitterVec &operator=(const MFitterVec &other) {
-      if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator=: Vector size does not match!"
-                  << std::endl;
-        exit(1);
-      }
-      for (size_t i = 0; i < fVec.size(); ++i) {
-        fVec[i] = other.fVec[i];
+      if (this != &other) {
+        fVec = other.fVec; // std::vector handles resize + copy
       }
       return *this;
     }
 
     MFitterVec &operator+=(const MFitterVec &other) {
       if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator+=: Vector size does not match!"
-                  << std::endl;
-        exit(1);
+        std::cerr << "MFitterVec::operator+=: size mismatch!" << std::endl;
+        std::exit(1);
       }
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         fVec[i] += other.fVec[i];
-      }
       return *this;
     }
 
     MFitterVec &operator-=(const MFitterVec &other) {
       if (fVec.size() != other.fVec.size()) {
-        std::cerr << "MFitterVec::operator-=: Vector size does not match!"
-                  << std::endl;
-        exit(1);
+        std::cerr << "MFitterVec::operator-=: size mismatch!" << std::endl;
+        std::exit(1);
       }
-      for (size_t i = 0; i < fVec.size(); ++i) {
+      for (size_t i = 0; i < fVec.size(); ++i)
         fVec[i] -= other.fVec[i];
-      }
       return *this;
     }
 
     MFitterVec &operator*=(double scalar) {
-      for (size_t i = 0; i < fVec.size(); ++i) {
-        fVec[i] *= scalar;
-      }
+      for (auto &v : fVec)
+        v *= scalar;
       return *this;
     }
   };
@@ -1175,20 +1162,31 @@ private:
   double fx_min_plot;
   double fx_max_plot;
   double fw_bins;
-  double fn_bins;
-  vector<MDiscreteFunc> fBasisVecs;
+  int fn_bins; // changed to int for consistency
+  std::vector<MDiscreteFunc> fBasisVecs;
 
   MFitterVec fYraws;
   MFitterVec fYsignal;
   int fnOrderPoly = 2;
 
-  MFitterVec Project(const vector<double> &y_vals) {
-    if (y_vals.size() != fn_bins) {
-      std::cerr << "MFitterPoly::fit: y_vals size does not match fn_bins!"
-                << std::endl;
-      exit(1);
+  bool fOwnsHisto = true;        // 👈 新增：管理 fHisto 所有权
+  bool fOwnsHistoSignal = false; // 👈 新增：管理 fHisto_signal 所有权
+
+  MFitterVec Project(const std::vector<double> &y_vals) {
+    if ((int)y_vals.size() != fn_bins) {
+      std::cerr << "MFitterPoly::Project: y_vals size != fn_bins!" << std::endl;
+      std::exit(1);
     }
-    vector<double> coeffs;
+
+    // 🔒 安全检查：确保 fBasisVecs 足够大
+    if ((int)fBasisVecs.size() <= fnOrderPoly) {
+      std::cerr << "MFitterPoly::Project: fBasisVecs not initialized for order "
+                << fnOrderPoly << " (size=" << fBasisVecs.size() << ")"
+                << std::endl;
+      std::exit(1);
+    }
+
+    std::vector<double> coeffs;
     for (int n = 0; n <= fnOrderPoly; ++n) {
       double coeff = fBasisVecs[n] * y_vals;
       coeffs.push_back(coeff);
@@ -1200,10 +1198,16 @@ public:
   TH1D *fHisto = nullptr;
   TH1D *fHisto_signal = nullptr;
   double fNSignal = 0.0;
-  vector<double> fResults_fit;
+  std::vector<double> fResults_fit;
 
   MFitterPoly(TH1D *h1, double x_min, double x_max) {
+    if (!h1) {
+      std::cerr << "MFitterPoly: input histogram is null!" << std::endl;
+      std::exit(1);
+    }
     fHisto = (TH1D *)h1->Clone(Form("histo_%d", GenerateUID()));
+    fOwnsHisto = true;
+
     fx_min = x_min;
     fx_max = x_max;
     fw_bins = h1->GetXaxis()->GetBinWidth(1);
@@ -1214,10 +1218,10 @@ public:
     fx_max = h1->GetXaxis()->GetBinUpEdge(bin_max);
 
     if (fx_min != x_min) {
-      std::cout << "MFitterPoly: x_min is adjusted to " << fx_min << std::endl;
+      std::cout << "MFitterPoly: x_min adjusted to " << fx_min << std::endl;
     }
     if (fx_max != x_max) {
-      std::cout << "MFitterPoly: x_max is adjusted to " << fx_max << std::endl;
+      std::cout << "MFitterPoly: x_max adjusted to " << fx_max << std::endl;
     }
     fx_min_plot = fx_min + fw_bins / 2.;
     fx_max_plot = fx_max - fw_bins / 2.;
@@ -1230,39 +1234,59 @@ public:
   }
 
   ~MFitterPoly() {
-    fBasisVecs.clear();
-    fYraws.clear();
-    if (fHisto)
+    if (fOwnsHisto && fHisto) {
       delete fHisto;
+      fHisto = nullptr;
+    }
+    if (fOwnsHistoSignal && fHisto_signal) {
+      delete fHisto_signal;
+      fHisto_signal = nullptr;
+    }
   }
 
   void initializeBasis(int order = 4) {
     fnOrderPoly = order;
     fBasisVecs = InitOrthogonalDiscreteFuncs(fn_bins, order);
+    // Optional: verify size
+    if ((int)fBasisVecs.size() != order + 1) {
+      std::cerr << "Warning: InitOrthogonalDiscreteFuncs returned "
+                << fBasisVecs.size() << " functions, expected " << order + 1
+                << std::endl;
+    }
   }
 
   void setHisto(TH1D *h1) {
-    // bin alignment check
-    double bin_width = h1->GetXaxis()->GetBinWidth(1);
-    if (bin_width != fw_bins) {
-      std::cerr << "MFitterPoly::setHisto: bin width does not match!"
-                << std::endl;
-      std::cerr << "  fw_bins = " << fw_bins << ", bin_width = " << bin_width
-                << std::endl;
-      exit(1);
+    if (!h1) {
+      std::cerr << "MFitterPoly::setHisto: null pointer!" << std::endl;
+      std::exit(1);
     }
+
+    double bin_width = h1->GetXaxis()->GetBinWidth(1);
+    if (std::abs(bin_width - fw_bins) > 1e-6) {
+      std::cerr << "MFitterPoly::setHisto: bin width mismatch!" << std::endl;
+      std::cerr << "  expected = " << fw_bins << ", got = " << bin_width
+                << std::endl;
+      std::exit(1);
+    }
+
     int bin_min = h1->GetXaxis()->FindBin(fx_min);
     double new_x_min = h1->GetXaxis()->GetBinLowEdge(bin_min);
-    if (new_x_min != fx_min) {
-      std::cerr << "MFitterPoly::setHisto: x_min does not match!" << std::endl;
-      exit(1);
+    if (std::abs(new_x_min - fx_min) > 1e-6) {
+      std::cerr << "MFitterPoly::setHisto: x_min mismatch!" << std::endl;
+      std::exit(1);
     }
 
-    // fHisto->Delete();
-    fHisto = h1;
+    // Clean up old histogram if we own it
+    if (fOwnsHisto && fHisto) {
+      delete fHisto;
+    }
 
-    vector<double> new_y_vals;
-    new_y_vals.resize(fn_bins);
+    // Clone the new one — we take ownership
+    fHisto = (TH1D *)h1->Clone(Form("histo_set_%d", GenerateUID()));
+    fOwnsHisto = true;
+
+    // Update fYraws
+    std::vector<double> new_y_vals(fn_bins);
     for (int i = 0; i < fn_bins; ++i) {
       new_y_vals[i] = fHisto->GetBinContent(bin_min + i);
     }
@@ -1270,33 +1294,42 @@ public:
   }
 
   void inputSignal(TH1D *h_signal, int n_sampling = 10000000) {
+    if (fOwnsHistoSignal && fHisto_signal) {
+      delete fHisto_signal;
+    }
+
     fHisto_signal =
         new TH1D(Form("template_signal_%d", GenerateUID()), "Signal Template",
                  fn_bins, fx_min, fx_min + fn_bins * fw_bins);
+    fOwnsHistoSignal = true;
+
     for (int i = 0; i < n_sampling; ++i) {
       double x = h_signal->GetRandom();
       fHisto_signal->Fill(x);
     }
-    fHisto_signal->Scale(1. / (double)n_sampling);
+    fHisto_signal->Scale(1.0 / n_sampling);
 
     fYsignal.resize(fn_bins);
     for (int i = 0; i < fn_bins; ++i) {
       fYsignal[i] = fHisto_signal->GetBinContent(i + 1);
     }
-  };
+  }
 
   void inputSignal(TF1 *f_signal, int n_sampling = 10000000) {
-    if (fHisto_signal)
+    if (fOwnsHistoSignal && fHisto_signal) {
       delete fHisto_signal;
+    }
 
     fHisto_signal =
         new TH1D(Form("template_signal_%d", GenerateUID()), "Signal Template",
                  fn_bins, fx_min, fx_min + fn_bins * fw_bins);
+    fOwnsHistoSignal = true;
+
     for (int i = 0; i < n_sampling; ++i) {
       double x = f_signal->GetRandom();
       fHisto_signal->Fill(x);
     }
-    fHisto_signal->Scale(1. / (double)n_sampling);
+    fHisto_signal->Scale(1.0 / n_sampling);
 
     fYsignal.resize(fn_bins);
     for (int i = 0; i < fn_bins; ++i) {
@@ -1305,7 +1338,8 @@ public:
   }
 
   void fit() {
-    vector<double> coeffs = Project(fYraws);
+    std::vector<double> coeffs_vec = Project(fYraws);
+    std::vector<double> coeffs(coeffs_vec.begin(), coeffs_vec.end());
 
     MDiscreteFunc fitted_func(fn_bins);
     for (int n = 0; n <= fnOrderPoly; ++n) {
@@ -1314,34 +1348,32 @@ public:
     fResults_fit = fitted_func.GetPars(fx_min, fw_bins);
   }
 
+  TF1 *GetBkgFunc() const {
+    auto bg = new TF1(Form("bg_fit_%d", GenerateUID()),
+                      Form("pol%d", fnOrderPoly), fx_min, fx_max);
+    bg->SetParameters(fResults_fit.data());
+    return bg;
+  }
+
   void fitWithSignal() {
     MFitterVec raw_substracted = fYraws.throwBasicVec(fBasisVecs);
     MFitterVec signal_substracted = fYsignal.throwBasicVec(fBasisVecs);
 
-    double norm_raw = sqrt(raw_substracted * raw_substracted);
-    double norm_signal = sqrt(signal_substracted * signal_substracted);
+    double norm_raw = std::sqrt(raw_substracted * raw_substracted);
+    double norm_signal = std::sqrt(signal_substracted * signal_substracted);
 
-    // cout << "MFitterPoly::fitWithSignal: norm_raw = " << norm_raw
-    //      << ", norm_signal = " << norm_signal << endl;
-
-    double cosTheta =
-        (raw_substracted * signal_substracted) / (norm_raw * norm_signal);
-
-    // cout << "MFitterPoly::fitWithSignal: cosTheta = " << cosTheta << endl;
-
-    if (cosTheta < 0) {
-      cerr << "MFitterPoly::fitWithSignal: cosTheta < 0, set nsignal = 0"
-           << endl;
+    if (norm_raw == 0 || norm_signal == 0) {
       fNSignal = 0.0;
     } else {
-      fNSignal = cosTheta * norm_raw / norm_signal;
+      double cosTheta =
+          (raw_substracted * signal_substracted) / (norm_raw * norm_signal);
+      fNSignal = (cosTheta > 0) ? cosTheta * norm_raw / norm_signal : 0.0;
     }
 
-    // cout << "MFitterPoly::fitWithSignal: fNSignal = " << fNSignal << endl;
-
     MFitterVec raw_minus_signal = fYraws - fYsignal * fNSignal;
+    std::vector<double> coeffs_vec = Project(raw_minus_signal);
+    std::vector<double> coeffs(coeffs_vec.begin(), coeffs_vec.end());
 
-    vector<double> coeffs = Project(raw_minus_signal);
     MDiscreteFunc fitted_func(fn_bins);
     for (int n = 0; n <= fnOrderPoly; ++n) {
       fitted_func += fBasisVecs[n] * coeffs[n];
@@ -1354,6 +1386,28 @@ public:
   double GetXmax() const { return fx_max; }
   double GetBinWidth() const { return fw_bins; }
 
+  double GetChi2OvNdf() const {
+    auto bg = GetBkgFunc();
+    double chi2 = 0.0;
+    int ndf = fn_bins - (fnOrderPoly + 1) - 1; // -1 for fNSignal
+    int bin_min = fHisto->GetXaxis()->FindBin(fx_min);
+
+    for (int i = 0; i < fn_bins; ++i) {
+      double y = fHisto->GetBinContent(bin_min + i);
+      double err_y = fHisto->GetBinError(bin_min + i);
+      double y_sig = fYsignal.fVec[i] * fNSignal;
+      double x = fHisto->GetBinCenter(bin_min + i);
+      double y_bg = bg->Eval(x);
+      if (err_y > 0) {
+        double resid = y - y_sig - y_bg;
+        chi2 += resid * resid / (err_y * err_y);
+      }
+    }
+
+    delete bg; // 👈 避免内存泄漏
+    return (ndf > 0) ? chi2 / ndf : 0.0;
+  }
+
   void SetRangePlot(double x_min, double x_max) {
     fx_min_plot = x_min;
     fx_max_plot = x_max;
@@ -1363,12 +1417,15 @@ public:
     gStyle->SetEndErrorSize(2.);
     auto raw = (TH1D *)fHisto->Clone(Form("histo_raw_%d", GenerateUID()));
     raw->GetXaxis()->SetRangeUser(fx_min, fx_max);
+
     TF1 *bg = new TF1(Form("bg_fit_%d", GenerateUID()),
                       Form("pol%d", fnOrderPoly), fx_min, fx_max);
     bg->SetParameters(fResults_fit.data());
+
     auto signal =
         (TH1D *)fHisto_signal->Clone(Form("histo_signal_%d", GenerateUID()));
     signal->Scale(fNSignal);
+
     auto fit_total =
         (TH1D *)signal->Clone(Form("histo_fit_total_%d", GenerateUID()));
     for (int i = 1; i <= fit_total->GetNbinsX(); ++i) {
@@ -1377,39 +1434,35 @@ public:
       double y_signal = signal->GetBinContent(i);
       fit_total->SetBinContent(i, y_bg + y_signal);
     }
+
     TGraph *gr_signal = new TGraph(signal);
     TGraph *gr_fitTotal = new TGraph(fit_total);
 
     MRootGraphic::StyleHistCommon(raw);
-    // ============================================
     raw->SetTitle("");
     raw->GetYaxis()->SetTitle(Form("Entries / (%.2f GeV^{2}/c^{4})", fw_bins));
     double max_raw = raw->GetMaximum();
     raw->GetYaxis()->SetRangeUser(0, max_raw * 1.2);
     raw->GetXaxis()->SetRangeUser(fx_min_plot, fx_max_plot);
     raw->SetMarkerColor(kBlack);
-    raw->SetMarkerColor(kBlack);
     raw->SetMarkerStyle(20);
 
-    // ============================================
     gr_fitTotal->SetLineColor(kBlue);
     gr_fitTotal->SetLineWidth(2);
 
-    // ============================================
     bg->SetLineColor(kGreen + 1);
     bg->SetLineStyle(kDashed);
     bg->SetLineWidth(3);
 
-    // =====================================
     gr_signal->SetLineColor(kRed);
     gr_signal->SetMarkerStyle(0);
     gr_signal->SetLineStyle(kDashed);
     gr_signal->SetLineWidth(3);
 
-    raw->Draw("E1");
-    bg->Draw("same");
-    gr_fitTotal->Draw("same C");
-    gr_signal->Draw("same C");
+    raw->DrawClone("E1");
+    bg->DrawClone("same");
+    gr_fitTotal->DrawClone("same C");
+    gr_signal->DrawClone("same C");
 
     TLegend *legend = new TLegend(0.175, 0.75, 0.375, 0.89);
     legend->SetFillColor(0);
@@ -1419,22 +1472,131 @@ public:
     legend->AddEntry(raw, "Data", "lep");
     legend->AddEntry(gr_signal, "Signal", "l");
     legend->AddEntry(bg, "Background", "l");
-    legend->Draw("same");
+    legend->DrawClone("same");
 
     TLatex *tex = new TLatex();
     tex->SetNDC();
     tex->SetTextSize(0.04);
-    // tex->DrawLatex(0.55, 0.86, Form("N_{sig} = %.2f", fNSignal));
-    // Draw fNsignal in scientific notation with 2 decimal places
     tex->DrawLatex(0.65, 0.8, Form("N_{sig} = %.2e", fNSignal));
+    tex->DrawClone("same");
 
-    // tex->DrawLatex(0.55, 0.86 - 0.045,
-    //                Form("N_{bkg} = %.2f", fit_result.fNbkg[0],
-    //                     fit_result.fNbkg[1]));
-    // tex->DrawLatex(0.55, 0.86 - 0.045 * 2,
-    //                Form("#chi^{2}/NDF = %.2f", fit_result.chi2ToNdf));
-    tex->Draw("same");
+    // Clean up local objects if not added to canvas
+    delete raw;
+    delete signal;
+    delete fit_total;
+    delete gr_signal;
+    delete gr_fitTotal;
+    delete bg;
+    delete legend;
+    delete tex;
   }
 };
 
+// ==================================================================
+
+class MTestFitter {
+  MFitterPoly &fitter;
+  TF1 *fFunc_sig;
+  TH1D *fH1_mass;
+  int fN_test = 30;
+  std::vector<double> fVec_chi2ONdf;
+  std::vector<TF1 *> fVec_func_sig;
+
+public:
+  MTestFitter(MFitterPoly &fitterObj, TH1D *hist, int n_test = 30)
+      : fitter(fitterObj), fH1_mass(hist), fN_test(n_test) {
+
+    if (!hist) {
+      std::cerr << "MTestFitter: input histogram is null!" << std::endl;
+      std::exit(1);
+    }
+
+    fFunc_sig = new TF1("fitted_sig",
+                        "[z_height]*ROOT::Math::crystalball_function(x,[Alpha],"
+                        "[N],[Sigma],[Mean])",
+                        1.88, 4.32);
+    fFunc_sig->SetParameters(0.234623, 3.06213, 5.12185, 0.0491487, 1.);
+    fVec_chi2ONdf.reserve(fN_test);
+    fitterObj.setHisto(fH1_mass);
+  }
+
+  ~MTestFitter() {
+    delete fFunc_sig;
+    for (auto *f : fVec_func_sig) {
+      delete f;
+    }
+  }
+
+  void performTestFitting(bool doDraw = false) {
+    int index_max = 1000;
+    for (int i = 0; i < fN_test; i++) {
+      fitter.inputSignal(fFunc_sig, 1000000);
+      fitter.fitWithSignal();
+
+      if (doDraw) {
+        gPublisherCanvas->NewPad()->cd();
+        fitter.Draw();
+      }
+
+      TH1D *mass_copy =
+          (TH1D *)fH1_mass->Clone(Form("mass_copy_%d", GenerateUID()));
+      auto bkg = fitter.GetBkgFunc();
+
+      for (int j = 1; j <= mass_copy->GetNbinsX(); ++j) {
+        double x = mass_copy->GetXaxis()->GetBinCenter(j);
+        double y_bkg = bkg->Eval(x);
+        mass_copy->SetBinContent(j, mass_copy->GetBinContent(j) - y_bkg);
+      }
+
+      mass_copy->GetXaxis()->SetRangeUser(2.5, 4.0);
+
+      TF1 *func2fit = nullptr;
+      if (fVec_func_sig.empty()) {
+        func2fit = (TF1 *)fFunc_sig->Clone(Form("init_sig_%d", GenerateUID()));
+      } else {
+        func2fit = (TF1 *)fVec_func_sig.back()->Clone(
+            Form("sig_clone_%d", GenerateUID()));
+      }
+
+      func2fit->SetParameter("z_height", mass_copy->Integral("width"));
+      if (doDraw)
+        gPublisherCanvas->NewPad()->cd();
+      // mass_copy->Fit(func2fit, "RQ", "", 2.1, 4.0); never plot it
+      mass_copy->Fit(func2fit, "RQN", "", 2.1, 4.0);
+
+      if (doDraw) {
+        mass_copy->DrawClone("");
+      }
+
+      double chi2OvNdf = fitter.GetChi2OvNdf();
+      fVec_func_sig.push_back((TF1 *)func2fit->Clone()); // take ownership
+      fVec_chi2ONdf.push_back(chi2OvNdf);
+
+      delete mass_copy;
+      delete bkg;
+
+      index_max--;
+      if (index_max <= 0) {
+        std::cerr << "MTestFitter: max iterations reached." << std::endl;
+        break;
+      }
+    }
+  }
+
+  const std::vector<double> &getChi2OverNdf() const { return fVec_chi2ONdf; }
+  TF1 *getSignalFunction() const { return fFunc_sig; }
+
+  void setSignalParameters(double height, double alpha, double n, double sigma,
+                           double mean) {
+    fFunc_sig->SetParameters(height, alpha, n, sigma, mean);
+  }
+
+  void setTestCount(int n_test) {
+    fN_test = n_test;
+    fVec_chi2ONdf.reserve(n_test);
+  }
+
+  int getTestCount() const { return fN_test; }
+  std::vector<TF1 *> getAllSignalFunctions() const { return fVec_func_sig; }
+};
 #endif // __MFit_h__
