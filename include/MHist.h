@@ -740,6 +740,8 @@ public:
       }
       for (int i = 0; i < vec_rebin.size(); i++) {
         fStrsVar4Hist[i].rebin(vec_rebin[i]);
+        cout << "Rebinning " << fStrsVar4Hist[i].fName << " to "
+             << fStrsVar4Hist[i].fNbins << " bins." << endl;
       }
     }
 
