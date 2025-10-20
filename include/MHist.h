@@ -769,7 +769,7 @@ public:
         cerr << "hist name: " << name << endl;
         exit(1);
       }
-      if constexpr (has_SetDirectory<T>::value)
+      if constexpr (MRootIO::has_SetDirectory<T>::value)
         histo->SetDirectory(0);
       fHistos.push_back(histo);
     }
@@ -815,7 +815,7 @@ public:
         cerr << "hist name: " << name << endl;
         exit(1);
       }
-      if constexpr (has_SetDirectory<T>::value)
+      if constexpr (MRootIO::has_SetDirectory<T>::value)
         histo->SetDirectory(0);
       fHistos.push_back(histo);
     }
