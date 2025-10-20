@@ -778,6 +778,8 @@ public:
         int i_temp = i;
         for (int j = 0; j < fNbin_Var.size(); j++) {
           vec_index[j] = i_temp / fN4process[j] % fNbin_Var[j] + 1;
+          cout << "i_temp: " << i_temp <<" fN4process[" << j << "]: " << fN4process[j]
+               << " fNbin_Var[" << j << "]: " << fNbin_Var[j] << endl;
           cout << "recalc vec_index[" << j << "]: " << vec_index[j] << endl;
         }
 
