@@ -778,11 +778,11 @@ public:
         int i_temp = i;
         for (int j = 0; j < fNbin_Var.size(); j++) {
           vec_index[j] = i_temp / fN4process[j] % fNbin_Var[j] + 1;
-          cout << "i_temp: " << i_temp <<" fN4process[" << j << "]: " << fN4process[j]
-               << " fNbin_Var[" << j << "]: " << fNbin_Var[j] << endl;
+          cout << "i_temp: " << i_temp << " fN4process[" << j
+               << "]: " << fN4process[j] << " fNbin_Var[" << j
+               << "]: " << fNbin_Var[j] << endl;
           cout << "recalc vec_index[" << j << "]: " << vec_index[j] << endl;
         }
-
 
         exit(1);
       }
@@ -965,6 +965,8 @@ public:
       : MIndex<StrVar4Hist, MIndexHist>(strVar, binIndex) {
     if (rebin > 1) {
       fVar.rebin(rebin);
+      cout << "Rebinning variable " << fVar.fName << " by factor " << rebin
+           << " bins now is " << fVar.fNbins << endl;
     }
   }
 
