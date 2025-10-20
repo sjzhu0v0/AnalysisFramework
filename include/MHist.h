@@ -757,9 +757,11 @@ public:
       nbins_total_temp /= fNbin_Var[i];
     }
 
+
+    cout << "nbins_total: " << nbins_total << endl;
     for (auto fNum : fN4process)
       cout << "fN4process: " << fNum << endl;
-      
+
     for (int i = 0; i < nbins_total; i++) {
       vector<int> vec_index = GetBinIndex(i);
       TString name = name_tag;
