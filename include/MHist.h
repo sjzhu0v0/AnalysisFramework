@@ -769,7 +769,8 @@ public:
         cerr << "hist name: " << name << endl;
         exit(1);
       }
-      histo->SetDirectory(0);
+      if constexpr (has_SetDirectory<T>::value)
+        histo->SetDirectory(0);
       fHistos.push_back(histo);
     }
   };
@@ -814,7 +815,8 @@ public:
         cerr << "hist name: " << name << endl;
         exit(1);
       }
-      histo->SetDirectory(0);
+      if constexpr (has_SetDirectory<T>::value)
+        histo->SetDirectory(0);
       fHistos.push_back(histo);
     }
   };
