@@ -757,11 +757,6 @@ public:
       nbins_total_temp /= fNbin_Var[i];
     }
 
-
-    cout << "nbins_total: " << nbins_total << endl;
-    for (auto fNum : fN4process)
-      cout << "fN4process: " << fNum << endl;
-
     for (int i = 0; i < nbins_total; i++) {
       vector<int> vec_index = GetBinIndex(i);
       TString name = name_tag;
@@ -773,6 +768,12 @@ public:
       if (!histo) {
         cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
         cerr << "hist name: " << name << endl;
+        cout << "nbins_total: " << nbins_total << endl;
+        for (auto fNum : fN4process)
+          cout << "fN4process: " << fNum << endl;
+        for (const auto &index : vec_index)
+          cout << "vec_index: " << index << endl;
+        
         exit(1);
       }
       if constexpr (MRootIO::has_SetDirectory<T>::value)
