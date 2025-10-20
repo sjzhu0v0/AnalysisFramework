@@ -774,7 +774,14 @@ public:
           cout << "fN4process: " << fNum << endl;
         for (const auto &index : vec_index)
           cout << "vec_index: " << index << endl;
-        
+
+        int i_temp = i;
+        for (int j = 0; j < fNbin_Var.size(); j++) {
+          vec_index[j] = i_temp / fN4process[j] % fNbin_Var[j] + 1;
+          cout << "recalc vec_index[" << j << "]: " << vec_index[j] << endl;
+        }
+
+
         exit(1);
       }
       if constexpr (MRootIO::has_SetDirectory<T>::value)
