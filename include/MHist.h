@@ -766,6 +766,7 @@ public:
       }
       T *histo = (T *)file->Get(name);
       if (!histo) {
+        cout << "index: " << i << endl;
         cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
         cerr << "hist name: " << name << endl;
         cout << "nbins_total: " << nbins_total << endl;
