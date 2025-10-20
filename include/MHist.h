@@ -740,8 +740,8 @@ public:
       }
       for (int i = 0; i < vec_rebin.size(); i++) {
         fStrsVar4Hist[i].rebin(vec_rebin[i]);
-        cout << "Rebinning " << fStrsVar4Hist[i].fName << " to "
-             << fStrsVar4Hist[i].fNbins << " bins." << endl;
+        cout << "Rebinning variable " << fStrsVar4Hist[i].fName
+             << " to " << fStrsVar4Hist[i].fNbins << " bins." << endl;
       }
     }
 
@@ -767,6 +767,27 @@ public:
         name.Replace(pos, 2, Form("%d", vec_index[j]));
       }
       T *histo = (T *)file->Get(name);
+      if (!histo) {
+        cout << "index: " << i << endl;
+        cerr << "Error: MHGroupTool::MHGroupTool: histo is null" << endl;
+        cerr << "hist name: " << name << endl;
+        cout << "nbins_total: " << nbins_total << endl;
+        for (auto fNum : fN4process)
+          cout << "fN4process: " << fNum << endl;
+        for (const auto &index : vec_index)
+          cout << "vec_index: " << index << endl;
+
+        int i_temp = i;
+        for (int j = 0; j < fNbin_Var.size(); j++) {
+          vec_index[j] = i_temp / fN4process[j] % fNbin_Var[j] + 1;
+          cout << "i_temp: " << i_temp << " fN4process[" << j
+               << "]: " << fN4process[j] << " fNbin_Var[" << j
+               << "]: " << fNbin_Var[j] << endl;
+          cout << "recalc vec_index[" << j << "]: " << vec_index[j] << endl;
+        }
+
+        exit(1);
+      }
       if constexpr (MRootIO::has_SetDirectory<T>::value)
         histo->SetDirectory(0);
       fHistos.push_back(histo);
