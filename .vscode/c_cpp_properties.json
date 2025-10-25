@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/szhu/env/ROOT_CERN/6.34.04/include"
+                "/home/szhu/env/ROOT_CERN/6.34.04/include",
+                "/home/szhu/env/yaml-cpp/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
