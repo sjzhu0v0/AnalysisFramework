@@ -37,7 +37,9 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
     ifstream infile(name_file);
     string line;
     while (getline(infile, line)) {
-      cout << "Adding file: " << line << endl;
+      // check if line is good
+      if (line.empty())
+        continue;
       TFile *f = new TFile(line.c_str());
       if (f->IsZombie()) {
         cerr << "Error: Could not open file " << line << endl;
