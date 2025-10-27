@@ -108,28 +108,45 @@ submit() {
 }
 
 
-declare -A LAST_JOBID_AT_LEVEL
+declare -A LAST_SUBMITTED_JOBID_AT_LEVEL
 
 while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   [[ -z "$CMD" ]] && continue
+  if [[ "$CMD" =~ ^[[:space:]]*# ]]; then
+    continue
+  fi
+
   LEVEL=$(echo -n "$CMD" | grep -oP '^\t*' | wc -m)
-  [ $LEVEL -gt 0 ] && LEVEL=$((LEVEL - 1))
-  echo "Level: $LEVEL"
+  ((LEVEL--))  # 转为 0-based
+
   CMD=$(echo "$CMD" | sed 's/^[\t]*//')
+
+  PARENT_JOBID=""
   if [[ $LEVEL -gt 0 ]]; then
-    PARENT_JOBID=${LAST_JOBID_AT_LEVEL[$((LEVEL-1))]}
+    local ancestor_level=$((LEVEL - 1))
+    while [[ $ancestor_level -ge 0 ]]; do
+      if [[ -n "${LAST_SUBMITTED_JOBID_AT_LEVEL[$ancestor_level]}" ]]; then
+        PARENT_JOBID="${LAST_SUBMITTED_JOBID_AT_LEVEL[$ancestor_level]}"
+        break
+      fi
+      ((ancestor_level--))
+    done
     if [[ -n "$PARENT_JOBID" ]]; then
       CMD="$CMD --dependency afterok:$PARENT_JOBID"
     fi
   fi
+
   echo "Running (level=$LEVEL): $CMD"
   OUTPUT=$($CMD)
   echo "$OUTPUT"
+
   JOBID=$(echo "$OUTPUT" | grep -oP 'Submitted batch job \K[0-9]+')
-  echo "Job ID: $JOBID, Parent Job ID: $PARENT_JOBID, Command: $CMD" > ${1}.log
   if [[ -z "$JOBID" ]]; then
-    echo "Fatal: no job found!!!!"
+    echo "Fatal: Failed to submit job! Command: $CMD" >&2
     exit 1
   fi
-  LAST_JOBID_AT_LEVEL[$LEVEL]=$JOBID
+
+  LAST_SUBMITTED_JOBID_AT_LEVEL[$LEVEL]=$JOBID
+
+  echo "Job ID: $JOBID, Level: $LEVEL, Command: $CMD" >> "${1}.log"
 done < "$1"
