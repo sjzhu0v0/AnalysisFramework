@@ -521,86 +521,86 @@ public:
   }
 };
 
-class MAssoYeildFit : public MSignalFit {
+class MAssoYieldFit : public MSignalFit {
 public:
-  TString fName_AssoYeild;
-  RooGenericPdf *fPdf_bkgAssoYeild;
-  RooAddPdf *fModel_AssoYeild;
-  RooSimultaneous *fSimPdf_AssoYeild = nullptr;
+  TString fName_AssoYield;
+  RooGenericPdf *fPdf_bkgAssoYield;
+  RooAddPdf *fModel_AssoYield;
+  RooSimultaneous *fSimPdf_AssoYield = nullptr;
 
-  RooRealVar *fNSig_AssoYeild;
-  RooRealVar *fNBkg_AssoYeild;
-  RooDataHist *fDataHist_AssoYeild = nullptr;
+  RooRealVar *fNSig_AssoYield;
+  RooRealVar *fNBkg_AssoYield;
+  RooDataHist *fDataHist_AssoYield = nullptr;
   RooDataSet *fDataSet_Simultaneout = nullptr;
-  RooFitResult *fResult_AssoYeild = nullptr;
+  RooFitResult *fResult_AssoYield = nullptr;
 
-  MAssoYeildFit(TString name, TF1 *bkg_assoYeild, MSignalFit signalFit)
+  MAssoYieldFit(TString name, TF1 *bkg_assoYield, MSignalFit signalFit)
       : MSignalFit(signalFit) {
     fWs->cd();
-    fName_AssoYeild = name;
-    fPdf_bkgAssoYeild = MFit::GetGenericPdf(
-        bkg_assoYeild, *fX, Form("bkg_assoYeild_%s", name.Data()));
-    fNSig_AssoYeild = new RooRealVar(
-        Form("nsig_assoYeild_%s", name.Data()),
+    fName_AssoYield = name;
+    fPdf_bkgAssoYield = MFit::GetGenericPdf(
+        bkg_assoYield, *fX, Form("bkg_assoYield_%s", name.Data()));
+    fNSig_AssoYield = new RooRealVar(
+        Form("nsig_assoYield_%s", name.Data()),
         "Number of signal events for associated yield", 3.7184e+04);
-    fNBkg_AssoYeild = new RooRealVar(
-        Form("nbkg_assoYeild_%s", name.Data()),
+    fNBkg_AssoYield = new RooRealVar(
+        Form("nbkg_assoYield_%s", name.Data()),
         "Number of background events for associated yield", 1.4669e+04);
-    fModel_AssoYeild =
-        new RooAddPdf(Form("model_assoYeild_%s", name.Data()),
+    fModel_AssoYield =
+        new RooAddPdf(Form("model_assoYield_%s", name.Data()),
                       "Total PDF for associated yield",
-                      RooArgList(*fPdf_signal, *fPdf_bkgAssoYeild),
-                      RooArgList(*fNSig_AssoYeild, *fNBkg_AssoYeild));
+                      RooArgList(*fPdf_signal, *fPdf_bkgAssoYield),
+                      RooArgList(*fNSig_AssoYield, *fNBkg_AssoYield));
   }
 
-  void InputData_AssoYeild(TH1D *data) {
+  void InputData_AssoYield(TH1D *data) {
     if (!fWs) {
       cerr
-          << "MAssoYeildFit::InputData_AssoYeild: Workspace is not initialized!"
+          << "MAssoYieldFit::InputData_AssoYield: Workspace is not initialized!"
           << endl;
       exit(1);
     }
     fWs->cd();
     RooCategory sample("sample", "sample");
     sample.defineType("mass");
-    sample.defineType("assoYeild");
+    sample.defineType("assoYield");
 
     //  RooDataSet("dataTotal", "combined data", RooArgSet(mass), Index(sample),
     //  Import("massFit", *dataMass), Import("v2Fit", dataV2));
-    fDataHist_AssoYeild =
-        new RooDataHist(Form("Data_%s", fName_AssoYeild.Data()),
+    fDataHist_AssoYield =
+        new RooDataHist(Form("Data_%s", fName_AssoYield.Data()),
                         "Associated yield of J/psi candidate", *fX, data);
     fDataSet_Simultaneout =
-        new RooDataSet(Form("dataTotal_%s", fName_AssoYeild.Data()),
+        new RooDataSet(Form("dataTotal_%s", fName_AssoYield.Data()),
                        "combined data", RooArgSet(*fX), RooFit::Index(sample),
                        RooFit::Import("mass", *fDataHist),
-                       RooFit::Import("assoYeild", *fDataHist_AssoYeild));
+                       RooFit::Import("assoYield", *fDataHist_AssoYield));
 
-    fSimPdf_AssoYeild = new RooSimultaneous(
-        Form("simPdf_assoYeild_%s", fName_AssoYeild.Data()),
+    fSimPdf_AssoYield = new RooSimultaneous(
+        Form("simPdf_assoYield_%s", fName_AssoYield.Data()),
         "simultaneous PDF for associated yield",
-        {{"mass", fModel}, {"assoYeild", fModel_AssoYeild}}, sample);
+        {{"mass", fModel}, {"assoYield", fModel_AssoYield}}, sample);
 
     fWs->import(*fDataSet_Simultaneout);
   }
 
-  void fit_AssoYeild() {
+  void fit_AssoYield() {
     if (!fWs) {
-      cerr << "MAssoYeildFit::Chi2Fit_AssoYeild: Workspace is not initialized!"
+      cerr << "MAssoYieldFit::Chi2Fit_AssoYield: Workspace is not initialized!"
            << endl;
       exit(1);
     }
     fWs->cd();
     RooDataHist *binnedDataSet = fDataSet_Simultaneout->binnedClone(
-        Form("binnedData_%s", fName_AssoYeild.Data()), "binned data");
-    fResult_AssoYeild = fSimPdf_AssoYeild->chi2FitTo(
+        Form("binnedData_%s", fName_AssoYield.Data()), "binned data");
+    fResult_AssoYield = fSimPdf_AssoYield->chi2FitTo(
         *binnedDataSet, /* RooFit::Extended(kTRUE), */ RooFit::Save(),
         RooFit::PrintLevel(-1), RooFit::SumW2Error(true));
   }
 
-  void chi2Fit_AssoYeild() {
+  void chi2Fit_AssoYield() {
     if (!fWs) {
-      cerr << "MAssoYeildFit::Chi2Fit_AssoYeild: Workspace is not initialized!"
+      cerr << "MAssoYieldFit::Chi2Fit_AssoYield: Workspace is not initialized!"
            << endl;
       exit(1);
     }
@@ -610,10 +610,10 @@ public:
 
     RooDataHist *binnedDataSet = fDataSet_Simultaneout
                                      ->binnedClone(Form("binnedData_%s",
-                                                        fName_AssoYeild.Data()),
+                                                        fName_AssoYield.Data()),
                                                    "binned data" /* ,
      RooFit::Binning(binning) */);
-    fResult_AssoYeild = fSimPdf_AssoYeild->chi2FitTo(
+    fResult_AssoYield = fSimPdf_AssoYield->chi2FitTo(
         *binnedDataSet, /* RooFit::Extended(kTRUE), */ RooFit::Save(),
         RooFit::PrintLevel(-1), RooFit::SumW2Error(true));
   }
