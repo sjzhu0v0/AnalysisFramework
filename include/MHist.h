@@ -1454,4 +1454,20 @@ public:
   }
 };
 
+template <typename T, typename Idx> auto MakeMVecImpl(T &&base, Idx &idx) {
+  return MVec<std::decay_t<T>, Idx>(idx, std::forward<T>(base));
+}
+
+template <typename T, typename Idx, typename... Idxs>
+auto MakeMVecImpl(T &&base, Idx &firstIdx, Idxs &...restIdxs) {
+  auto inner = MakeMVecImpl(std::forward<T>(base), firstIdx);
+  return MakeMVecImpl(std::move(inner), restIdxs...);
+}
+
+template <typename T, typename... Idxs>
+auto MakeMVec(T &&base, Idxs &...indexHists) {
+  static_assert(sizeof...(Idxs) > 0, "At least one indexHist required");
+  return MakeMVecImpl(std::forward<T>(base), indexHists...);
+}
+
 #endif
