@@ -108,23 +108,39 @@ submit() {
 }
 
 
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 <job_script_file>" >&2
+  exit 1
+fi
+
 declare -A LAST_SUBMITTED_JOBID_AT_LEVEL
 
 while IFS= read -r CMD || [[ -n "$CMD" ]]; do
   [[ -z "$CMD" ]] && continue
-  if [[ "$CMD" =~ ^[[:space:]]*# ]]; then
-    continue
-  fi
+  [[ "$CMD" =~ ^[[:space:]]*# ]] && continue
 
-  LEVEL=$(echo -n "$CMD" | grep -oP '^\t*' | wc -m)
-  ((LEVEL--))  # 转为 0-based
+  # 计算缩进层级（制表符数量）
+  LEVEL=0
+  temp="$CMD"
+  while [[ $temp == $'\t'* ]]; do
+    ((LEVEL++))
+    temp="${temp#?}"
+  done
 
-  CMD=$(echo "$CMD" | sed 's/^[\t]*//')
+  # 去掉开头的制表符
+#   CMD="${CMD#$'\t'*}"
+  # 上面写法不安全，改用：
+  CMD="${CMD#"${CMD%%[!$'\t']*}"}"  # 去掉所有开头的制表符
+  # 或简单点（因为已知开头是 LEVEL 个 \t）：
+#   CMD="${CMD:$LEVEL}"
 
+  # 查找最近的祖先作业 ID
   PARENT_JOBID=""
-  if [[ $LEVEL -gt 0 ]]; then
-    local ancestor_level=$((LEVEL - 1))
-    while [[ $ancestor_level -ge 0 ]]; do
+  if (( LEVEL > 0 )); then
+    ancestor_level=$((LEVEL - 1))
+    while (( ancestor_level >= 0 )); do
       if [[ -n "${LAST_SUBMITTED_JOBID_AT_LEVEL[$ancestor_level]}" ]]; then
         PARENT_JOBID="${LAST_SUBMITTED_JOBID_AT_LEVEL[$ancestor_level]}"
         break
@@ -136,17 +152,22 @@ while IFS= read -r CMD || [[ -n "$CMD" ]]; do
     fi
   fi
 
-  echo "Running (level=$LEVEL): $CMD"
-  OUTPUT=$($CMD)
-  echo "$OUTPUT"
+  echo "Running (level=$LEVEL): $CMD" >&2
+  OUTPUT=$(eval "$CMD") || {
+    echo "Error: Command failed: $CMD" >&2
+    exit 1
+  }
+  echo "$OUTPUT" >&2
 
-  JOBID=$(echo "$OUTPUT" | grep -oP 'Submitted batch job \K[0-9]+')
+  # 提取 JOBID（兼容非 GNU grep）
+  JOBID=$(echo "$OUTPUT" | grep -o 'Submitted batch job [0-9]*' | head -n1 | grep -o '[0-9]*')
   if [[ -z "$JOBID" ]]; then
-    echo "Fatal: Failed to submit job! Command: $CMD" >&2
+    echo "Fatal: Failed to extract job ID from output!" >&2
+    echo "Output was: $OUTPUT" >&2
     exit 1
   fi
 
   LAST_SUBMITTED_JOBID_AT_LEVEL[$LEVEL]=$JOBID
-
   echo "Job ID: $JOBID, Level: $LEVEL, Command: $CMD" >> "${1}.log"
+
 done < "$1"
