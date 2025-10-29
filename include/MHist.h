@@ -9,14 +9,6 @@
 #ifndef MHist_h
 #define MHist_h
 
-#define BinUsed_Mult MultFt0c
-#define BinUsed_Pt pT_JpsiFlow
-#define BinUsed_Eta Eta_JpsiFlow
-#define BinDefMass 20, 1, 5
-#define BinDefEta 18, -0.9, 0.9
-#define BinDefVtxZ 20, -10, 10
-#define BinDefMult 5, 0, 2000
-
 using namespace ROOT::RDF;
 
 vector<double> GetLogBin(int n_bins, double low_bin, double high_bin) {
