@@ -628,57 +628,45 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
 
     if (!doExist) {
       if (is_th1) {
-        // handle.GetPtr<TH1D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH1D>());
+        handle.GetPtr<TH1D>()->Write();
       } else if (is_th2) {
-        // handle.GetPtr<TH2D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH2D>());
+        handle.GetPtr<TH2D>()->Write();
       } else if (is_th3) {
-        // handle.GetPtr<TH3D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH3D>());
+        handle.GetPtr<TH3D>()->Write();
       } else if (is_thn) {
-        // handle.GetPtr<THnD>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<THnD>());
+        handle.GetPtr<THnD>()->Write();
       } else if (is_pro1) {
-        // handle.GetPtr<TProfile>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TProfile>());
+        handle.GetPtr<TProfile>()->Write();
       } else if (is_pro2) {
-        // handle.GetPtr<TProfile2D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TProfile2D>());
+        handle.GetPtr<TProfile2D>()->Write();
       }
     } else {
       if (is_th1) {
         handle.GetPtr<TH1D>()->SetName(
             Form("%s_%d", handle.GetPtr<TH1D>()->GetName(), time[index_exist]));
         cout << time[index_exist] << endl;
-        // handle.GetPtr<TH1D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH1D>());
+        handle.GetPtr<TH1D>()->Write();
       } else if (is_th2) {
         handle.GetPtr<TH2D>()->SetName(
             Form("%s_%d", handle.GetPtr<TH2D>()->GetName(), time[index_exist]));
-        // handle.GetPtr<TH2D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH2D>());
+        handle.GetPtr<TH2D>()->Write();
       } else if (is_th3) {
         handle.GetPtr<TH3D>()->SetName(
             Form("%s_%d", handle.GetPtr<TH3D>()->GetName(), time[index_exist]));
-        // handle.GetPtr<TH3D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TH3D>());
+        handle.GetPtr<TH3D>()->Write();
       } else if (is_thn) {
         handle.GetPtr<THnD>()->SetName(
             Form("%s_%d", handle.GetPtr<THn>()->GetName(), time[index_exist]));
-        // handle.GetPtr<THnD>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<THnD>());
+        handle.GetPtr<THnD>()->Write();
       } else if (is_pro1) {
         handle.GetPtr<TProfile>()->SetName(Form(
             "%s_%d", handle.GetPtr<TProfile>()->GetName(), time[index_exist]));
-        // handle.GetPtr<TProfile>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TProfile>());
+        handle.GetPtr<TProfile>()->Write();
       } else if (is_pro2) {
         handle.GetPtr<TProfile2D>()->SetName(
             Form("%s_%d", handle.GetPtr<TProfile2D>()->GetName(),
                  time[index_exist]));
-        // handle.GetPtr<TProfile2D>()->Write();
-        gDirectory->WriteTObject(handle.GetPtr<TProfile2D>());
+        handle.GetPtr<TProfile2D>()->Write();
       }
     }
   }
