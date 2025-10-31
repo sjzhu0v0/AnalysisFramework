@@ -544,8 +544,7 @@ using namespace std;
 using namespace ROOT;
 using namespace ROOT::RDF;
 
-void RResultWrite(vector<RResultHandle> gRResultHandlesFast, TDirectory *dir = gDirectory) {
-  dir->cd();
+void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
   vector<TString> vec_name;
   vector<int> time;
   for (auto handle : gRResultHandlesFast) {
