@@ -16,8 +16,6 @@ struct has_SetDirectory<T, std::void_t<decltype(&T::SetDirectory)>>
 TChain *OpenChain(const char *name_file, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
 
-  cout << "Opening file: " << name_file << endl;
-
   // check if name_file end with .root
   if (string(name_file).find(".root") != string::npos) {
     TFile *f = new TFile(name_file);
