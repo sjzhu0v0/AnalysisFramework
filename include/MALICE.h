@@ -129,11 +129,11 @@ TString name_eventselection[EventSelectionFlags::kNsel] = {
     "kIsGoodITSLayer0123",
     "kIsGoodITSLayersAll"}; // counter
 
-bool doEventHaveTrigger(const Long64_t &eventSelectionMask, const int &flag) {
+bool doEventHaveTrigger(const ULong64_t &eventSelectionMask, const int &flag) {
   return eventSelectionMask & (1 << flag);
 }
 
-vector<double> triggermap(Long64_t fSelection) {
+vector<double> triggermap(ULong64_t fSelection) {
   // EventSelectionFlags::kNsel
   vector<double> trigger_map;
   for (int i = 0; i < EventSelectionFlags::kNsel; i++) {
@@ -145,7 +145,7 @@ vector<double> triggermap(Long64_t fSelection) {
   return trigger_map;
 }
 
-ROOT::RVec<double> triggermapRVec(Long64_t fSelection) {
+ROOT::RVec<double> triggermapRVec(ULong64_t fSelection) {
   // EventSelectionFlags::kNsel
   ROOT::RVec<double> trigger_map;
   for (int i = 0; i < EventSelectionFlags::kNsel; i++) {
@@ -158,33 +158,33 @@ ROOT::RVec<double> triggermapRVec(Long64_t fSelection) {
   return trigger_map;
 }
 
-bool IsntSPDPileup(Long64_t fSelection) {
+bool IsntSPDPileup(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoPileupFromSPD) & 1;
 }
 
-bool IsntTPCPileup(Long64_t fSelection) {
+bool IsntTPCPileup(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoPileupTPC) & 1;
 }
 
-bool IsntSameBunchPileup_NoSlot(Long64_t fSelection) {
+bool IsntSameBunchPileup_NoSlot(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }
-bool IsntSameBunchPileup(unsigned int, Long64_t fSelection) {
+bool IsntSameBunchPileup(unsigned int, ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoSameBunchPileup) & 1;
 }
 
 // kNoITSROFrameBorder
-bool IsntITSROFrameBorder(Long64_t fSelection) {
+bool IsntITSROFrameBorder(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoITSROFrameBorder) & 1;
 }
 
 // kNoTimeFrameBorder
-bool IsntTimeFrameBorder(Long64_t fSelection) {
+bool IsntTimeFrameBorder(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kNoTimeFrameBorder) & 1;
 }
 
 // kIsTriggerTVX
-bool IsTriggerTVX(Long64_t fSelection) {
+bool IsTriggerTVX(ULong64_t fSelection) {
   return (fSelection >> EventSelectionFlags::kIsTriggerTVX) & 1;
 }
 
