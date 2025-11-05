@@ -56,6 +56,25 @@ void SetUpJson(string config = "config.json") {
   }
 }
 
+#include <iostream>
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+bool is_interactive() {
+#ifdef _WIN32
+  DWORD mode;
+  HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+  if (hStdin == INVALID_HANDLE_VALUE)
+    return false;
+  return GetConsoleMode(hStdin, &mode) != 0;
+#else
+  return isatty(STDIN_FILENO) != 0;
+#endif
+}
+
 #include <functional>
 #include <iostream>
 #include <tuple>
