@@ -84,7 +84,7 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
     if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
       if (string(key->GetName()).find("DF_") != string::npos)
         chain->Add(name_file + "/" + TString(key->GetName()) + TString("/") +
-                   TString(name_tree));
+                   TString(name_tree) + TString("_0*"));
     }
   }
   return chain;
