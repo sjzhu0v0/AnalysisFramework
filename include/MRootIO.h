@@ -68,7 +68,7 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
   return chain;
 }
 
-TChain *OpenChain(TFile *f, const char *name_tree) {
+TChain *OpenChain(TFile *f, const char *name_tree, int max_version = 2) {
   TChain *chain = new TChain(name_tree);
   TString name_file = f->GetName();
 
@@ -83,8 +83,9 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
     TKey *key = (TKey *)list->At(i);
     if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
       if (string(key->GetName()).find("DF_") != string::npos)
-        chain->Add(name_file + "/" + TString(key->GetName()) + TString("/") +
-                   TString(name_tree) + TString("_0*"));
+        cout << chain->Add(name_file + "/" + TString(key->GetName()) +
+                           TString("/") + TString(name_tree))
+             << endl;
     }
   }
   return chain;
