@@ -28,10 +28,8 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
       TKey *key = (TKey *)list->At(i);
       if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
         if (string(key->GetName()).find("DF_") != string::npos)
-          cout << chain->Add(TString(name_file) + "/" +
-                             TString(key->GetName()) + TString("/") +
-                             TString(name_tree))
-               << endl;
+          chain->Add(TString(name_file) + "/" + TString(key->GetName()) +
+                     TString("/") + TString(name_tree));
       }
     }
   } // else check if name_file is a txt file
@@ -56,10 +54,8 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
         TKey *key = (TKey *)list->At(i);
         if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
           if (string(key->GetName()).find("DF_") != string::npos)
-            cout << chain->Add(TString(line.c_str()) + "/" +
-                               TString(key->GetName()) + TString("/") +
-                               TString(name_tree))
-                 << endl;
+            chain->Add(TString(line.c_str()) + "/" + TString(key->GetName()) +
+                       TString("/") + TString(name_tree));
         }
       }
     }
@@ -87,9 +83,8 @@ TChain *OpenChain(TFile *f, const char *name_tree, int max_version = 2) {
     TKey *key = (TKey *)list->At(i);
     if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
       if (string(key->GetName()).find("DF_") != string::npos)
-        cout << chain->Add(name_file + "/" + TString(key->GetName()) +
-                           TString("/") + TString(name_tree))
-             << endl;
+        chain->Add(name_file + "/" + TString(key->GetName()) + TString("/") +
+                   TString(name_tree));
     }
   }
   return chain;
