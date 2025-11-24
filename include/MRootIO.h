@@ -28,8 +28,10 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
       TKey *key = (TKey *)list->At(i);
       if (strcmp(key->GetClassName(), "TDirectoryFile") == 0) {
         if (string(key->GetName()).find("DF_") != string::npos)
-          chain->Add(TString(name_file) + "/" + TString(key->GetName()) +
-                     TString("/") + TString(name_tree));
+          cout << chain->Add(TString(name_file) + "/" +
+                             TString(key->GetName()) + TString("/") +
+                             TString(name_tree))
+               << endl;
       }
     }
   } // else check if name_file is a txt file
