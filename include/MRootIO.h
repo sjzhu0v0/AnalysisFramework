@@ -466,7 +466,7 @@ template <typename T> T *GetObjectDiectly(TString path) {
   // obj->SetDirectory(0);
   // check if obj has SetDirectory function
   if constexpr (has_SetDirectory<T>::value) {
-    obj.SetDirectory(nullptr);
+    obj->SetDirectory(nullptr);
   }
 
   file->Close();
