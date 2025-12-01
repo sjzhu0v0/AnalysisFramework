@@ -345,7 +345,8 @@ MPublisherCanvas *gPublisherCanvas;
 namespace StyleFlow {
 
 template <typename T>
-void DeltaPhi_DeltaEta(TPad *pad, T *h2, bool isSame = false) {
+void DeltaPhi_DeltaEta(TPad *pad, T *h2, bool isXYtrans = false,
+                       bool isSame = false) {
   // set pad as transparent
   pad->SetFillStyle(4000);
   pad->cd();
@@ -361,7 +362,10 @@ void DeltaPhi_DeltaEta(TPad *pad, T *h2, bool isSame = false) {
   pad->SetRightMargin(0.05);
 
   pad->SetTheta(70);
-  pad->SetPhi(-50);
+  if (!isXYtrans)
+    pad->SetPhi(-50);
+  else
+    pad->SetPhi(50);
   // h2->SetTitleOffset(1.5, "Y");
   // pad->SetTheta(70);
   // pad->SetPhi(40); // view point of wei li's plot
