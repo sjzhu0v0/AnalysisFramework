@@ -224,10 +224,10 @@ TH2DModel GetTH2DModelWithTitle2(StrVar4Hist str1, StrVar4Hist str2,
   TString title_hist = title;
   title_hist += ";" + str1.fTitle;
   if (str1.fUnit != "")
-    title_hist += " (" + str1.fUnit + ")";
+    title_hist += " (" + str1.fUnit + ");";
   else
     title_hist += ";";
-  title_hist += ";" + str2.fTitle;
+  title_hist += str2.fTitle;
   if (str2.fUnit != "")
     title_hist += " (" + str2.fUnit + ")";
 
