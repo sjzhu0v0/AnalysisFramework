@@ -235,6 +235,32 @@ TH2DModel GetTH2DModelWithTitle2(StrVar4Hist str1, StrVar4Hist str2,
                    str2.fNbins, str2.fBins.data());
 }
 
+TH3DModel GetTH3DModelWithTitle2(StrVar4Hist str1, StrVar4Hist str2,
+                                 StrVar4Hist str3, TString tag = "",
+                                 TString title = "") {
+  TString name = str1.fName + "_" + str2.fName + "_" + str3.fName;
+  if (tag != "") {
+    name += "_" + tag;
+  }
+  TString title_hist = title;
+  title_hist += ";" + str1.fTitle;
+  if (str1.fUnit != "")
+    title_hist += " (" + str1.fUnit + ");";
+  else
+    title_hist += ";";
+  title_hist += str2.fTitle;
+  if (str2.fUnit != "")
+    title_hist += " (" + str2.fUnit + ")";
+  title_hist += ";";
+  title_hist += str3.fTitle;
+  if (str3.fUnit != "")
+    title_hist += " (" + str3.fUnit + ")";
+
+  return TH3DModel(name, title_hist, str1.fNbins, str1.fBins.data(),
+                   str2.fNbins, str2.fBins.data(), str3.fNbins,
+                   str3.fBins.data());
+}
+
 using TupleTHnDModel = tuple<THnDModel, vector<string>>;
 
 TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
@@ -275,6 +301,7 @@ TupleTHnDModel GetTHnDModelWithTitle(vector<StrVar4Hist> vec_var,
 // using GetTH1DM = GetTH1DModelWithTitle2;
 auto GetTH1DM = GetTH1DModelWithTitle2;
 auto GetTH2DM = GetTH2DModelWithTitle2;
+auto GetTH3DM = GetTH3DModelWithTitle2;
 auto GetTHnDM = GetTHnDModelWithTitle;
 
 #include "MDefinition.h"
