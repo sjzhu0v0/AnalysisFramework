@@ -196,6 +196,8 @@ double EventNumberMinbias(
                         "runInfo22_DQ.root:bc-selection-task/hCounterTVX") {
   if (h1_runInfo == nullptr) {
     h1_runInfo = MRootIO::GetTH1D(path_file);
+    cout << "Loaded run info from " << path_file << endl;
+    cout << "Integral of h1_runInfo: " << h1_runInfo->Integral() << endl;
   }
   for (int i = 1; i <= h1_runInfo->GetNbinsX(); i++) {
     TString name_run = h1_runInfo->GetXaxis()->GetBinLabel(i);
