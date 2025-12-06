@@ -32,6 +32,14 @@ int GetColor(const int *rgb) {
   return TColor::GetColor(*rgb, *(rgb + 1), *(rgb + 2));
 }
 
+int GetColorIndice(int index) {
+  if (index < 7) {
+    return kOrange + 10 - index;
+  } else {
+    return kAzure - 13 + index;
+  }
+}
+
 namespace MRootGraphic {
 TCanvas *ComaparisonHist1D(vector<TH1 *> vec_h1, TString option_draw = "",
                            TString name_canvas = "", int ww = 800,

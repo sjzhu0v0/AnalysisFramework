@@ -68,7 +68,7 @@ TChain *OpenChain(const char *name_file, const char *name_tree) {
   return chain;
 }
 
-TChain *OpenChain(TFile *f, const char *name_tree, int max_version = 2) {
+TChain *OpenChain(TFile *f, const char *name_tree) {
   TChain *chain = new TChain(name_tree);
   TString name_file = f->GetName();
 
