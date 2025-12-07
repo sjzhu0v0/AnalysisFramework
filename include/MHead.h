@@ -78,17 +78,20 @@ vector<TString> ReadListFromFile(TString path_txt) {
   return vec_string;
 }
 
-// get the intersection of two lists
-vector<TString> GetIntersectionOfTwoLists(vector<TString> list1,
-                                          vector<TString> list2) {
-  vector<TString> intersection;
-  for (auto &item1 : list1) {
-    for (auto &item2 : list2) {
-      if (item1 == item2) {
-        intersection.push_back(item1);
-        break;
+// get the intersection of several TString lists
+vector<TString> GetIntersectionOfTwoLists(vector<vector<TString>> vec_lists) {
+  if (vec_lists.size() == 0)
+    return {};
+  vector<TString> intersection = vec_lists[0];
+  for (int i = 1; i < vec_lists.size(); i++) {
+    vector<TString> temp;
+    for (auto &str : intersection) {
+      if (find(vec_lists[i].begin(), vec_lists[i].end(), str) !=
+          vec_lists[i].end()) {
+        temp.push_back(str);
       }
     }
+    intersection = temp;
   }
   return intersection;
 }
