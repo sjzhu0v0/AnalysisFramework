@@ -45,6 +45,26 @@ bool IsInBootstrap(unsigned int n) {
 
 TString gEmptyString = "";
 
+#include "TSystemDirectory.h"
+// read a list from a folder
+vector<TString> ReadListFromFolder(TString path_folder) {
+  vector<TString> vec_string;
+  TSystemDirectory dir(path_folder, path_folder);
+  TList *files = dir.GetListOfFiles();
+  if (files) {
+    TSystemFile *file;
+    TString fname;
+    TIter next(files);
+    while ((file = (TSystemFile *)next())) {
+      fname = file->GetName();
+      if (fname.BeginsWith("."))
+        continue;
+      vec_string.push_back(fname);
+    }
+  }
+  return vec_string;
+}
+
 // read a list from a txt file
 vector<TString> ReadListFromFile(TString path_txt) {
   vector<TString> vec_string;
@@ -71,6 +91,15 @@ vector<TString> GetIntersectionOfTwoLists(vector<TString> list1,
     }
   }
   return intersection;
+}
+
+// TString list to int list
+vector<int> TStringListToIntList(vector<TString> vec_string) {
+  vector<int> vec_int;
+  for (auto &str : vec_string) {
+    vec_int.push_back(str.Atoi());
+  }
+  return vec_int;
 }
 
 #endif
