@@ -45,4 +45,32 @@ bool IsInBootstrap(unsigned int n) {
 
 TString gEmptyString = "";
 
+// read a list from a txt file
+vector<TString> ReadListFromFile(TString path_txt) {
+  vector<TString> vec_string;
+  ifstream infile(path_txt.Data());
+  string line;
+  while (getline(infile, line)) {
+    if (line.empty())
+      continue;
+    vec_string.push_back(TString(line.c_str()));
+  }
+  return vec_string;
+}
+
+// get the intersection of two lists
+vector<TString> GetIntersectionOfTwoLists(vector<TString> list1,
+                                          vector<TString> list2) {
+  vector<TString> intersection;
+  for (auto &item1 : list1) {
+    for (auto &item2 : list2) {
+      if (item1 == item2) {
+        intersection.push_back(item1);
+        break;
+      }
+    }
+  }
+  return intersection;
+}
+
 #endif
