@@ -3,57 +3,78 @@
 arg_list: generate lines from multiple input files according to a template.
 
 Usage:
-    arg_list [options] "<template>" file1 [file2 ...]
+    arg_list [options] "<template>" file1 [file2 ... | :cmd:"command"]
 
 Placeholders in <template>:
-   %i%                     - current 1‑based line number
+   %i%                     - current 1-based line number
    %Nf%                    - whole line from file #N (N starts at 1)
-   %NfX M%                 - field #M from file #N using separator X (any non‑digit)
+   %NfX M%                 - field #M from file #N using separator X (any non-digit)
    %NfX1M1X2M2...%         - chain split (e.g. %1f|2;3%)
 
-Line‑range options (mutually exclusive):
+Line-range options (mutually exclusive):
    -f N        process only the first  N lines
    -l N        process only the last   N lines
-   -L a,b      process only lines a‑b  (inclusive, 1‑based)
+   -L a,b      process only lines a-b  (inclusive, 1-based)
 
-Examples:
-    arg_list -f 100 "%1f;1%,%2f|3%"   file1.txt file2.txt
-    arg_list -L10,20 "%1f|2;3%"       people.txt
-
-If any placeholder points outside an existing line / field, the script inserts
-an empty string so that expansion never crashes.
+Special file syntax:
+   :cmd:<cmd>  execute shell command and use its stdout as file content
 """
+
 import sys
 import re
 import argparse
-from pathlib import Path
+import subprocess
 from typing import List
 
 # ---------------------------- Placeholder handling ---------------------------
-# Regex captures:
-#   file:   the file number (\d+)
-#   ops:    the chain of (<sep><field#>)* like ;1|2:3
-PLACEHOLDER_RE = re.compile(r"%((?P<file>\d+)f(?P<ops>(?:[^\d]\d+)*)?)%|%i%")
 
+PLACEHOLDER_RE = re.compile(
+    r"%((?P<file>\d+)f(?P<ops>(?:[^\d]\d+)*)?)%|%i%"
+)
+
+# ---------------------------- File / command reading --------------------------
 
 def read_files(paths: List[str]):
-    """Read all input files into memory and return list[list[str]]."""
+    """Read all input files or commands into memory and return list[list[str]]."""
     files = []
+
     for p in paths:
+        # --- command input ---
+        if p.startswith(":cmd:"):
+            cmd = p[len(":cmd:"):]
+            try:
+                output = subprocess.check_output(
+                    cmd,
+                    shell=True,
+                    text=True,
+                    encoding="utf-8",
+                    stderr=subprocess.PIPE,
+                )
+                lines = output.rstrip("\n").splitlines()
+                files.append(lines)
+            except subprocess.CalledProcessError as e:
+                sys.stderr.write(f"arg_list: command failed: {cmd}\n")
+                sys.stderr.write(e.stderr or "")
+                return None
+            continue
+
+        # --- normal file input ---
         try:
             with open(p, "r", encoding="utf-8") as fh:
                 files.append([ln.rstrip("\n") for ln in fh])
         except FileNotFoundError:
             sys.stderr.write(f"arg_list: cannot open '{p}'\n")
             return None
+
     return files
 
+# ---------------------------- Placeholder expansion ---------------------------
 
 def apply_ops(content: str, ops: str):
-    """Apply chained split operations on *content* as encoded in ops string."""
+    """Apply chained split operations on content."""
     if not ops:
         return content
-    # ops looks like ;1|2:3  -> list of (sep, index)
+
     steps = re.findall(r"([^\d])(\d+)", ops)
     for sep, idx_str in steps:
         parts = content.split(sep)
@@ -61,12 +82,12 @@ def apply_ops(content: str, ops: str):
         if 0 <= idx < len(parts):
             content = parts[idx]
         else:
-            return ""  # out‑of‑range → empty string
+            return ""
     return content
 
 
 def substitute(template: str, data: List[List[str]], lineno: int) -> str:
-    """Expand a single template line for the given *lineno* (0‑based)."""
+    """Expand a single template line for the given lineno (0-based)."""
 
     def repl(m: re.Match):
         if m.group(0) == "%i%":
@@ -79,25 +100,29 @@ def substitute(template: str, data: List[List[str]], lineno: int) -> str:
         try:
             content = data[file_no][lineno]
         except IndexError:
-            return ""  # this file shorter than current line
+            return ""
 
         return apply_ops(content, m.group("ops") or "")
 
     return PLACEHOLDER_RE.sub(repl, template)
 
-# ---------------------------- Command‑line parsing ---------------------------
+# ---------------------------- Command-line parsing ---------------------------
 
 def parse_args():
     ap = argparse.ArgumentParser(add_help=False, prog="arg_list")
+
     group = ap.add_mutually_exclusive_group()
     group.add_argument("-f", type=int, metavar="N", help="process only first N lines")
     group.add_argument("-l", type=int, metavar="N", help="process only last N lines")
-    group.add_argument("-L", metavar="a,b", help="process only lines a‑b (inclusive, 1‑based)")
-    ap.add_argument("template", help="expansion template string")
-    ap.add_argument("files", nargs="+", help="input text files")
-    ap.add_argument("-h", "--help", action="help", help="show this help message and exit")
-    return ap.parse_args()
+    group.add_argument(
+        "-L", metavar="a,b", help="process only lines a-b (inclusive, 1-based)"
+    )
 
+    ap.add_argument("template", help="expansion template string")
+    ap.add_argument("files", nargs="+", help="input text files or :cmd:<command>")
+    ap.add_argument("-h", "--help", action="help", help="show this help message and exit")
+
+    return ap.parse_args()
 
 # ------------------------------- Main routine --------------------------------
 
@@ -107,6 +132,7 @@ def main():
     files = read_files(args.files)
     if files is None:
         return
+
     if not any(files):
         sys.stderr.write("arg_list: input files contain no usable lines\n")
         return
@@ -119,7 +145,7 @@ def main():
 
     max_lines = lengths[0]
 
-    # Determine line indices (0‑based) to process
+    # Determine line indices
     if args.f is not None:
         idxs = range(0, min(args.f, max_lines))
     elif args.l is not None:
@@ -133,7 +159,9 @@ def main():
                 raise ValueError
             idxs = range(a - 1, min(b, max_lines))
         except ValueError:
-            sys.stderr.write("arg_list: -L expects two positive integers a,b with a<=b\n")
+            sys.stderr.write(
+                "arg_list: -L expects two positive integers a,b with a<=b\n"
+            )
             return
     else:
         idxs = range(max_lines)
@@ -144,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -530,4 +530,19 @@ double GetStdDevFormVecDouble(std::vector<double> vec) {
   return sqrt(sum / vec.size() / (vec.size() - 1));
 }
 
+#include <cstdint>
+#include <random>
+
+inline double functionalRandom(double r_event, uint64_t toyIndex,
+                               uint64_t seed) {
+  uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
+
+  uint64_t finalSeed = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ seed;
+
+  std::mt19937_64 gen(finalSeed);
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+  return dist(gen);
+}
+
 #endif
