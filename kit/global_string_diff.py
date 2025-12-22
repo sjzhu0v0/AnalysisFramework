@@ -12,11 +12,24 @@ def read_lines_from_stdin():
     return [line.rstrip("\n") for line in sys.stdin if line.strip()]
 
 
+def longest_common_prefix(strings):
+    if not strings:
+        return ""
+    prefix = strings[0]
+    for s in strings[1:]:
+        i = 0
+        while i < len(prefix) and i < len(s) and prefix[i] == s[i]:
+            i += 1
+        prefix = prefix[:i]
+    return prefix
+
+
+def longest_common_suffix(strings):
+    rev = [s[::-1] for s in strings]
+    return longest_common_prefix(rev)[::-1]
+
+
 def find_global_constant_mask(strings):
-    """
-    True  -> 所有字符串在该位置字符完全一致（非差异位）
-    False -> 存在差异
-    """
     max_len = max(len(s) for s in strings)
     mask = []
 
@@ -33,15 +46,30 @@ def find_global_constant_mask(strings):
 
 
 def extract_multi_differences(strings, debug_mask=False):
-    mask = find_global_constant_mask(strings)
+    # ===== Stage 1: 稳定剥离前缀 & 后缀 =====
+    prefix = longest_common_prefix(strings)
+    suffix = longest_common_suffix(strings)
+
+    cores = [
+        s[len(prefix): len(s) - len(suffix) if suffix else len(s)]
+        for s in strings
+    ]
+
+    # ===== Stage 2: 仅在 core 上做全局 diff =====
+    mask = find_global_constant_mask(cores)
 
     if debug_mask:
-        mask_str = "".join("1" if m else "0" for m in mask)
-        print("GLOBAL MASK:", mask_str, file=sys.stderr)
+        print("CORE PREFIX STRIPPED:", prefix, file=sys.stderr)
+        print("CORE SUFFIX STRIPPED:", suffix, file=sys.stderr)
+        print(
+            "CORE MASK:",
+            "".join("1" if m else "0" for m in mask),
+            file=sys.stderr
+        )
 
     results = []
 
-    for s in strings:
+    for s in cores:
         parts = []
         current = []
 
@@ -65,7 +93,7 @@ def extract_multi_differences(strings, debug_mask=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract global character differences from strings"
+        description="Extract global multi-segment differences from strings"
     )
     parser.add_argument(
         "-i", "--input",
@@ -74,7 +102,7 @@ def main():
     parser.add_argument(
         "--debug-mask",
         action="store_true",
-        help="Print global constant mask to stderr for debugging"
+        help="Print global mask info to stderr"
     )
 
     args = parser.parse_args()
