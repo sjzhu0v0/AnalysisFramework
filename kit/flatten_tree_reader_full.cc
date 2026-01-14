@@ -86,6 +86,8 @@ static std::unique_ptr<ColumnBase> MakeColumn(TTreeReader &reader, TBranch *br,
     return std::make_unique<VectorColumn<int>>(reader, name);
   if (cls.find("ROOT::VecOps::RVec<bool>") != std::string::npos)
     return std::make_unique<VectorColumn<bool>>(reader, name);
+  if (cls.find("ROOT::VecOps::RVec<UChar_t>") != std::string::npos)
+    return std::make_unique<VectorColumn<UChar_t>>(reader, name);
   if (cls.find("ROOT::VecOps::RVec<ULong64_t>") != std::string::npos ||
       cls.find("ROOT::VecOps::RVec<unsigned long long>") != std::string::npos)
     return std::make_unique<VectorColumn<ULong64_t>>(reader, name);
@@ -104,6 +106,8 @@ static std::unique_ptr<ColumnBase> MakeColumn(TTreeReader &reader, TBranch *br,
     return std::make_unique<ScalarColumn<int>>(reader, name);
   if (t == "Bool_t")
     return std::make_unique<ScalarColumn<bool>>(reader, name);
+  if (t == "UChar_t")
+    return std::make_unique<ScalarColumn<UChar_t>>(reader, name);
   if (t == "ULong64_t")
     return std::make_unique<ScalarColumn<ULong64_t>>(reader, name);
 
