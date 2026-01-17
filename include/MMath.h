@@ -530,19 +530,38 @@ double GetStdDevFormVecDouble(std::vector<double> vec) {
   return sqrt(sum / vec.size() / (vec.size() - 1));
 }
 
+// #include <cstdint>
+// #include <random>
+//
+// inline double functionalRandom(double r_event, uint64_t toyIndex,
+//                                uint64_t seed) {
+//   uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
+//
+//   uint64_t finalSeed = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ seed;
+//
+//   std::mt19937_64 gen(finalSeed);
+//   std::uniform_real_distribution<double> dist(0.0, 1.0);
+//
+//   return dist(gen);
+// }
 #include <cstdint>
-#include <random>
 
-inline double functionalRandom(double r_event, uint64_t toyIndex,
-                               uint64_t seed) {
-  uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
+// SplitMix64: fast, high-quality, seedable PRNG (public domain)
+inline uint64_t splitmix64(uint64_t x) {
+    x += 0x9e3779b97f4a7c15ULL;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+    return x ^ (x >> 31);
+}
 
-  uint64_t finalSeed = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ seed;
-
-  std::mt19937_64 gen(finalSeed);
-  std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-  return dist(gen);
+// Generate deterministic random number in [0,1) from r_event, toyIndex, and global seed
+inline double functionalRandom(double r_event, uint64_t toyIndex, uint64_t globalSeed = 0) {
+    // Clamp r_event to [0, 1 - ε] to avoid overflow
+    if (r_event >= 1.0) r_event = 0.999999999999999; // just below 1.0
+    uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
+    uint64_t s = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ globalSeed;
+    uint64_t z = splitmix64(s);
+    return (z >> 11) * 0x1.0p-53; // use top 53 bits for double precision
 }
 
 #endif
