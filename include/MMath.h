@@ -1,229 +1,548 @@
-#!/usr/bin/env python3
-import sys
-import yaml
-import ROOT
-from array import array
+#ifndef MMath_h
+#define MMath_h
 
-# Global list to collect histogram handles
-gRResultHandles = []
+#include "MHead.h"
+#include "TComplex.h"
 
-# Declare efficient functional random number generator in C++
-ROOT.gInterpreter.Declare("""
-#include <cstdint>
+class MDouble {
+public:
+  double fValue;
+  double fError;
 
-// SplitMix64: fast, high-quality, seedable PRNG (public domain)
-inline uint64_t splitmix64(uint64_t x) {
-    x += 0x9e3779b97f4a7c15ULL;
-    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
-    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
-    return x ^ (x >> 31);
-}
+  MDouble() {
+    fValue = 0;
+    fError = 0;
+  }
 
-// Generate deterministic random number in [0,1) from r_event, toyIndex, and global seed
-inline double functionalRandom(double r_event, uint64_t toyIndex, uint64_t globalSeed = 0) {
-    // Clamp r_event to [0, 1 - ε] to avoid overflow
-    if (r_event >= 1.0) r_event = 0.999999999999999; // just below 1.0
-    uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
-    uint64_t s = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ globalSeed;
-    uint64_t z = splitmix64(s);
-    return (z >> 11) * 0x1.0p-53; // use top 53 bits for double precision
-}
+  MDouble(double value, double error) {
+    fValue = value;
+    fError = error;
+  }
 
-int countSetBits_uint8(uint8_t x) {
-    int count = 0;
-    while (x) {
-        count += x & 1;
-        x >>= 1;
+  ~MDouble() {}
+
+  void Print() { cout << fValue << " +/- " << fError << endl; }
+
+  MDouble operator+(MDouble rhs) {
+    return MDouble(fValue + rhs.fValue,
+                   sqrt(fError * fError + rhs.fError * rhs.fError));
+  }
+  MDouble operator-(MDouble rhs) {
+    return MDouble(fValue - rhs.fValue,
+                   sqrt(fError * fError + rhs.fError * rhs.fError));
+  }
+  MDouble operator*(MDouble rhs) {
+    return MDouble(
+        fValue * rhs.fValue,
+        fValue * rhs.fValue *
+            sqrt(pow(fError / fValue, 2) + pow(rhs.fError / rhs.fValue, 2)));
+  }
+  MDouble operator/(MDouble rhs) {
+    return MDouble(
+        fValue / rhs.fValue,
+        fValue / rhs.fValue *
+            sqrt(pow(fError / fValue, 2) + pow(rhs.fError / rhs.fValue, 2)));
+  }
+  // MDouble operator*(MDouble rhs) {
+  //   return MDouble(fValue * rhs.fValue, sqrt(pow(fError * rhs.fValue, 2) +
+  //                                            pow(fValue * rhs.fError, 2)));
+  // }
+  // MDouble operator/(MDouble rhs) {
+  //   return MDouble(fValue / rhs.fValue,
+  //                  sqrt(pow(fError / rhs.fValue, 2) +
+  //                       pow(fValue / rhs.fValue * rhs.fError / rhs.fValue,
+  //                       2)));
+  // }
+  MDouble operator+(double rhs) { return MDouble(fValue + rhs, fError); }
+  MDouble operator-(double rhs) { return MDouble(fValue - rhs, fError); }
+  MDouble operator*(double rhs) { return MDouble(fValue * rhs, fError * rhs); }
+  MDouble operator/(double rhs) { return MDouble(fValue / rhs, fError / rhs); }
+
+  MDouble operator+=(MDouble rhs) {
+    fValue += rhs.fValue;
+    fError = sqrt(fError * fError + rhs.fError * rhs.fError);
+    return *this;
+  }
+  MDouble operator-=(MDouble rhs) {
+    fValue -= rhs.fValue;
+    fError = sqrt(fError * fError + rhs.fError * rhs.fError);
+    return *this;
+  }
+  MDouble operator*=(MDouble rhs) {
+    fValue *= rhs.fValue;
+    fError = fValue * rhs.fValue *
+             sqrt(pow(fError / fValue, 2) + pow(rhs.fError / rhs.fValue, 2));
+    return *this;
+  }
+  MDouble operator/=(MDouble rhs) {
+    fValue /= rhs.fValue;
+    fError = fValue / rhs.fValue *
+             sqrt(pow(fError / fValue, 2) + pow(rhs.fError / rhs.fValue, 2));
+    return *this;
+  }
+  MDouble operator+=(double rhs) {
+    fValue += rhs;
+    return *this;
+  }
+  MDouble operator-=(double rhs) {
+    fValue -= rhs;
+    return *this;
+  }
+  MDouble operator*=(double rhs) {
+    fValue *= rhs;
+    fError *= rhs;
+    return *this;
+  }
+  MDouble operator/=(double rhs) {
+    fValue /= rhs;
+    fError /= rhs;
+    return *this;
+  }
+};
+
+class MComplex {
+public:
+  MComplex() {
+    re = 0;
+    im = 0;
+    re_err = 0;
+    im_err = 0;
+  }
+  MComplex(double r, double i, double r_err, double i_err) {
+    re = r;
+    im = i;
+    re_err = r_err;
+    im_err = i_err;
+  }
+  MComplex(TComplex c, TComplex c_err) {
+    re = c.Re();
+    im = c.Im();
+    re_err = c_err.Re();
+    im_err = c_err.Im();
+  }
+
+  double Re() { return re; }
+  double Im() { return im; }
+  double ReErr() { return re_err; }
+  double ImErr() { return im_err; }
+
+  void SetRe(double r) { re = r; }
+  void SetIm(double i) { im = i; }
+  void SetReErr(double r_err) { re_err = r_err; }
+  void SetImErr(double i_err) { im_err = i_err; }
+
+  double Mag() { return sqrt(re * re + im * im); }
+  double MagErr() {
+    return sqrt(pow(re * re_err, 2) + pow(im * im_err, 2)) / Mag();
+  }
+  double Mag2() { return re * re + im * im; }
+  double Mag2Err() { return sqrt(pow(re * re_err, 2) + pow(im * im_err, 2)); }
+  double Phase() { return atan2(im, re); }
+  double PhaseErr() {
+    return sqrt(pow(re * im_err, 2) + pow(im * re_err, 2)) /
+           (re * re + im * im);
+  }
+
+  MComplex operator^(double c) {
+    double mag = pow(Mag(), c);
+    double phase = Phase() * c;
+    double mag_err = abs(c * pow(Mag(), c - 1) * MagErr());
+    double phase_err = abs(c * PhaseErr());
+    double re_err = mag_err * cos(phase) - mag * sin(phase) * phase_err;
+    double im_err = mag_err * sin(phase) + mag * cos(phase) * phase_err;
+    return MComplex(mag * cos(phase), mag * sin(phase), re_err, im_err);
+  }
+  MComplex &operator!() {
+    im = -im;
+    im_err = abs(im_err);
+    return *this;
+  }
+  double operator()(int i) {
+    if (i == 0) {
+      return re;
+    } else if (i == 1) {
+      return im;
+    } else if (i == 2) {
+      return re_err;
+    } else if (i == 3) {
+      return im_err;
+    } else {
+      cout << "Error: MComplex::operator() (int i) - i must be 0, 1, 2, or 3."
+           << endl;
+      return 0;
     }
-    return count;
+  }
+  MComplex operator*(MComplex c) {
+    return MComplex(re * c.Re() - im * c.Im(), re * c.Im() + im * c.Re(),
+                    sqrt(pow(c.Re() * re_err, 2) + pow(c.Im() * im_err, 2) +
+                         pow(re * c.ReErr(), 2) + pow(im * c.ImErr(), 2)),
+                    sqrt(pow(c.Re() * im_err, 2) + pow(c.Im() * re_err, 2) +
+                         pow(im * c.ReErr(), 2) + pow(re * c.ImErr(), 2)));
+  }
+  MComplex operator*(double c) {
+    return MComplex(re * c, im * c, abs(re_err * c), abs(im_err * c));
+  }
+  MComplex operator/(MComplex c) {
+    double err_re1 = re_err * c.Re() / c.Mag2();
+    double err_re2 =
+        c.ReErr() * re * (pow(c.Im(), 2) - pow(c.Re(), 2)) / c.Mag2();
+    double err_re3 = im_err * c.Im() / c.Mag2();
+    double err_re4 =
+        c.ImErr() * im * (pow(c.Re(), 2) - pow(c.Im(), 2)) / c.Mag2();
+    double err_re = sqrt(pow(err_re1, 2) + pow(err_re2, 2) + pow(err_re3, 2) +
+                         pow(err_re4, 2));
+    double err_im1 = im_err * c.Re() / c.Mag2();
+    double err_im2 =
+        c.ReErr() * im * (pow(c.Im(), 2) - pow(c.Re(), 2)) / c.Mag2();
+    double err_im3 = re_err * c.Im() / c.Mag2();
+    double err_im4 =
+        c.ImErr() * re * (pow(c.Re(), 2) - pow(c.Im(), 2)) / c.Mag2();
+    double err_im = sqrt(pow(err_im1, 2) + pow(err_im2, 2) + pow(err_im3, 2) +
+                         pow(err_im4, 2));
+
+    return MComplex(
+        (re * c.Re() + im * c.Im()) / (c.Re() * c.Re() + c.Im() * c.Im()),
+        (im * c.Re() - re * c.Im()) / (c.Re() * c.Re() + c.Im() * c.Im()),
+        err_re, err_im);
+  }
+  MComplex operator/(double c) {
+    return MComplex(re / c, im / c, abs(re_err / c), abs(im_err / c));
+  }
+  MComplex operator+(MComplex c) {
+    return MComplex(re + c.Re(), im + c.Im(),
+                    sqrt(re_err * re_err + c.ReErr() * c.ReErr()),
+                    sqrt(im_err * im_err + c.ImErr() * c.ImErr()));
+  }
+  MComplex operator-(MComplex c) {
+    return MComplex(re - c.Re(), im - c.Im(),
+                    sqrt(re_err * re_err + c.ReErr() * c.ReErr()),
+                    sqrt(im_err * im_err + c.ImErr() * c.ImErr()));
+  }
+
+  MComplex &operator*=(MComplex c) {
+    double re_temp = re;
+    re = re * c.Re() - im * c.Im();
+    im = re_temp * c.Im() + im * c.Re();
+    re_err = sqrt(pow(c.Re() * re_err, 2) + pow(c.Im() * im_err, 2) +
+                  pow(re_temp * c.ReErr(), 2) + pow(im * c.ImErr(), 2));
+    im_err = sqrt(pow(c.Re() * im_err, 2) + pow(c.Im() * re_err, 2) +
+                  pow(im * c.ReErr(), 2) + pow(re_temp * c.ImErr(), 2));
+    return *this;
+  }
+  MComplex &operator*=(double c) {
+    re *= c;
+    im *= c;
+    re_err = abs(re_err * c);
+    im_err = abs(im_err * c);
+    return *this;
+  }
+  MComplex &operator/=(MComplex c) {
+    double err_re1 = re_err * c.Re() / c.Mag2();
+    double err_re2 =
+        c.ReErr() * re * (pow(c.Im(), 2) - pow(c.Re(), 2)) / c.Mag2();
+    double err_re3 = im_err * c.Im() / c.Mag2();
+    double err_re4 =
+        c.ImErr() * im * (pow(c.Re(), 2) - pow(c.Im(), 2)) / c.Mag2();
+    re_err = sqrt(pow(err_re1, 2) + pow(err_re2, 2) + pow(err_re3, 2) +
+                  pow(err_re4, 2));
+    double err_im1 = im_err * c.Re() / c.Mag2();
+    double err_im2 =
+        c.ReErr() * im * (pow(c.Im(), 2) - pow(c.Re(), 2)) / c.Mag2();
+    double err_im3 = re_err * c.Im() / c.Mag2();
+    double err_im4 =
+        c.ImErr() * re * (pow(c.Re(), 2) - pow(c.Im(), 2)) / c.Mag2();
+    im_err = sqrt(pow(err_im1, 2) + pow(err_im2, 2) + pow(err_im3, 2) +
+                  pow(err_im4, 2));
+
+    double re_temp = re;
+    re = (re * c.Re() + im * c.Im()) / (c.Re() * c.Re() + c.Im() * c.Im());
+    im = (im * c.Re() - re_temp * c.Im()) / (c.Re() * c.Re() + c.Im() * c.Im());
+    return *this;
+  }
+  MComplex &operator/=(double c) {
+    re /= c;
+    im /= c;
+    re_err = abs(re_err / c);
+    im_err = abs(im_err / c);
+    return *this;
+  }
+  MComplex &operator+=(MComplex c) {
+    re += c.Re();
+    im += c.Im();
+    re_err = sqrt(re_err * re_err + c.ReErr() * c.ReErr());
+    im_err = sqrt(im_err * im_err + c.ImErr() * c.ImErr());
+    return *this;
+  }
+  MComplex &operator-=(MComplex c) {
+    re -= c.Re();
+    im -= c.Im();
+    re_err = sqrt(re_err * re_err + c.ReErr() * c.ReErr());
+    im_err = sqrt(im_err * im_err + c.ImErr() * c.ImErr());
+    return *this;
+  }
+
+private:
+  double re;
+  double im;
+  double re_err;
+  double im_err;
+};
+
+class MDiscreteFunc {
+private:
+  int fNbins;
+  std::vector<double> fPars;
+
+public:
+  MDiscreteFunc() {
+    fNbins = 0;
+    fPars.clear();
+  }
+
+  MDiscreteFunc(int nbins, std::vector<double> pars) {
+    fNbins = nbins;
+    fPars = pars;
+  }
+
+  MDiscreteFunc(int nbins) { fNbins = nbins; }
+
+  MDiscreteFunc(int nbins, int order) {
+    fNbins = nbins;
+    fPars.resize(order + 1, 0);
+    // change the order-th parameter to 1
+    fPars[order] = 1;
+  }
+
+  MDiscreteFunc(const MDiscreteFunc &other) {
+    fNbins = other.fNbins;
+    fPars = other.fPars;
+  }
+
+  ~MDiscreteFunc() { fPars.clear(); }
+
+  vector<double> GetPars() { return fPars; }
+
+  vector<double> GetPars(double x_min, double width_bin) {
+    vector<double> scaled_pars;
+    for (int i = 0; i < fPars.size(); i++) {
+      scaled_pars.push_back(fPars[i] / pow(width_bin, i));
+    }
+
+    double distance_shift = -x_min + width_bin / 2.0;
+
+    vector<double> pars4return;
+
+    for (int i = 0; i < scaled_pars.size(); i++) {
+      double par4return = 0;
+      for (int j = i; j < scaled_pars.size(); j++) {
+        par4return +=
+            scaled_pars[j] * TMath::Binomial(j, i) * pow(distance_shift, j - i);
+      }
+      pars4return.push_back(par4return);
+    }
+
+    return pars4return;
+  }
+
+  double Eval(int bin) {
+    double value = 0;
+    for (int i = 0; i < fPars.size(); i++) {
+      value += fPars[i] * pow(bin, i);
+    }
+    return value;
+  }
+
+  void Print() {
+    cout << "MDiscreteFunc: " << endl;
+    cout << "  Nbins: " << fNbins << endl;
+    cout << "  Pars: ";
+    for (int i = 0; i < fPars.size(); i++) {
+      cout << fPars[i] << " ";
+    }
+    cout << endl;
+  }
+
+  double operator*(MDiscreteFunc rhs) {
+    double sum = 0;
+    for (int i = 1; i <= fNbins; i++) {
+      sum += this->Eval(i) * rhs.Eval(i);
+    }
+    return sum;
+  }
+
+  double operator*(vector<double> rhs) {
+    if (fNbins != rhs.size()) {
+      std::cerr << "Error: MDiscreteFunc::operator*: Nbins mismatch!"
+                << std::endl;
+      return 0;
+    }
+    double sum = 0;
+    for (int i = 0; i < fNbins; i++) {
+      sum += this->Eval(i + 1) * rhs[i];
+    }
+    return sum;
+  }
+
+  MDiscreteFunc operator*(double rhs) {
+    std::vector<double> new_pars;
+    for (int i = 0; i < fPars.size(); i++) {
+      new_pars.push_back(fPars[i] * rhs);
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc operator+(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator+: Nbins mismatch!"
+                << std::endl;
+      return MDiscreteFunc();
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    std::vector<double> new_pars(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double lhs_par = (i < fPars.size()) ? fPars[i] : 0;
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      new_pars[i] = lhs_par + rhs_par;
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc operator-(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator-: Nbins mismatch!"
+                << std::endl;
+      return MDiscreteFunc();
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    std::vector<double> new_pars(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double lhs_par = (i < fPars.size()) ? fPars[i] : 0;
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      new_pars[i] = lhs_par - rhs_par;
+    }
+    return MDiscreteFunc(fNbins, new_pars);
+  }
+
+  MDiscreteFunc &operator*=(double rhs) {
+    for (int i = 0; i < fPars.size(); i++) {
+      fPars[i] *= rhs;
+    }
+    return *this;
+  }
+
+  MDiscreteFunc &operator+=(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator+=: Nbins mismatch!"
+                << std::endl;
+      return *this;
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    fPars.resize(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      fPars[i] += rhs_par;
+    }
+    return *this;
+  }
+
+  MDiscreteFunc &operator-=(MDiscreteFunc rhs) {
+    if (fNbins != rhs.fNbins) {
+      std::cerr << "Error: MDiscreteFunc::operator-=: Nbins mismatch!"
+                << std::endl;
+      return *this;
+    }
+    int max_order = std::max(fPars.size(), rhs.fPars.size());
+    fPars.resize(max_order, 0);
+    for (int i = 0; i < max_order; i++) {
+      double rhs_par = (i < rhs.fPars.size()) ? rhs.fPars[i] : 0;
+      fPars[i] -= rhs_par;
+    }
+    return *this;
+  }
+
+  double cos(MDiscreteFunc rhs) {
+    double dot_product = (*this) * rhs;
+    double norm1 = sqrt((*this) * (*this));
+    double norm2 = sqrt(rhs * rhs);
+    return dot_product / (norm1 * norm2);
+  }
+
+  double cos(vector<double> rhs) {
+    double dot_product = (*this) * rhs;
+    double norm1 = sqrt((*this) * (*this));
+    double norm2 = 0;
+    for (int i = 0; i < rhs.size(); i++) {
+      norm2 += rhs[i] * rhs[i];
+    }
+    norm2 = sqrt(norm2);
+    return dot_product / (norm1 * norm2);
+  }
+};
+
+vector<MDiscreteFunc> InitOrthogonalDiscreteFuncs(int nbins, int max_order) {
+  vector<MDiscreteFunc> gOrthogonalDiscreteFuncs;
+
+  MDiscreteFunc e_0(nbins, 0);
+  e_0 *= 1. / sqrt(e_0 * e_0);
+
+  gOrthogonalDiscreteFuncs.push_back(e_0);
+
+  for (int order = 1; order <= max_order; order++) {
+    MDiscreteFunc func_order(nbins, order);
+    for (int prev_order = 0; prev_order < order; prev_order++) {
+      MDiscreteFunc func_prev = gOrthogonalDiscreteFuncs[prev_order];
+      double coeff = func_order * func_prev / (func_prev * func_prev);
+      func_order = func_order - func_prev * coeff;
+    }
+    double norm = sqrt(func_order * func_order);
+    func_order *= (1.0 / norm);
+    gOrthogonalDiscreteFuncs.push_back(func_order);
+    // cout << "=========================" << endl
+    //      << "Initialized order " << order << " orthogonal discrete function."
+    //      << endl;
+    // func_order.Print();
+  }
+  return gOrthogonalDiscreteFuncs;
 }
 
-float nDCA2Dev(float pt, float dca) {
-    double dev_dca = 0.00179344 + 0.000924651 * pow(abs(pt), -1.4062);
-    return abs(dca) / dev_dca;
+MComplex GetMComplexFromHist(TH1 *hist_re, TH1 *hist_im, int i_bin) {
+  double re = hist_re->GetBinContent(i_bin);
+  double im = hist_im->GetBinContent(i_bin);
+  double re_err = hist_re->GetBinError(i_bin);
+  double im_err = hist_im->GetBinError(i_bin);
+  return MComplex(re, im, re_err, im_err);
 }
-""")
 
-def RResultWrite(result_handles, output_file):
-    """Write histograms, handling duplicate names by appending _0, _1, ..."""
-    output_file.cd()
-    written_names = {}
+double GetMeanFormVecDouble(std::vector<double> vec) {
+  double sum = 0;
+  for (int i = 0; i < vec.size(); i++) {
+    sum += vec[i];
+  }
+  return sum / vec.size();
+}
 
-    for handle in result_handles:
-        try:
-            h = handle.GetPtr()
-        except Exception as e:
-            print(f"Warning: Could not retrieve histogram from handle: {e}")
-            continue
+double GetStdDevFormVecDouble(std::vector<double> vec) {
+  double mean = GetMeanFormVecDouble(vec);
+  double sum = 0;
+  for (int i = 0; i < vec.size(); i++) {
+    sum += pow(vec[i] - mean, 2);
+  }
+  return sqrt(sum / vec.size() / (vec.size() - 1));
+}
 
-        if not hasattr(h, 'GetName'):
-            continue
-        name = h.GetName()
+#include <cstdint>
+#include <random>
 
-        if name in written_names:
-            written_names[name] += 1
-            new_name = f"{name}_{written_names[name]}"
-            h.SetName(new_name)
-            print(f"Renaming duplicate histogram to: {new_name}")
-        else:
-            written_names[name] = 0
+inline double functionalRandom(double r_event, uint64_t toyIndex,
+                               uint64_t seed) {
+  uint64_t base = static_cast<uint64_t>(r_event * (1ULL << 53));
 
-        h.Write()
+  uint64_t finalSeed = base ^ (toyIndex + 0x9e3779b97f4a7c15ULL) ^ seed;
 
+  std::mt19937_64 gen(finalSeed);
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-class StrVar4Hist:
-    def __init__(self, name, title, unit, nbins, bins):
-        self.fName = name
-        self.fTitle = title
-        self.fUnit = unit
-        self.fNbins = nbins
+  return dist(gen);
+}
 
-        if len(bins) != nbins + 1 and len(bins) != 2:
-            raise ValueError("bins size is not correct")
-
-        if len(bins) == 2:
-            start, stop = bins[0], bins[1]
-            self.fBins = [
-                start + i * (stop - start) / nbins for i in range(nbins + 1)
-            ]
-        else:
-            self.fBins = list(bins)
-
-
-def EventMixingReadingPair(path_input_flowVecd: str, path_output: str, path_config: str, toy_index: int):
-    global gRResultHandles
-    gRResultHandles.clear()
-
-    # Open input ROOT file and get TTree
-    file_flowVecd = ROOT.TFile.Open(path_input_flowVecd)
-    tree_input = None
-    for key in file_flowVecd.GetListOfKeys():
-        if key.GetClassName() == "TTree":
-            tree_input = file_flowVecd.Get(key.GetName())
-            break
-    if not tree_input:
-        raise RuntimeError("No TTree found in input file")
-
-    # Load configuration from specified YAML file
-    with open(path_config, "r") as f:
-        config = yaml.safe_load(f)
-
-    # Extract binning parameters
-    hist_cfg = config["hist_binning"]
-    low_edge_deltaPhiToPi = hist_cfg["low_edge_deltaPhiToPi"]
-    up_edge_deltaPhiToPi = hist_cfg["up_edge_deltaPhiToPi"]
-    n_bins_mass_assoYield = hist_cfg["n_bins_mass_assoYield"]
-    delta_eta_cfg = hist_cfg["binning_deltaEta_assoYield"]
-    n_bins_deltaEta_assoYield = delta_eta_cfg["n_bins"]
-    min_deltaEta_assoYield = delta_eta_cfg["min"]
-    max_deltaEta_assoYield = delta_eta_cfg["max"]
-    n_bins_deltaPhi_assoYield = hist_cfg["n_bins_deltaPhi_assoYield"]
-
-    # Define histogram axes
-    var_fPosZ = StrVar4Hist("fPosZ", "#it{V}_{Z}", "cm", 8, [-10, 10])
-    var_NumContribCalibBinned = StrVar4Hist(
-        "NumContribCalib", "N_{vtx contrib} Calibrated", "",
-        10, [0, 5, 8, 11, 14, 18, 23, 28, 36, 48, 300]
-    )
-    var_MassJpsiCandidate = StrVar4Hist(
-        "jpsi_mass", "M_{ee}", "GeV^{2}/c^{4}",
-        n_bins_mass_assoYield, [1.8, 5.4]
-    )
-    var_PtJpsiCandidate = StrVar4Hist(
-        "jpsi_pt", "p_{T}", "GeV/c", 10, [0.0, 5.0]
-    )
-    var_DeltaEtaUS = StrVar4Hist(
-        "DeltaEta", "#Delta#eta_{J/#psi, track}", "",
-        n_bins_deltaEta_assoYield, [min_deltaEta_assoYield, max_deltaEta_assoYield]
-    )
-    var_DeltaPhiUS = StrVar4Hist(
-        "DeltaPhi", "#Delta#phi_{J/#psi, track}", "",
-        n_bins_deltaPhi_assoYield,
-        [low_edge_deltaPhiToPi * ROOT.TMath.Pi(), up_edge_deltaPhiToPi * ROOT.TMath.Pi()]
-    )
-
-    vec_var = [
-        var_DeltaEtaUS,
-        var_DeltaPhiUS,
-        var_fPosZ,
-        var_MassJpsiCandidate,
-        var_PtJpsiCandidate,
-        var_NumContribCalibBinned
-    ]
-
-    # Build base RDataFrame
-    rdf_base = ROOT.RDataFrame(tree_input)
-
-    # --- NEW: Generate new random number using randTag and toy_index ---
-    # Assumes the TTree has a branch named "randTag" of type double in [0,1)
-    rdf_AllVar = (
-        rdf_base.Define("DeltaPhi", "jpsi_phi - ref_phi")
-                .Define("DeltaEta", "jpsi_eta - ref_eta")
-                .Define("nITSCluster", "countSetBits_uint8(ref_itsClusterMap)")
-                .Define("nDcaZ2Dev", "nDCA2Dev(ref_pt, ref_dcaz)")
-                .Define("nDcaXY2Dev", "nDCA2Dev(ref_pt, ref_dcaxy)")
-                .Define("randNew", f"functionalRandom(randTag, {toy_index}ULL)")
-    )
-
-    # Optional: you can now use "randNew" in cuts or weights, e.g.
-    # .Filter("randNew < 0.5", "toy_selection")
-
-    # Read cuts
-    cuts_config = config.get("cuts", {})
-    if not cuts_config:
-        print("Warning: no 'cuts' section in config. Using default inclusive cut.")
-        cut_items = [("inclusive", "true")]
-    else:
-        cut_items = list(cuts_config.items())
-
-    # Book histograms for each cut
-    for cut_name, cut_expr in cut_items:
-        print(f"Applying cut '{cut_name}': {cut_expr}")
-        rdf_filtered = rdf_AllVar.Filter(cut_expr, cut_name)
-
-        hist_name = "_".join(v.fName for v in vec_var) + "_" + cut_name
-        axis_titles = ";".join(
-            v.fTitle + (" (" + v.fUnit + ")" if v.fUnit else "") for v in vec_var
-        )
-        full_title = f"{hist_name};{axis_titles}"
-
-        nbins_list = [v.fNbins for v in vec_var]
-        edges_list = [v.fBins for v in vec_var]
-        edge_arrays = [array('d', edges) for edges in edges_list]
-
-        thnd_model = ROOT.RDF.THnDModel(
-            hist_name,
-            full_title,
-            len(vec_var),
-            nbins_list,
-            edge_arrays
-        )
-
-        column_names = [v.fName for v in vec_var]
-        hist_handle = rdf_filtered.HistoND(thnd_model, column_names)
-        gRResultHandles.append(hist_handle)
-
-    # Write all results
-    output_file = ROOT.TFile(path_output, "RECREATE")
-    RResultWrite(gRResultHandles, output_file)
-    output_file.Close()
-    print(f"✅ Output written to: {path_output}")
-
-
-def main():
-    # Parse command-line arguments: now accept optional toy_index (default=0)
-    if len(sys.argv) < 4:
-        print("Usage: python script.py <input.root> <output.root> <config.yaml> [toy_index]")
-        print("Example: python analysis.py data.root results.root my_config.yaml 42")
-        sys.exit(1)
-
-    path_input = sys.argv[1]
-    path_output = sys.argv[2]
-    path_config = sys.argv[3]
-    toy_index = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
-
-    EventMixingReadingPair(path_input, path_output, path_config, toy_index)
-
-
-if __name__ == "__main__":
-    main()
+#endif
