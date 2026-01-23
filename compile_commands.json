@@ -1,0 +1,173 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/TreeClone.exe",
+      "kit/TreeClone.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/TreeClone.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/TreeClone.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/hadd_center.exe",
+      "kit/hadd_center.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/hadd_center.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/hadd_center.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/RMerge.exe",
+      "kit/RMerge.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/RMerge.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/RMerge.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/BSMerge.exe",
+      "kit/BSMerge.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/BSMerge.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/BSMerge.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/HistExtract.exe",
+      "kit/HistExtract.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/HistExtract.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/HistExtract.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "kit/CheckRootFile.exe",
+      "kit/CheckRootFile.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/kit/CheckRootFile.cpp",
+    "output": "/data/work/alice/Code/PairFlow/kit/CheckRootFile.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "macro/SE_PR.exe",
+      "macro/SE_PR.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/macro/SE_PR.cpp",
+    "output": "/data/work/alice/Code/PairFlow/macro/SE_PR.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "macro/ME_PR.exe",
+      "macro/ME_PR.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/macro/ME_PR.cpp",
+    "output": "/data/work/alice/Code/PairFlow/macro/ME_PR.exe"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I/data/work/alice/Code/PairFlow/include",
+      "-I/data/work/alice/Code/PairFlow/macro",
+      "-pthread",
+      "-std=c++17",
+      "-m64",
+      "-I/home/sjzhu/env/include",
+      "-pthread",
+      "-o",
+      "macro/SE_PR_thn.exe",
+      "macro/SE_PR_thn.cpp"
+    ],
+    "directory": "/data/work/alice/Code/PairFlow",
+    "file": "/data/work/alice/Code/PairFlow/macro/SE_PR_thn.cpp",
+    "output": "/data/work/alice/Code/PairFlow/macro/SE_PR_thn.exe"
+  }
+]
