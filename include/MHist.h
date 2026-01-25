@@ -461,6 +461,18 @@ void DensityHisto2DNoWeight(TH2D *h2) {
   }
 }
 
+void AccCorrHisto2DNoWeight(TH2D *h2) {
+  double vmax = h2->GetBinContent(h2->FindBin(0, 0));
+  for (int iBinX = 1; iBinX <= h2->GetNbinsX(); iBinX++) {
+    for (int iBinY = 1; iBinY <= h2->GetNbinsY(); iBinY++) {
+      double binContent = h2->GetBinContent(iBinX, iBinY);
+      double binError = h2->GetBinError(iBinX, iBinY);
+      h2->SetBinContent(iBinX, iBinY, binContent / vmax);
+      h2->SetBinError(iBinX, iBinY, binError / vmax);
+    }
+  }
+}
+
 void HistSubstraction1D(TH1D *result, TH1D *h1, TH1D *h2) {
   for (int i = 1; i <= result->GetNbinsX(); i++) {
     double binContent1 = h1->GetBinContent(i);
