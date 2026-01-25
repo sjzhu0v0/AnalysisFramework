@@ -411,50 +411,47 @@ public:
 
     vector<int> vec_idTrigger_new = {iVtxZ, iMass, vec_iPt[0], vec_iMult[0]};
     double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
+    for (int j = 0; j < vec_iMult.size(); j++)
+      for (int i = 0; i < vec_iPt.size(); i++) {
+        if (i == 0 && j == 0)
+          continue;
+        TH2D *h2D_temp =
+            fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
+                             {iVtxZ, iMass, vec_iPt[i], vec_iMult[j]});
+        h2D->Add(h2D_temp);
+        h2D_temp->Delete();
+        vector<int> vec_idTrigger_temp = {iVtxZ, iMass, vec_iPt[i],
+                                          vec_iMult[j]};
+        double number_triggered_temp =
+            fHnTrigger->GetBinContent(vec_idTrigger_temp);
+        number_triggered += number_triggered_temp;
+      }
     if (!doMixMultInt)
       for (int j = 0; j < vec_iMult.size(); j++)
         for (int i = 0; i < vec_iPt.size(); i++) {
           if (i == 0 && j == 0)
             continue;
-          TH2D *h2D_temp =
-              fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                               {iVtxZ, iMass, vec_iPt[i], vec_iMult[j]});
           TH2D *h2DMix_temp = fHnMix->Project(
               gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
               {iVtxZ, iMass, vec_iPt[i], doMixMultInt ? 0 : vec_iMult[j]});
-          h2D->Add(h2D_temp);
           h2DMix->Add(h2DMix_temp);
-          h2D_temp->Delete();
           h2DMix_temp->Delete();
-          vector<int> vec_idTrigger_temp = {iVtxZ, iMass, vec_iPt[i],
-                                            vec_iMult[j]};
-          double number_triggered_temp =
-              fHnTrigger->GetBinContent(vec_idTrigger_temp);
-          number_triggered += number_triggered_temp;
         }
-
-    for (int i = 0; i < vec_iPt.size(); i++) {
-      if (i == 0)
-        continue;
-      TH2D *h2D_temp =
-          fHnSame->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-                           {iVtxZ, iMass, vec_iPt[i], vec_iMult[j]});
-      TH2D *h2DMix_temp = fHnMix->Project(
-          gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
-          {iVtxZ, iMass, vec_iPt[i], doMixMultInt ? 0 : vec_iMult[j]});
-      h2D->Add(h2D_temp);
-      h2DMix->Add(h2DMix_temp);
-      h2D_temp->Delete();
-      h2DMix_temp->Delete();
-      vector<int> vec_idTrigger_temp = {iVtxZ, iMass, vec_iPt[i], vec_iMult[j]};
-      double number_triggered_temp =
-          fHnTrigger->GetBinContent(vec_idTrigger_temp);
-      number_triggered += number_triggered_temp;
+    else {
+      for (int i = 0; i < vec_iPt.size(); i++) {
+        if (i == 0)
+          continue;
+        TH2D *h2DMix_temp =
+            fHnMix->Project(gtype_vars::kDeltaPhi, gtype_vars::kDeltaEta,
+                            {iVtxZ, iMass, vec_iPt[i], 0});
+        h2DMix->Add(h2DMix_temp);
+        h2DMix_temp->Delete();
+      }
     }
+
     TH2D *h_assoYield = (TH2D *)h2D->Clone(Form(
         "h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, vec_iPt[0], vec_iMult[0]));
-    DensityHisto2DNoWeight(h2DMix);
-
+    AccCorrHisto2DNoWeight(h2DMix);
     h_assoYield->Divide(h2DMix);
     // h_assoYield->Scale(1.0 / number_triggered);
     if (doNTrigScale) {
