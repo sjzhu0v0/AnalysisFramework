@@ -99,8 +99,10 @@ public:
         fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
     TH2D *h_assoYield = (TH2D *)h2D->Clone(
         Form("h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
-    DensityHisto2DNoWeight(h2DMix);
-    h_assoYield->Divide(h2DMix);
+    if (h2DMix->Integral() > 0) {
+      AccCorrHisto2DNoWeight(h2DMix);
+      h_assoYield->Divide(h2DMix);
+    }
     h2DMix->Delete();
     h2D->Delete();
     return h_assoYield;
@@ -156,8 +158,10 @@ public:
         fHnTrigger->hN->GetBinContent(vec_idTrigger_new.data());
     TH2D *h_assoYield = (TH2D *)h2D->Clone(
         Form("h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
-    DensityHisto2DNoWeight(h2DMix);
-    h_assoYield->Divide(h2DMix);
+    if (h2DMix->Integral() > 0) {
+      AccCorrHisto2DNoWeight(h2DMix);
+      h_assoYield->Divide(h2DMix);
+    }
     h_assoYield->Scale(1.0 / number_triggered);
     h2DMix->Delete();
     h2D->Delete();
@@ -330,9 +334,10 @@ public:
     double number_triggered = fHnTrigger->GetBinContent(vec_idTrigger_new);
     TH2D *h_assoYield = (TH2D *)h2D->Clone(
         Form("h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, iPt, iMult));
-    DensityHisto2DNoWeight(h2DMix);
-
-    h_assoYield->Divide(h2DMix);
+    if (h2DMix->Integral() > 0) {
+      AccCorrHisto2DNoWeight(h2DMix);
+      h_assoYield->Divide(h2DMix);
+    }
     // h_assoYield->Scale(1.0 / number_triggered);
     if (doNTrigScale) {
       if (number_triggered != 0) {
@@ -380,9 +385,11 @@ public:
 
     TH2D *h_assoYield = (TH2D *)h2D->Clone(
         Form("h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, vec_iPt[0], iMult));
-    AccCorrHisto2DNoWeight(h2DMix);
+    if (h2DMix->Integral() > 0) {
+      AccCorrHisto2DNoWeight(h2DMix);
+      h_assoYield->Divide(h2DMix);
+    }
 
-    h_assoYield->Divide(h2DMix);
     // h_assoYield->Scale(1.0 / number_triggered);
     if (doNTrigScale) {
       if (number_triggered != 0) {
@@ -451,8 +458,10 @@ public:
 
     TH2D *h_assoYield = (TH2D *)h2D->Clone(Form(
         "h_assoYield_%d_%d_%d_%d", iVtxZ, iMass, vec_iPt[0], vec_iMult[0]));
-    AccCorrHisto2DNoWeight(h2DMix);
-    h_assoYield->Divide(h2DMix);
+    if (h2DMix->Integral() > 0) {
+      AccCorrHisto2DNoWeight(h2DMix);
+      h_assoYield->Divide(h2DMix);
+    }
     // h_assoYield->Scale(1.0 / number_triggered);
     if (doNTrigScale) {
       if (number_triggered != 0) {

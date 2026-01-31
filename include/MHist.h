@@ -463,6 +463,8 @@ void DensityHisto2DNoWeight(TH2D *h2) {
 
 void AccCorrHisto2DNoWeight(TH2D *h2) {
   double vmax = h2->GetBinContent(h2->FindBin(0, 0));
+  if (vmax <= 0 || h2->Integral() <= 0)
+    return;
   for (int iBinX = 1; iBinX <= h2->GetNbinsX(); iBinX++) {
     for (int iBinY = 1; iBinY <= h2->GetNbinsY(); iBinY++) {
       double binContent = h2->GetBinContent(iBinX, iBinY);
