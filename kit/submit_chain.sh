@@ -3,7 +3,9 @@
 PREV_JOBID=""
 
 submit() {
+    local path_prev=$(realpath .)
     cd /lustre/alice/users/szhu/submit
+    local base=$(realpath .)
     date >> history_submission
     echo $@ >> history_submission
 
@@ -69,7 +71,6 @@ submit() {
         return 1
     fi
 
-    local base=$(realpath .)
     [[ -d ${base}/slurm_cache_${job_name} ]] && rm -r ${base}/slurm_cache_${job_name}
     mkdir -p ${base}/slurm_cache_${job_name}
     cd ${base}/slurm_cache_${job_name} || return 1
@@ -100,15 +101,12 @@ submit() {
 
     sbatch_cmd+=(/u/szhu/slurm_env/${path_env} ${path_command})
 
-    "${sbatch_cmd[@]}"
+    "${sbatch_cmd[@]}" | tee -a /lustre/alice/users/szhu/submit/history_submission
 
     echo "Submitted job array with spec '${array_spec}' (partition: ${partition}, job name: ${job_name}, time limit: ${time_limit})."
     [[ -n ${dependency} ]] && echo "Dependency: ${dependency}"
-    cd ${base}
+    cd ${path_prev}
 }
-
-
-#!/bin/bash
 
 if [[ $# -ne 1 ]]; then
   echo "Usage: $0 <job_script_file>" >&2
