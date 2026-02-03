@@ -346,6 +346,11 @@ public:
     obj->Draw("same");
     return this;
   }
+
+  MPublisherCanvas *DrawSameClone(TObject *obj) {
+    obj->DrawClone("same");
+    return this;
+  }
 };
 
 MPublisherCanvas *gPublisherCanvas;
