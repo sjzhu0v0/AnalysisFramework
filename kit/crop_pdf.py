@@ -1,169 +1,125 @@
 #!/usr/bin/env python3
-import fitz
-import sys
 import argparse
+import sys
+import fitz  # PyMuPDF
 
 
-def parse_pages(pages_str, total_pages):
-    """
-    Parse page selection string.
-    Supported: "all", "5", "1-3", "1,3,7"
-    Converts 1-based input to 0-based valid indices.
-    """
+def parse_pages(pages_str: str, total_pages: int):
+    """Supported: all, 5, 1-3, 1,3,7 (1-based input -> 0-based indices)."""
     if pages_str.lower() == "all":
         return list(range(total_pages))
 
     result = []
-    parts = pages_str.split(",")
-
-    for part in parts:
+    for part in pages_str.split(","):
         part = part.strip()
         if not part:
             continue
         if "-" in part:
-            try:
-                start, end = map(int, part.split("-"))
-            except ValueError:
-                raise ValueError(f"Invalid page range: '{part}'")
+            s, e = part.split("-", 1)
+            start, end = int(s), int(e)
             if start > end:
-                raise ValueError(f"Invalid page range: start ({start}) > end ({end})")
+                raise ValueError(f"Invalid range: {part}")
             result.extend(range(start - 1, end))
         else:
-            try:
-                result.append(int(part) - 1)
-            except ValueError:
-                raise ValueError(f"Invalid page number: '{part}'")
+            result.append(int(part) - 1)
 
     result = sorted(set(result))
-    return [p for p in result if 0 <= p < total_pages]
+    bad = [p + 1 for p in result if p < 0 or p >= total_pages]
+    if bad:
+        raise ValueError(f"Page(s) out of range: {bad}")
+    return result
 
 
-def extract_region(page, w1, w2, h1, h2):
-    """Convert fractional coordinates [0,1] to absolute PDF rect."""
-    rect = page.rect
-    x1 = rect.x0 + rect.width * w1
-    x2 = rect.x0 + rect.width * w2
-    y1 = rect.y0 + rect.height * h1
-    y2 = rect.y0 + rect.height * h2
-    return fitz.Rect(x1, y1, x2, y2)
+def frac_to_rect(page: fitz.Page, w1: float, w2: float, h1: float, h2: float) -> fitz.Rect:
+    """Fractional [0,1] coords on the *visual* page -> Rect in that visual coord system."""
+    r = page.rect  # visual rect (already accounts for rotation)
+    return fitz.Rect(
+        r.x0 + r.width * w1,
+        r.y0 + r.height * h1,
+        r.x0 + r.width * w2,
+        r.y0 + r.height * h2,
+    )
 
 
-def crop_pdf(
-    input_pdf, output_pdf, *, mode=None, w1=None, w2=None, h1=None, h2=None, pages="all"
-):
-    """
-    Crop PDF either by mode ('left', 'right', 'top', 'bottom')
-    or by explicit fractional coordinates (w1, w2, h1, h2).
-    Exactly one of {mode} or {w1,w2,h1,h2} must be provided.
-    """
-    if (mode is not None) == (w1 is not None):
+def resolve_mode(mode: str):
+    mode = mode.lower()
+    if mode == "left":
+        return 0.0, 0.5, 0.0, 1.0
+    if mode == "right":
+        return 0.5, 1.0, 0.0, 1.0
+    if mode == "top":
+        return 0.0, 1.0, 0.0, 0.5
+    if mode == "bottom":
+        return 0.0, 1.0, 0.5, 1.0
+    raise ValueError(f"Unknown mode: {mode}")
+
+
+def crop_pdf(input_pdf: str, output_pdf: str, *, mode=None, w1=None, w2=None, h1=None, h2=None, pages="all"):
+    # validate
+    custom = all(v is not None for v in (w1, w2, h1, h2))
+    if (mode is not None) == custom:
         raise ValueError("Specify either --mode OR all of --w1, --w2, --h1, --h2.")
 
     doc = fitz.open(input_pdf)
-    total_pages = len(doc)
-    selected_pages = parse_pages(pages, total_pages)
+    out = fitz.open()
+    out.set_metadata(doc.metadata)
 
-    new_doc = fitz.open()
-    new_doc.set_metadata(doc.metadata)  # Preserve author/title/etc.
+    selected = parse_pages(pages, doc.page_count)
 
-    # page = doc[0]  # Just to access page dimensions
-    # pix = page.get_pixmap()
-    # pix.save("temp_preview.png")  # Save a preview image (optional)
-
-    # Resolve cropping region
+    # decide crop fractions
     if mode:
-        mode = mode.lower()
-        if mode == "left":
-            w1, w2, h1, h2 = 0.0, 0.5, 0.0, 1.0
-        elif mode == "right":
-            w1, w2, h1, h2 = 0.5, 1.0, 0.0, 1.0
-        elif mode == "top":
-            w1, w2, h1, h2 = 0.0, 1.0, 0.5, 1.0
-        elif mode == "bottom":
-            w1, w2, h1, h2 = 0.0, 1.0, 0.0, 0.5
-        else:
-            raise ValueError(
-                f"Unknown mode: '{mode}'. Use 'left', 'right', 'top', or 'bottom'."
-            )
+        w1, w2, h1, h2 = resolve_mode(mode)
     else:
-        # Validate fractional inputs
-        if not (0 <= w1 < w2 <= 1):
-            raise ValueError(
-                f"Invalid width: w1={w1}, w2={w2}. Must satisfy 0 ≤ w1 < w2 ≤ 1."
-            )
-        if not (0 <= h1 < h2 <= 1):
-            raise ValueError(
-                f"Invalid height: h1={h1}, h2={h2}. Must satisfy 0 ≤ h1 < h2 ≤ 1."
-            )
+        if not (0 <= w1 < w2 <= 1 and 0 <= h1 < h2 <= 1):
+            raise ValueError("Fractions must satisfy 0 ≤ w1 < w2 ≤ 1 and 0 ≤ h1 < h2 ≤ 1")
 
-    for pno in selected_pages:
+    for pno in selected:
         page = doc[pno]
-        print(f"page {pno} rotation =", page.rotation)
-        crop_rect = extract_region(page, w1, w2, h1, h2)
-        pix = page.get_pixmap(clip=crop_rect)
-        pix.save(f"temp_page_{pno + 1}.png")  # Save cropped preview (optional)
-        new_page = new_doc.new_page(width=crop_rect.width, height=crop_rect.height)
-        new_page.show_pdf_page(
-            new_page.rect, doc, pno, clip=crop_rect, rotate=page.rotation
-        )
-        # new_page.show_pdf_page(new_page.rect, doc, pno, clip=crop_rect)
+        rot = page.rotation  # 0/90/180/270
+        print(rot)
 
-    new_doc.save(output_pdf)
-    new_doc.close()
+        # 1) crop rect in *visual* coords (what you see after rotation)
+        # page.set_rotation(0)
+        crop_view = frac_to_rect(page, float(w1), float(w2), float(h1), float(h2))
+        print(page.rect)
+        print(crop_view)
+
+        # 2) map to *source* coords for show_pdf_page clip (core fix)
+        crop_src = crop_view * page.derotation_matrix
+        page.set_rotation(0)
+
+        new_page = out.new_page(width=crop_src.width, height=crop_src.height)
+
+        new_page.show_pdf_page(new_page.rect, doc, pno, clip=crop_src)
+        new_page.set_rotation(rot)
+
+    out.save(output_pdf)
+    out.close()
     doc.close()
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Crop PDF pages by direction or custom region.",
-        formatter_class=argparse.RawTextHelpFormatter,
-        epilog="""Examples:
-  %(prog)s input.pdf output.pdf --mode left --pages "1-5"
-  %(prog)s input.pdf output.pdf --w1 0 --w2 0.5 --h1 0.1 --h2 1 --pages "51"
-  %(prog)s in.pdf out.pdf --mode right
-""",
-    )
-    parser.add_argument("input", help="Input PDF file")
-    parser.add_argument("output", help="Output PDF file")
-    parser.add_argument(
-        "--mode",
-        choices=["left", "right", "top", "bottom"],
-        help="Predefined crop direction",
-    )
-    parser.add_argument("--w1", type=float, help="Left boundary as fraction (0.0–1.0)")
-    parser.add_argument("--w2", type=float, help="Right boundary as fraction (0.0–1.0)")
-    parser.add_argument("--h1", type=float, help="Top boundary as fraction (0.0–1.0)")
-    parser.add_argument(
-        "--h2", type=float, help="Bottom boundary as fraction (0.0–1.0)"
-    )
-    parser.add_argument(
-        "--pages",
-        default="all",
-        help='Pages to process (default: "all"). Examples: "1-3", "2,5", "1-10,15"',
-    )
+    ap = argparse.ArgumentParser(description="Crop PDF by visual fractions (rotation-safe).")
+    ap.add_argument("input", help="Input PDF")
+    ap.add_argument("output", help="Output PDF")
+    ap.add_argument("--mode", choices=["left", "right", "top", "bottom"], help="Predefined crop region")
+    ap.add_argument("--w1", type=float, help="Left (0-1)")
+    ap.add_argument("--w2", type=float, help="Right (0-1)")
+    ap.add_argument("--h1", type=float, help="Top (0-1)")
+    ap.add_argument("--h2", type=float, help="Bottom (0-1)")
+    ap.add_argument("--pages", default="all", help='Pages (e.g. "1-3", "2,5", "all")')
+    args = ap.parse_args()
 
-    args = parser.parse_args()
-
-    # Validate mutual exclusivity
-    if args.mode is not None:
-        if any(v is not None for v in [args.w1, args.w2, args.h1, args.h2]):
-            parser.error("Use --mode OR --w1/--w2/--h1/--h2, not both.")
-        crop_pdf(args.input, args.output, mode=args.mode, pages=args.pages)
-    elif all(v is not None for v in [args.w1, args.w2, args.h1, args.h2]):
-        crop_pdf(
-            args.input,
-            args.output,
-            w1=args.w1,
-            w2=args.w2,
-            h1=args.h1,
-            h2=args.h2,
-            pages=args.pages,
-        )
-    else:
-        parser.error(
-            "Either --mode must be specified, or all of --w1, --w2, --h1, and --h2."
-        )
-
+    crop_pdf(
+        args.input,
+        args.output,
+        mode=args.mode,
+        w1=args.w1,
+        w2=args.w2,
+        h1=args.h1,
+        h2=args.h2,
+        pages=args.pages,
+    )
     print(f"Saved → {args.output}")
 
 
