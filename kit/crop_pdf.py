@@ -76,13 +76,10 @@ def crop_pdf(input_pdf: str, output_pdf: str, *, mode=None, w1=None, w2=None, h1
     for pno in selected:
         page = doc[pno]
         rot = page.rotation  # 0/90/180/270
-        print(rot)
 
         # 1) crop rect in *visual* coords (what you see after rotation)
         # page.set_rotation(0)
         crop_view = frac_to_rect(page, float(w1), float(w2), float(h1), float(h2))
-        print(page.rect)
-        print(crop_view)
 
         # 2) map to *source* coords for show_pdf_page clip (core fix)
         crop_src = crop_view * page.derotation_matrix
