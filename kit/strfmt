@@ -1,25 +1,46 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import sys
 import re
+import argparse
+from typing import List, Tuple, Optional
 
-def parse_segmets(fmt):
-    segments = []
+# Type Aliases for better readability
+# Segment: (prefix_text, rule_string, suffix_text)
+# Rule: (separator, index-1) -> index is converted to 0-based
+Segment = Tuple[str, str, str]
+Rule = Tuple[str, Optional[int]]
+
+def parse_segments(fmt: str) -> List[Segment]:
+    """
+    Parse the outermost %...% structure
+    """
+    segments: List[Segment] = []
     pos = 0
+    # Use non-greedy matching for content starting and ending with %
     pattern = re.compile(r'%(.*?)%')
-    
+
     for m in pattern.finditer(fmt):
-        # print(f"Match found: {m.group(0)} at {m.start()} to {m.end()}")
         prefix = fmt[pos:m.start()]
-        rule_body = m.group(0)[1:-1]  # 去掉两边的括号
+        rule_body = m.group(1)  # Get content inside the percent signs
         pos = m.end()
-        segments.append((prefix, rule_body, ''))  # 后缀暂不定
-        
-    segments[-1] = (segments[-1][0], segments[-1][1], fmt[pos:])  # 最后部分是最后一组的 suffix
+        segments.append((prefix, rule_body, ''))
+
+    # Handle the trailing suffix of the last segment
+    if segments:
+        p, r, _ = segments[-1]
+        segments[-1] = (p, r, fmt[pos:])
+    
     return segments
 
-def parse_rule(fmt):
+def parse_rule_group(fmt: str) -> List[Tuple[str, List[Rule], str]]:
+    """
+    Parse the (...) rule groups inside %
+    Returns: [(prefix, [rule_list], suffix), ...]
+    """
     segments = []
     pos = 0
+    # Match parentheses (...)
     pattern = re.compile(r'\((.*?)\)')
 
     for m in pattern.finditer(fmt):
@@ -27,94 +48,134 @@ def parse_rule(fmt):
         rule_body = m.group(1)
         pos = m.end()
 
-        rule_parts = re.finditer(r'(.*?)(\d*)', rule_body)
-        rules = []
+        # Parse the specific rule chain, e.g., ":1-1" -> [(':', 1), ('-', 1)]
+        rules: List[Rule] = []
+        # Regex logic: match any chars (separator) + optional digits (index)
+        # Note: Assumes separator is not a digit and index follows immediately
+        rule_parts = re.finditer(r'([^0-9]*?)(\d*)', rule_body)
+        
         for p in rule_parts:
             sep = p.group(1)
-            idx = p.group(2)
-            if sep == '' and idx == '':
+            idx_str = p.group(2)
+            
+            # Skip empty matches (usually at start or end of string)
+            if not sep and not idx_str:
                 continue
-            idx = int(idx) - 1 if idx else None  # ✅ 索引从 1 开始
+                
+            # Index conversion: Input is 1-based, internal processing is 0-based
+            idx = int(idx_str) - 1 if idx_str else None
             rules.append((sep, idx))
 
-        segments.append((prefix, rules, ''))  # 后缀暂不定
-    segments[-1] = (segments[-1][0], segments[-1][1], fmt[pos:])  # 最后部分是最后一组的 suffix
+        segments.append((prefix, rules, ''))
+
+    # Handle the trailing suffix within the group
+    if segments:
+        p, r, _ = segments[-1]
+        segments[-1] = (p, r, fmt[pos:])
     
     return segments
 
-def apply_rules(data, rules):
+def apply_rules(data: str, rules: List[Rule]) -> List[str]:
+    """
+    Recursively apply rules to extract data
+    """
     if not rules:
-        return [data]
-    
+        return [data] if data else []
+
     sep, idx = rules[0]
-    parts = data.split(sep)
     
+    # If there is no separator but an index is requested, logic fails
+    if not sep and idx is not None:
+        return []
+
+    parts = data.split(sep) if sep else [data]
+
     if idx is not None:
+        # Extract specific index
         if 0 <= idx < len(parts):
             return apply_rules(parts[idx], rules[1:])
         else:
-            return []
+            return [] # Index out of bounds
     else:
+        # Extract all parts and apply subsequent rules to each
         results = []
         for part in parts:
             results.extend(apply_rules(part, rules[1:]))
         return results
 
-def str_fmt(fmt, data):
-    # print(f"Format string: {fmt}")
-    # test parse_segmets
-    segments = parse_segmets(fmt)
-    results = []
-    
-    for prefix, rules, suffix in segments:
-        # print(f"Prefix: {prefix}, Rules: {rules}, Suffix: {suffix}")
-        rules = parse_rule(rules)
-        subresults = []
-        for prefix2, rules2, suffix2 in rules:
-            # print(f"  Inner Prefix: {prefix2}, Rules: {rules2}, Suffix: {suffix2}")
-            # apply_rules(data, rules2) and add prefix2 and suffix2
-            subresults.extend(
-                f"{prefix2}{p}{suffix2}" for p in apply_rules(data, rules2)
-            )
-            # print(f"  Subresults: {subresults}")
-        # results.extend(f"{prefix}") if prefix is not empty
-        if prefix:
-            results.append(prefix)
-        # if subresults: and a " "
-        if subresults:
-            results.extend(f"{p} " for p in subresults[:-1])
-            results.append(subresults[-1])  # 最后一个不加空格
-            
-        if suffix:
-            results.append(suffix)
-        
-    # print(f"Results: {results}")
-    print(''.join(results))
-    
-    
-def main():
-    fmt_str = sys.argv[1]
+def str_fmt(fmt: str, data: str) -> str:
+    """
+    Main logic: Combine parsing results
+    """
+    segments = parse_segments(fmt)
+    final_results = []
 
-    if not sys.stdin.isatty():
-        # 管道模式: 第一个参数是格式，输入来自管道
-        if len(sys.argv) != 2:
-            print("Usage with pipe: echo \"input_string\" | ./strfmt \"prefix(rule1)mid(rule2)suffix\"")
-            sys.exit(1)
-        fmt_str = sys.argv[1]
-        for line in sys.stdin:
-            input_str = line.strip()
-            if input_str:  # 忽略空行
-                str_fmt(fmt_str, input_str)
-    else:
-        # 参数模式: 两个参数分别是格式和输入字符串
-        if len(sys.argv) != 3:
-            print("Usage: ./strfmt \"prefix(rule1)mid(rule2)suffix\" \"input_string\"")
-            print("       or")
-            print("       echo \"input_string\" | ./strfmt \"prefix(rule1)mid(rule2)suffix\"")
-            sys.exit(1)
-        input_str = sys.argv[2]
-        str_fmt(fmt_str, input_str)
+    # If no % markers found, return original text (or handle as needed)
+    if not segments:
+        return fmt
+
+    for prefix, rules_str, suffix in segments:
+        # 1. Parse internal rules
+        rule_groups = parse_rule_group(rules_str)
         
+        group_outputs = []
+        
+        # 2. Process each rule group (...)
+        for pre_inner, rules, suf_inner in rule_groups:
+            # 3. Apply extraction logic
+            extracted_data = apply_rules(data, rules)
+            
+            # 4. Assemble internal results
+            for item in extracted_data:
+                group_outputs.append(f"{pre_inner}{item}{suf_inner}")
+
+        # 5. Assemble final result
+        if prefix:
+            final_results.append(prefix)
+        
+        if group_outputs:
+            # Add space only if not the last element, or adjust separator as needed
+            # Preserved original script logic: add space in between
+            final_results.extend([f"{p} " for p in group_outputs[:-1]])
+            if group_outputs:
+                final_results.append(group_outputs[-1])
+
+        if suffix:
+            final_results.append(suffix)
+
+    return ''.join(final_results)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Custom string formatting and extraction tool",
+        epilog="Example: echo 'a,b,c' | %(,1)%",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("format_string", help="Formatting rule string, e.g., \"Prefix %(,1)% Suffix\"")
+    parser.add_argument("input_string", nargs="?", help="Input string (if omitted, reads from stdin)")
+
+    args = parser.parse_args()
+
+    # Handle input source
+    inputs = []
+    if args.input_string:
+        inputs.append(args.input_string)
+    else:
+        # Check if input is from a pipe
+        if not sys.stdin.isatty():
+            inputs = sys.stdin.read().splitlines()
+        else:
+            parser.print_help()
+            sys.exit(1)
+
+    # Process each line of input
+    for line in inputs:
+        line = line.strip()
+        if line:
+            try:
+                print(str_fmt(args.format_string, line))
+            except Exception as e:
+                print(f"Error processing '{line}': {e}", file=sys.stderr)
+
 if __name__ == "__main__":
     main()
-    
