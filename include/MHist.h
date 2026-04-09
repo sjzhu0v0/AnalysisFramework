@@ -3,6 +3,7 @@
 #include "MRootIO.h"
 #include "MSystem.h"
 #include "ROOT/RDF/HistoModels.hxx"
+#include "yaml-cpp/yaml.h"
 #include "THn.h"
 #include "tuple"
 
