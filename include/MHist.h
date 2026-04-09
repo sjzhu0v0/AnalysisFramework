@@ -147,6 +147,44 @@ struct StrVar4Hist {
   }
 };
 
+StrVar4Hist ParseStrVar4Hist(const YAML::Node& config) {                                                                           
+    TString name = config["name"].as<std::string>().c_str();                                                                       
+    TString title = config["title"].as<std::string>().c_str();                                                                     
+    TString unit = config["unit"].as<std::string>().c_str();                                                                       
+    int nbins = config["nbins"].as<int>();                                                                                         
+                                                                                                                                   
+    YAML::Node bins_node = config["bins"];                                                                                         
+    std::vector<double> bins;                                                                                                      
+                                                                                                                                   
+    for (const auto& bin_node : bins_node) {                                                                                       
+        if (bin_node.IsScalar()) {                                                                                                 
+            std::string val_str = bin_node.as<std::string>();                                                                      
+            // Check if string contains "pi"                                                                                       
+            if (val_str.find("pi") != std::string::npos) {                                                                         
+                // Remove spaces                                                                                                   
+                val_str.erase(std::remove(val_str.begin(), val_str.end(), ' '), val_str.end());                                    
+                // Remove "pi" and handle coefficient                                                                              
+                size_t pi_pos = val_str.find("pi");                                                                                
+                std::string coeff_str = val_str;                                                                                   
+                coeff_str.erase(pi_pos, 2); // remove "pi"                                                                         
+                // Remove trailing '*' if exists                                                                                   
+                if (!coeff_str.empty() && coeff_str.back() == '*') {                                                               
+                    coeff_str.pop_back();                                                                                          
+                }                                                                                                                  
+                                                                                                                                   
+                double coeff = coeff_str.empty() ? 1.0 : std::stod(coeff_str);                                                     
+                bins.push_back(coeff * M_PI);                                                                                      
+            } else {                                                                                                               
+                bins.push_back(std::stod(val_str));                                                                                
+            }                                                                                                                      
+        } else {                                                                                                                   
+            bins.push_back(bin_node.as<double>());                                                                                 
+        }                                                                                                                          
+    }                                                                                                                              
+                                                                                                                                   
+    return StrVar4Hist(name, title, unit, nbins, bins);                                                                            
+}                           
+
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
   TString name = str1.fName + "_" + str2.fName;
   if (tag != "") {
