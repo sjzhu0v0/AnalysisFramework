@@ -81,26 +81,26 @@ bool is_interactive() {
 #include <vector>
 
 // 模板递归结构体
-template <size_t Level, typename... Ts> struct Loop {
-  template <typename Func>
-  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
-                      std::tuple<Ts...> &current, Func func) {
-    const auto &vec = std::get<Level>(vectors); // 获取当前层级的向量
-    for (const auto &item : vec) {
-      std::get<Level>(current) = item; // 设置当前层级的值
-      Loop<Level + 1, Ts...>::iterate(vectors, current, func); // 递归到下一层级
-    }
-  }
-};
+// template <size_t Level, typename... Ts> struct Loop {
+//   template <typename Func>
+//   static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+//                       std::tuple<Ts...> &current, Func func) {
+//     const auto &vec = std::get<Level>(vectors); // 获取当前层级的向量
+//     for (const auto &item : vec) {
+//       std::get<Level>(current) = item; // 设置当前层级的值
+//       Loop<Level + 1, Ts...>::iterate(vectors, current, func); // 递归到下一层级
+//     }
+//   }
+// };
 
 // 模板特化，终止递归
-template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
-  template <typename Func>
-  static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
-                      std::tuple<Ts...> &current, Func func) {
-    func(current); // 调用处理函数
-  }
-};
+// template <typename... Ts> struct Loop<sizeof...(Ts), Ts...> {
+//   template <typename Func>
+//   static void iterate(const std::tuple<std::vector<Ts>...> &vectors,
+//                       std::tuple<Ts...> &current, Func func) {
+//     func(current); // 调用处理函数
+//   }
+// };
 
 // int main() {
 //     // 定义输入向量（支持多种类型）
