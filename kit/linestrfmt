@@ -1,0 +1,10 @@
+#read lines from the input file as a string
+file_input="$1"
+
+#get the content from stdin
+input=$(cat)
+
+#read the file_input line by line and format the string
+while IFS= read -r line; do
+  strfmt "$line" <<< "$input"
+done < "$file_input"
