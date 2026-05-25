@@ -51,6 +51,8 @@ def resolve_mode(mode: str):
         return 0.0, 1.0, 0.0, 0.5
     if mode == "bottom":
         return 0.0, 1.0, 0.5, 1.0
+    if mode == "full":
+        return 0.0, 1.0, 0.0, 1.0
     raise ValueError(f"Unknown mode: {mode}")
 
 
@@ -99,7 +101,7 @@ def main():
     ap = argparse.ArgumentParser(description="Crop PDF by visual fractions (rotation-safe).")
     ap.add_argument("input", help="Input PDF")
     ap.add_argument("output", help="Output PDF")
-    ap.add_argument("--mode", choices=["left", "right", "top", "bottom"], help="Predefined crop region")
+    ap.add_argument("--mode", choices=["left", "right", "top", "bottom", "full"], help="Predefined crop region")
     ap.add_argument("--w1", type=float, help="Left (0-1)")
     ap.add_argument("--w2", type=float, help="Right (0-1)")
     ap.add_argument("--h1", type=float, help="Top (0-1)")

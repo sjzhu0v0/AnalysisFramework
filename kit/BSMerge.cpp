@@ -12,26 +12,50 @@
 #include <string>
 #include <vector>
 
+#define BS_OUTLIER_STDDEV_CUT 10.0
+
 TFile *outputFile = nullptr;
 double gScaleBS = 1;
+
+void FillStatisticWithoutOutliers(TStatistic &stat,
+                                  const std::vector<double> &values) {
+  TStatistic statRaw;
+  for (const auto &value : values)
+    statRaw.Fill(value);
+
+  const double mean = statRaw.GetMean();
+  const double stddev = statRaw.GetRMS();
+  if (stddev == 0) {
+    stat = statRaw;
+    return;
+  }
+
+  const double maxDeviation = BS_OUTLIER_STDDEV_CUT * stddev;
+  for (const auto &value : values) {
+    if (std::abs(value - mean) <= maxDeviation)
+      stat.Fill(value);
+  }
+}
 
 void MergeTH1D(TH1D *target, const std::vector<TH1D *> &sources) {
   TH1D *hist0 = sources[0];
   int n_source = sources.size();
   for (int bin = 1; bin <= target->GetNbinsX() + 1; ++bin) {
     TStatistic stat;
+    std::vector<double> values;
     double eff = 0;
     double content = hist0->GetBinContent(bin);
     if (content != 0)
-      stat.Fill(content);
+      values.push_back(content);
     if (content == 0)
       eff += 1.;
     for (size_t i = 1; i < sources.size(); ++i) {
       TH1D *hist = sources[i];
       double content1 = hist->GetBinContent(bin);
       if (content1 != 0)
-        stat.Fill(content1);
+        values.push_back(content1);
     }
+    FillStatisticWithoutOutliers(stat, values);
     eff = 1;
     // eff = 1 - eff / (double)n_source;
     target->SetBinContent(bin, stat.GetMean());
@@ -48,18 +72,20 @@ void MergeTH2D(TH2D *target, const std::vector<TH2D *> &sources) {
   for (int binx = 1; binx <= target->GetNbinsX() + 1; ++binx) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       TStatistic stat;
+      std::vector<double> values;
       double eff = 0;
       double content = hist0->GetBinContent(binx, biny);
       if (content != 0)
-        stat.Fill(content);
+        values.push_back(content);
       if (content == 0)
         eff += 1.;
       for (size_t i = 1; i < sources.size(); ++i) {
         TH2D *hist = sources[i];
         double content1 = hist->GetBinContent(binx, biny);
         if (content1 != 0)
-          stat.Fill(content1);
+          values.push_back(content1);
       }
+      FillStatisticWithoutOutliers(stat, values);
       eff = 1;
       eff = 1 - eff / (double)n_source;
       target->SetBinContent(binx, biny, stat.GetMean());
@@ -79,18 +105,20 @@ void MergeTH3D(TH3D *target, const std::vector<TH3D *> &sources) {
     for (int biny = 1; biny <= target->GetNbinsY() + 1; ++biny) {
       for (int binz = 1; binz <= target->GetNbinsZ() + 1; ++binz) {
         TStatistic stat;
+        std::vector<double> values;
         double eff = 0;
         double content = hist0->GetBinContent(binx, biny, binz);
         if (content != 0)
-          stat.Fill(content);
+          values.push_back(content);
         if (content == 0)
           eff += 1.;
         for (size_t i = 1; i < sources.size(); ++i) {
           TH3D *hist = sources[i];
           double content1 = hist->GetBinContent(binx, biny, binz);
           if (content1 != 0)
-            stat.Fill(content1);
+            values.push_back(content1);
         }
+        FillStatisticWithoutOutliers(stat, values);
         eff = 1;
         // eff = 1 - eff / (double)n_source;
         target->SetBinContent(binx, biny, binz, stat.GetMean());

@@ -8,3 +8,5 @@ output/
 test/
 draw/results/
 .config_rsync
+.cache
+.qwen
