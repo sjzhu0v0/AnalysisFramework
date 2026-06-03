@@ -3,7 +3,9 @@
 #include "MRootIO.h"
 #include "MSystem.h"
 #include "ROOT/RDF/HistoModels.hxx"
+#ifndef AF_DISABLE_YAMLCPP
 #include "yaml-cpp/yaml.h"
+#endif
 #include "THn.h"
 #include "tuple"
 
@@ -147,7 +149,7 @@ struct StrVar4Hist {
     return clone;
   }
 };
-
+#ifndef AF_DISABLE_YAMLCPP
 StrVar4Hist ParseStrVar4Hist(const YAML::Node& config) {                                                                           
     TString name = config["name"].as<std::string>().c_str();                                                                       
     TString title = config["title"].as<std::string>().c_str();                                                                     
@@ -185,6 +187,7 @@ StrVar4Hist ParseStrVar4Hist(const YAML::Node& config) {
                                                                                                                                    
     return StrVar4Hist(name, title, unit, nbins, bins);                                                                            
 }                           
+#endif
 
 TH2DModel GetTH2DModel(StrVar4Hist str1, StrVar4Hist str2, TString tag = "") {
   TString name = str1.fName + "_" + str2.fName;
