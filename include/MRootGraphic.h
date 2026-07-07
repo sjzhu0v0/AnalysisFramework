@@ -26,6 +26,18 @@ const int RGB_7_1[7][3] = {{38, 70, 83},    {40, 114, 113},  {42, 157, 140},
                            {230, 111, 81}}; // 16
 const int Color_Severity[5] = {kCyan + 2, kGreen + 2, kYellow + 1, kOrange + 7,
                                kRed + 1};
+const int RGB_10[10][3] = {
+    {31, 119, 180},  // blue
+    {255, 127, 14},  // orange
+    {44, 160, 44},   // green
+    {214, 39, 40},   // red
+    {148, 103, 189}, // purple
+    {140, 86, 75},   // brown
+    {227, 119, 194}, // pink
+    {127, 127, 127}, // gray
+    {188, 189, 34},  // olive
+    {23, 190, 207}   // cyan
+};
 } // namespace MColorSpace
 
 int GetColor(const int *rgb) {

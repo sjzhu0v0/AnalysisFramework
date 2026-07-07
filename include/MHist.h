@@ -773,7 +773,7 @@ public:
   int GetNbins(int i) { return hN->GetAxis(i)->GetNbins(); }
 };
 
-template <typename T> T *GetObjectSingle(TString path_obj);
+template <typename T> T *GetObjectSingle(TString path_obj, bool detach = false);
 
 template <typename T> class MHGroupTool {
 protected:

@@ -91,51 +91,51 @@ TChain *OpenChain(TFile *f, const char *name_tree) {
 }
 
 TObject *GetObjectSingle(TObject *folder, TString path_obj) {
-  TObject *obj_targetted = nullptr;
-
-  // check if path_obj contains "/"
-  bool isObject = false;
-  TString path_obj_next;
-  if (!path_obj.Contains("/")) {
-    isObject = true;
-    // path_obj = path_obj;
-  } else {
-    path_obj_next = path_obj(path_obj.First("/") + 1, path_obj.Length());
-    path_obj = path_obj(0, path_obj.First("/"));
+  if (!folder) {
+    cerr << "Error: null folder while getting " << path_obj << endl;
+    return nullptr;
   }
 
-  // TCollection TDirecotry
+  while (path_obj.BeginsWith("/"))
+    path_obj.Remove(0, 1);
+
+  if (path_obj.IsNull()) {
+    cerr << "Error: empty object path in " << folder->GetName() << endl;
+    return nullptr;
+  }
+
+  const Ssiz_t slash = path_obj.First("/");
+  const TString name_obj =
+      slash == kNPOS ? path_obj : path_obj(0, slash);
+  const TString path_obj_next =
+      slash == kNPOS ? TString("") : path_obj(slash + 1, path_obj.Length());
+
+  TObject *obj_next = nullptr;
   if (folder->IsA()->InheritsFrom(TDirectory::Class())) {
     TDirectory *dir = static_cast<TDirectory *>(folder);
-    TObject *obj_next = (TObject *)dir->Get(path_obj);
-    if (!obj_next) {
-      cout << "Object not found: " << path_obj << endl;
-      return nullptr;
-    }
-    if (isObject) {
-      obj_targetted = obj_next;
-    } else {
-      obj_targetted = MRootIO::GetObjectSingle(obj_next, path_obj_next);
-    }
+    obj_next = dir->Get(name_obj);
   } else if (folder->IsA()->InheritsFrom(TList::Class())) {
     TList *list = static_cast<TList *>(folder);
-    TObject *obj_next = list->FindObject(path_obj);
-    if (!obj_next) {
-      cout << "Object not found: " << path_obj << endl;
-      return nullptr;
-    }
-    if (isObject) {
-      obj_targetted = obj_next;
-    } else {
-      obj_targetted = MRootIO::GetObjectSingle(obj_next, path_obj_next);
-    }
+    obj_next = list->FindObject(name_obj);
   } else {
-    cout << "Unknown class: " << folder->ClassName() << endl;
+    cerr << "Error: unsupported class " << folder->ClassName()
+         << " while getting " << name_obj << endl;
+    return nullptr;
   }
-  return obj_targetted;
+
+  if (!obj_next) {
+    cerr << "Error: object not found: " << name_obj << " in "
+         << folder->GetName() << endl;
+    return nullptr;
+  }
+
+  if (path_obj_next.IsNull())
+    return obj_next;
+
+  return MRootIO::GetObjectSingle(obj_next, path_obj_next);
 }
 
-template <typename T> T *GetObjectSingle(TString path_obj) {
+template <typename T> T *GetObjectSingle(TString path_obj, bool detach = false) {
   if (!path_obj.Contains(".root:")) {
     cerr << "Error: No .root: in path " << path_obj << endl;
     return nullptr;
@@ -156,8 +156,15 @@ template <typename T> T *GetObjectSingle(TString path_obj) {
       f = new TFile(path_file);
       if (f->IsZombie()) {
         cerr << "Error: Could not open file " << path_file << endl;
-        exit(1);
+        delete f;
+        f = nullptr;
+        path_file_last = "";
+        return nullptr;
       }
+    }
+    if (!f) {
+      cerr << "Error: Could not open file " << path_file << endl;
+      return nullptr;
     }
     if (f->IsZombie()) {
       cerr << "Error: Could not open file " << path_file << endl;
@@ -170,13 +177,16 @@ template <typename T> T *GetObjectSingle(TString path_obj) {
       return nullptr;
     }
     if (!obj->InheritsFrom(T::Class())) {
-      cerr << "Error: Object is not of type " << endl;
-      exit(1);
+      cerr << "Error: Object " << path_obj_in_file << " in " << path_file
+           << " is " << obj->ClassName() << ", not " << T::Class()->GetName()
+           << endl;
       return nullptr;
     }
     T *t2return = static_cast<T *>(obj);
-    if constexpr (has_SetDirectory<T>::value) {
-      t2return->SetDirectory(0);
+    if (detach) {
+      if constexpr (has_SetDirectory<T>::value) {
+        t2return->SetDirectory(0);
+      }
     }
     return t2return;
   }
