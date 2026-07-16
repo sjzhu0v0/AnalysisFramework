@@ -549,6 +549,7 @@ THnD *GetTHnD(TString path) {
 #include <ROOT/RDFHelpers.hxx>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
+#include <TProfile3D.h>
 
 using namespace std;
 using namespace ROOT;
@@ -566,6 +567,7 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
     bool is_thn = false;
     bool is_pro1 = false;
     bool is_pro2 = false;
+    bool is_pro3 = false;
     try {
       auto th1 = handle.GetPtr<TH1D>();
       is_th1 = true;
@@ -602,6 +604,12 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
     } catch (const std::exception &e) {
       is_pro2 = false;
     }
+    try {
+      auto pro3 = handle.GetPtr<TProfile3D>();
+      is_pro3 = true;
+    } catch (const std::exception &e) {
+      is_pro3 = false;
+    }
 
     if (is_th1) {
       name = handle.GetPtr<TH1D>()->GetName();
@@ -615,6 +623,8 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
       name = handle.GetPtr<TProfile>()->GetName();
     } else if (is_pro2) {
       name = handle.GetPtr<TProfile2D>()->GetName();
+    } else if (is_pro3) {
+      name = handle.GetPtr<TProfile3D>()->GetName();
     } else {
       cout << "Error: Unknown histogram type" << endl;
       continue;
@@ -649,6 +659,8 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
         handle.GetPtr<TProfile>()->Write();
       } else if (is_pro2) {
         handle.GetPtr<TProfile2D>()->Write();
+      } else if (is_pro3) {
+        handle.GetPtr<TProfile3D>()->Write();
       }
     } else {
       if (is_th1) {
@@ -677,6 +689,11 @@ void RResultWrite(vector<RResultHandle> gRResultHandlesFast) {
             Form("%s_%d", handle.GetPtr<TProfile2D>()->GetName(),
                  time[index_exist]));
         handle.GetPtr<TProfile2D>()->Write();
+      } else if (is_pro3) {
+        handle.GetPtr<TProfile3D>()->SetName(
+            Form("%s_%d", handle.GetPtr<TProfile3D>()->GetName(),
+                 time[index_exist]));
+        handle.GetPtr<TProfile3D>()->Write();
       }
     }
   }
