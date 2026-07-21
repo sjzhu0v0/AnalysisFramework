@@ -1599,4 +1599,101 @@ public:
   int getTestCount() const { return fN_test; }
   std::vector<TF1 *> getAllSignalFunctions() const { return fVec_func_sig; }
 };
+
+// Inverse-variance counterpart to MFitterPoly.  Kept separate so the
+// unit-weight production fitter above remains unchanged.
+class MFitterPolyInvSigma2 {
+  TH1D* fHisto = nullptr;
+  int fFirstBin = 0, fNBins = 0, fOrder = 2;
+  double fXMin = 0., fBinWidth = 0.;
+  std::vector<double> fWeights, fSignal;
+  std::vector<std::vector<double>> fBasis;
+
+  double dot(const std::vector<double>& a, const std::vector<double>& b) const {
+    double sum = 0.;
+    for (int i = 0; i < fNBins; ++i) sum += fWeights[i] * a[i] * b[i];
+    return sum;
+  }
+  std::vector<double> projectOut(const std::vector<double>& values) const {
+    auto residual = values;
+    for (const auto& basis : fBasis) {
+      const double coefficient = dot(basis, values);
+      for (int i = 0; i < fNBins; ++i) residual[i] -= coefficient * basis[i];
+    }
+    return residual;
+  }
+  void buildBasis() {
+    fWeights.resize(fNBins);
+    int nWeighted = 0;
+    for (int i = 0; i < fNBins; ++i) {
+      const double error = fHisto->GetBinError(fFirstBin + i);
+      fWeights[i] = error > 0. ? 1. / (error * error) : 0.;
+      if (fWeights[i] > 0.) ++nWeighted;
+    }
+    if (nWeighted <= fOrder + 1) {
+      std::cerr << "MFitterPolyInvSigma2: insufficient nonzero-error bins" << std::endl;
+      std::exit(1);
+    }
+    fBasis.clear();
+    for (int power = 0; power <= fOrder; ++power) {
+      std::vector<double> current(fNBins);
+      for (int i = 0; i < fNBins; ++i) current[i] = std::pow(i + 1, power);
+      for (const auto& previous : fBasis) {
+        const double coefficient = dot(current, previous);
+        for (int i = 0; i < fNBins; ++i) current[i] -= coefficient * previous[i];
+      }
+      const double norm = std::sqrt(dot(current, current));
+      if (norm == 0.) { std::cerr << "MFitterPolyInvSigma2: singular basis" << std::endl; std::exit(1); }
+      for (double& value : current) value /= norm;
+      fBasis.push_back(current);
+    }
+  }
+ public:
+  double fNSignal = 0.;
+  MFitterPolyInvSigma2(TH1D* histogram, double xMin, double xMax) {
+    if (!histogram) { std::cerr << "MFitterPolyInvSigma2: null histogram" << std::endl; std::exit(1); }
+    fHisto = histogram;
+    fBinWidth = histogram->GetXaxis()->GetBinWidth(1);
+    fFirstBin = histogram->GetXaxis()->FindBin(xMin);
+    fXMin = histogram->GetXaxis()->GetBinLowEdge(fFirstBin);
+    fNBins = histogram->GetXaxis()->FindBin(xMax) - fFirstBin + 1;
+  }
+  void initializeBasis(int order = 4) { fOrder = order; buildBasis(); }
+  void setHisto(TH1D* histogram) {
+    if (!histogram || std::abs(histogram->GetXaxis()->GetBinWidth(1) - fBinWidth) > 1e-6) {
+      std::cerr << "MFitterPolyInvSigma2: incompatible histogram" << std::endl; std::exit(1);
+    }
+    const int firstBin = histogram->GetXaxis()->FindBin(fXMin);
+    if (std::abs(histogram->GetXaxis()->GetBinLowEdge(firstBin) - fXMin) > 1e-6) {
+      std::cerr << "MFitterPolyInvSigma2: incompatible mass range" << std::endl; std::exit(1);
+    }
+    fHisto = histogram; fFirstBin = firstBin; buildBasis();
+  }
+  void inputSignal(TH1D* signal, int nSampling = 10000000) {
+    if (!signal) { std::cerr << "MFitterPolyInvSigma2: null signal template" << std::endl; std::exit(1); }
+    TH1D sampled(Form("template_signal_%d", GenerateUID()), "Signal Template", fNBins, fXMin,
+                 fXMin + fNBins * fBinWidth);
+    for (int i = 0; i < nSampling; ++i) sampled.Fill(signal->GetRandom());
+    sampled.Scale(1. / nSampling);
+    fSignal.resize(fNBins);
+    for (int i = 0; i < fNBins; ++i) fSignal[i] = sampled.GetBinContent(i + 1);
+  }
+  void inputSignal(TF1* signal, int nSampling = 10000000) {
+    if (!signal) { std::cerr << "MFitterPolyInvSigma2: null signal function" << std::endl; std::exit(1); }
+    TH1D sampled(Form("template_signal_%d", GenerateUID()), "Signal Template", fNBins, fXMin,
+                 fXMin + fNBins * fBinWidth);
+    for (int i = 0; i < nSampling; ++i) sampled.Fill(signal->GetRandom());
+    sampled.Scale(1. / nSampling);
+    fSignal.resize(fNBins);
+    for (int i = 0; i < fNBins; ++i) fSignal[i] = sampled.GetBinContent(i + 1);
+  }
+  void fitWithSignal() {
+    std::vector<double> raw(fNBins);
+    for (int i = 0; i < fNBins; ++i) raw[i] = fHisto->GetBinContent(fFirstBin + i);
+    const auto rawPerp = projectOut(raw), signalPerp = projectOut(fSignal);
+    const double denominator = dot(signalPerp, signalPerp);
+    fNSignal = denominator > 0. ? dot(rawPerp, signalPerp) / denominator : 0.;
+    if (fNSignal < 0.) fNSignal = 0.;
+  }
+};
 #endif // __MFit_h__
