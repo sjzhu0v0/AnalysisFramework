@@ -1606,6 +1606,7 @@ class MFitterPolyInvSigma2 {
   TH1D* fHisto = nullptr;
   int fFirstBin = 0, fNBins = 0, fOrder = 2;
   double fXMin = 0., fBinWidth = 0.;
+  bool fHasSufficientPoints = false;
   std::vector<double> fWeights, fSignal;
   std::vector<std::vector<double>> fBasis;
 
@@ -1623,6 +1624,7 @@ class MFitterPolyInvSigma2 {
     return residual;
   }
   void buildBasis() {
+    fHasSufficientPoints = false;
     fWeights.resize(fNBins);
     int nWeighted = 0;
     for (int i = 0; i < fNBins; ++i) {
@@ -1631,8 +1633,12 @@ class MFitterPolyInvSigma2 {
       if (fWeights[i] > 0.) ++nWeighted;
     }
     if (nWeighted <= fOrder + 1) {
-      std::cerr << "MFitterPolyInvSigma2: insufficient nonzero-error bins" << std::endl;
-      std::exit(1);
+      std::cerr << "MFitterPolyInvSigma2: insufficient nonzero-error bins ("
+                << nWeighted << " available; need more than " << fOrder + 1
+                << "); setting signal yield to zero" << std::endl;
+      fBasis.clear();
+      fNSignal = 0.;
+      return;
     }
     fBasis.clear();
     for (int power = 0; power <= fOrder; ++power) {
@@ -1643,10 +1649,17 @@ class MFitterPolyInvSigma2 {
         for (int i = 0; i < fNBins; ++i) current[i] -= coefficient * previous[i];
       }
       const double norm = std::sqrt(dot(current, current));
-      if (norm == 0.) { std::cerr << "MFitterPolyInvSigma2: singular basis" << std::endl; std::exit(1); }
+      if (norm == 0.) {
+        std::cerr << "MFitterPolyInvSigma2: singular basis; setting signal yield to zero"
+                  << std::endl;
+        fBasis.clear();
+        fNSignal = 0.;
+        return;
+      }
       for (double& value : current) value /= norm;
       fBasis.push_back(current);
     }
+    fHasSufficientPoints = true;
   }
  public:
   double fNSignal = 0.;
@@ -1688,6 +1701,10 @@ class MFitterPolyInvSigma2 {
     for (int i = 0; i < fNBins; ++i) fSignal[i] = sampled.GetBinContent(i + 1);
   }
   void fitWithSignal() {
+    if (!fHasSufficientPoints) {
+      fNSignal = 0.;
+      return;
+    }
     std::vector<double> raw(fNBins);
     for (int i = 0; i < fNBins; ++i) raw[i] = fHisto->GetBinContent(fFirstBin + i);
     const auto rawPerp = projectOut(raw), signalPerp = projectOut(fSignal);
